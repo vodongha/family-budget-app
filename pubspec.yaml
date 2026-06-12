@@ -1,0 +1,30 @@
+name: family_budget_app
+description: Family Budget — multi-member household expense tracker (Flutter client for the family-budget FastAPI backend).
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # State management — mirrors the backend's service layer on the client.
+  flutter_riverpod: ^2.6.1
+  # HTTP — talks to the FastAPI backend; one configured Dio with an auth interceptor.
+  dio: ^5.7.0
+  # Declarative routing with an auth-aware redirect guard.
+  go_router: ^14.6.2
+  # JWT is stored encrypted at rest (Keychain / Keystore), never in plain prefs.
+  flutter_secure_storage: ^9.2.2
+  # Money + date formatting. Amounts are integer đồng — formatted, never parsed as float.
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

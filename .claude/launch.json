@@ -1,0 +1,21 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "family-budget-app (Android emulator)",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": [
+        "run",
+        "--dart-define=API_BASE_URL=http://10.0.2.2:8000"
+      ]
+    },
+    {
+      "name": "family-budget-app (localhost / web / iOS sim)",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": [
+        "run",
+        "--dart-define=API_BASE_URL=http://localhost:8000"
+      ]
+    }
+  ]
+}
