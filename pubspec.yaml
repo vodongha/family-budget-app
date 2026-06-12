@@ -10,6 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Localization (en/vi) — generated AppLocalizations from lib/l10n/*.arb.
+  flutter_localizations:
+    sdk: flutter
   # State management — mirrors the backend's service layer on the client.
   flutter_riverpod: ^2.6.1
   # HTTP — talks to the FastAPI backend; one configured Dio with an auth interceptor.
@@ -19,7 +22,9 @@ dependencies:
   # JWT is stored encrypted at rest (Keychain / Keystore), never in plain prefs.
   flutter_secure_storage: ^9.2.2
   # Money + date formatting. Amounts are integer đồng — formatted, never parsed as float.
-  intl: ^0.19.0
+  intl: any
+  # Persists the chosen language (and other simple prefs).
+  shared_preferences: ^2.3.3
 
 dev_dependencies:
   flutter_test:
@@ -28,3 +33,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true

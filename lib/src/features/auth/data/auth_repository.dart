@@ -57,6 +57,29 @@ class AuthRepository {
     }
   }
 
+  Future<AuthUser> updateDisplayName(String displayName) async {
+    try {
+      final Response<dynamic> res = await _dio.patch(
+        '/auth/me',
+        data: {'display_name': displayName},
+      );
+      return AuthUser.fromJson((res.data as Map).cast<String, dynamic>());
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Self-service account deletion (Google Play policy). Clears the local token
+  /// on success so the app returns to a signed-out state.
+  Future<void> deleteAccount() async {
+    try {
+      await _dio.delete('/auth/me');
+    } catch (e) {
+      throw toApiException(e);
+    }
+    await _storage.clear();
+  }
+
   Future<String?> readToken() => _storage.read();
 
   Future<void> logout() => _storage.clear();

@@ -25,6 +25,10 @@ ios/.symlinks/
 ios/Flutter/Flutter.framework
 ios/Flutter/Flutter.podspec
 
+# Generated localizations (regenerated from lib/l10n/*.arb by `flutter gen-l10n`)
+/lib/l10n/app_localizations.dart
+/lib/l10n/app_localizations_*.dart
+
 # Secrets / local config — NEVER commit
 .env
 *.keystore

@@ -53,6 +53,19 @@ class AuthController extends AsyncNotifier<AuthUser?> {
     });
   }
 
+  /// Update the display name and reflect it in the session immediately.
+  Future<void> updateDisplayName(String displayName) async {
+    final AuthUser updated = await _repo.updateDisplayName(displayName);
+    state = AsyncValue.data(updated);
+  }
+
+  /// Delete the account, then drop the session. Throws [ApiException] on failure
+  /// (e.g. 409 when an owner must transfer ownership first) — the caller shows it.
+  Future<void> deleteAccount() async {
+    await _repo.deleteAccount();
+    state = const AsyncValue.data(null);
+  }
+
   Future<void> logout() async {
     await _repo.logout();
     state = const AsyncValue.data(null);

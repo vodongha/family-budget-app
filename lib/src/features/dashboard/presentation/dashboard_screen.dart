@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../core/money.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../wallets/domain/wallet.dart';
@@ -13,6 +14,7 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations t = AppLocalizations.of(context);
     final AsyncValue<DashboardSummary> summary =
         ref.watch(dashboardControllerProvider);
     final String name =
@@ -20,30 +22,32 @@ class DashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(name.isEmpty ? 'Dashboard' : 'Hi, $name'),
+        title: Text(name.isEmpty ? t.dashboard : t.greeting(name)),
         actions: [
           IconButton(
-            tooltip: 'Transactions',
+            tooltip: t.transactions,
             icon: const Icon(Icons.receipt_long),
             onPressed: () => context.push('/transactions'),
           ),
           IconButton(
-            tooltip: 'Sign out',
-            icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+            tooltip: t.profile,
+            icon: const Icon(Icons.account_circle_outlined),
+            onPressed: () => context.push('/profile'),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/transactions/new'),
         icon: const Icon(Icons.add),
-        label: const Text('Add'),
+        label: Text(t.add),
       ),
       body: summary.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => _ErrorView(
           message: '$e',
-          onRetry: () => ref.read(dashboardControllerProvider.notifier).refresh(),
+          retryLabel: t.retry,
+          onRetry: () =>
+              ref.read(dashboardControllerProvider.notifier).refresh(),
         ),
         data: (s) => RefreshIndicator(
           onRefresh: () =>
@@ -51,13 +55,13 @@ class DashboardScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _NetCard(net: s.netBalance),
+              _NetCard(label: t.netBalance, net: s.netBalance),
               const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
                     child: _StatCard(
-                      label: 'Income',
+                      label: t.income,
                       amount: s.totalIncome,
                       color: Colors.green,
                       icon: Icons.south_west,
@@ -66,7 +70,7 @@ class DashboardScreen extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _StatCard(
-                      label: 'Expense',
+                      label: t.expense,
                       amount: s.totalExpense,
                       color: Colors.red,
                       icon: Icons.north_east,
@@ -75,13 +79,13 @@ class DashboardScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 24),
-              Text('Wallets (${s.walletCount})',
+              Text(t.walletsWithCount(s.walletCount),
                   style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               if (s.wallets.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(child: Text('No wallets yet.')),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Center(child: Text(t.noWalletsYet)),
                 )
               else
                 ...s.wallets.map((w) => _WalletTile(wallet: w)),
@@ -94,7 +98,8 @@ class DashboardScreen extends ConsumerWidget {
 }
 
 class _NetCard extends StatelessWidget {
-  const _NetCard({required this.net});
+  const _NetCard({required this.label, required this.net});
+  final String label;
   final int net;
 
   @override
@@ -106,7 +111,7 @@ class _NetCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Net balance'),
+            Text(label),
             const SizedBox(height: 4),
             Text(
               Money.format(net),
@@ -175,8 +180,13 @@ class _WalletTile extends StatelessWidget {
 }
 
 class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onRetry});
+  const _ErrorView({
+    required this.message,
+    required this.retryLabel,
+    required this.onRetry,
+  });
   final String message;
+  final String retryLabel;
   final VoidCallback onRetry;
 
   @override
@@ -191,7 +201,7 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            FilledButton.tonal(onPressed: onRetry, child: const Text('Retry')),
+            FilledButton.tonal(onPressed: onRetry, child: Text(retryLabel)),
           ],
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../core/money.dart';
 import '../../wallets/application/wallets_controller.dart';
 import '../../wallets/domain/wallet.dart';
@@ -44,25 +45,25 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     }
   }
 
-  Future<void> _createWallet() async {
+  Future<void> _createWallet(AppLocalizations t) async {
     final TextEditingController name = TextEditingController();
     final String? result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('New wallet'),
+        title: Text(t.newWallet),
         content: TextField(
           controller: name,
           autofocus: true,
-          decoration: const InputDecoration(labelText: 'Wallet name'),
+          decoration: InputDecoration(labelText: t.walletName),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(t.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, name.text.trim()),
-            child: const Text('Create'),
+            child: Text(t.create),
           ),
         ],
       ),
@@ -72,21 +73,19 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     }
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit(AppLocalizations t) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
     if (_walletRid == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pick a wallet first')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(t.pickWalletFirst)));
       return;
     }
     final int? amount = Money.parse(_amount.text);
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter an amount greater than 0')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(t.enterAmountGtZero)));
       return;
     }
 
@@ -117,27 +116,28 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations t = AppLocalizations.of(context);
     final AsyncValue<List<Wallet>> wallets =
         ref.watch(walletsControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add transaction')),
+      appBar: AppBar(title: Text(t.addTransaction)),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             SegmentedButton<TransactionType>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: TransactionType.expense,
-                  label: Text('Expense'),
-                  icon: Icon(Icons.north_east),
+                  label: Text(t.expense),
+                  icon: const Icon(Icons.north_east),
                 ),
                 ButtonSegment(
                   value: TransactionType.income,
-                  label: Text('Income'),
-                  icon: Icon(Icons.south_west),
+                  label: Text(t.income),
+                  icon: const Icon(Icons.south_west),
                 ),
               ],
               selected: {_type},
@@ -147,26 +147,26 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             TextFormField(
               controller: _amount,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Amount (₫)',
-                hintText: 'e.g. 50000',
+              decoration: InputDecoration(
+                labelText: t.amountLabel,
+                hintText: t.amountHint,
               ),
               validator: (v) {
                 final int? a = Money.parse(v ?? '');
-                return (a == null || a <= 0) ? 'Enter an amount > 0' : null;
+                return (a == null || a <= 0) ? t.enterAmountGtZero : null;
               },
             ),
             const SizedBox(height: 16),
             wallets.when(
               loading: () => const LinearProgressIndicator(),
-              error: (e, _) => Text('Failed to load wallets: $e'),
+              error: (e, _) => Text('$e'),
               data: (list) => Row(
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       initialValue: _walletRid ??
                           (list.isNotEmpty ? list.first.rid : null),
-                      decoration: const InputDecoration(labelText: 'Wallet'),
+                      decoration: InputDecoration(labelText: t.wallet),
                       items: list
                           .map((w) => DropdownMenuItem(
                                 value: w.rid,
@@ -177,9 +177,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'New wallet',
+                    tooltip: t.newWallet,
                     icon: const Icon(Icons.add_circle_outline),
-                    onPressed: _createWallet,
+                    onPressed: () => _createWallet(t),
                   ),
                 ],
               ),
@@ -187,13 +187,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _note,
-              decoration: const InputDecoration(labelText: 'Note (optional)'),
+              decoration: InputDecoration(labelText: t.noteOptional),
             ),
             const SizedBox(height: 16),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.calendar_today),
-              title: const Text('Date'),
+              title: Text(t.date),
               trailing: Text(
                 '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}',
               ),
@@ -201,14 +201,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             ),
             const SizedBox(height: 24),
             FilledButton(
-              onPressed: _saving ? null : _submit,
+              onPressed: _saving ? null : () => _submit(t),
               child: _saving
                   ? const SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Save'),
+                  : Text(t.save),
             ),
           ],
         ),

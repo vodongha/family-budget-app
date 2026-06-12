@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../application/auth_controller.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -40,6 +41,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations t = AppLocalizations.of(context);
     final bool busy = ref.watch(authControllerProvider).isLoading;
 
     ref.listen(authControllerProvider, (_, next) {
@@ -51,7 +53,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create a family')),
+      appBar: AppBar(title: Text(t.createFamilyTitle)),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -65,32 +67,35 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 children: [
                   TextFormField(
                     controller: _familyName,
-                    decoration: const InputDecoration(labelText: 'Family name'),
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    decoration: InputDecoration(labelText: t.familyName),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? t.fieldRequired
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _displayName,
-                    decoration: const InputDecoration(labelText: 'Your name'),
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    decoration: InputDecoration(labelText: t.yourName),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? t.fieldRequired
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(labelText: 'Email'),
-                    validator: (v) =>
-                        (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
+                    decoration: InputDecoration(labelText: t.email),
+                    validator: (v) => (v == null || !v.contains('@'))
+                        ? t.enterValidEmail
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _password,
                     obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Password'),
+                    decoration: InputDecoration(labelText: t.password),
                     validator: (v) =>
-                        (v == null || v.length < 8) ? 'At least 8 characters' : null,
+                        (v == null || v.length < 8) ? t.passwordMin : null,
                   ),
                   const SizedBox(height: 24),
                   FilledButton(
@@ -101,7 +106,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Create family & sign in'),
+                        : Text(t.createFamilyAndSignIn),
                   ),
                 ],
               ),

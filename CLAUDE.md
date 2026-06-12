@@ -65,12 +65,38 @@ emulator's route to host localhost).
 - `POST /auth/register` `{email, password, display_name, family_name}` — creates family + owner (no auto-login; app logs in after).
 - `POST /auth/login` — **form-encoded** `username` + `password` → `{access_token}`.
 - `GET /auth/me` → user incl. `role` (`owner`/`member`).
+- `PATCH /auth/me {display_name}` → updated user. `DELETE /auth/me` → `204` self-service
+  account deletion (soft-delete; backend purges after 30 days). `409` when an owner must
+  transfer ownership first — the app maps it to a localized message.
 - `GET /wallets`, `POST /wallets {name}` — balances are derived.
 - `GET /transactions?wallet_rid&limit`, `POST /transactions {wallet_rid, type, amount, note?, occurred_on?}`.
 - `GET /dashboard/summary` → `{total_income, total_expense, net_balance, wallet_count, wallets[]}`.
 
 Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner-only), 404
 (not found in this family / cross-family), 409 (duplicate), 422 (validation).
+
+## Localization (i18n)
+
+English + Vietnamese via the official `flutter_localizations` + ARB pipeline.
+
+- Strings live in `lib/l10n/app_en.arb` (template) and `app_vi.arb`. `flutter gen-l10n`
+  generates `AppLocalizations` into `lib/l10n/app_localizations*.dart` (**gitignored** —
+  regenerated on build and in CI; never hand-edit).
+- Use them in widgets: `final t = AppLocalizations.of(context);` then `t.someKey`. Placeholders
+  are methods (`t.greeting(name)`, `t.walletsWithCount(count)`).
+- **Add a string:** add the key to *both* ARB files, then run `flutter gen-l10n`. Don't hardcode
+  user-facing text in widgets.
+- The active locale is `LocaleController` (`core/prefs.dart`), persisted via
+  `shared_preferences`; `null` = follow the device. `SharedPreferences` is loaded in `main()`
+  and injected through `sharedPreferencesProvider`.
+
+## Profile & account deletion
+
+`features/auth/presentation/profile_screen.dart` (`/profile`, reached from the dashboard):
+edit display name (`PATCH /auth/me`), pick language, sign out, and **delete account**. Deletion
+shows a Google-Play-policy warning, calls `DELETE /auth/me`, then the auth state goes null and
+the router redirects to login. A `409` (owner must transfer first) is shown as a localized
+message. Keep this entry point — Google Play requires in-app account deletion.
 
 ## Conventions
 

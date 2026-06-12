@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../core/money.dart';
 import '../application/transactions_controller.dart';
 import '../domain/transaction.dart';
@@ -11,11 +12,12 @@ class TransactionsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations t = AppLocalizations.of(context);
     final AsyncValue<List<Transaction>> txns =
         ref.watch(transactionsControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Transactions')),
+      appBar: AppBar(title: Text(t.transactions)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/transactions/new'),
         child: const Icon(Icons.add),
@@ -33,7 +35,7 @@ class TransactionsScreen extends ConsumerWidget {
                 FilledButton.tonal(
                   onPressed: () =>
                       ref.invalidate(transactionsControllerProvider),
-                  child: const Text('Retry'),
+                  child: Text(t.retry),
                 ),
               ],
             ),
@@ -41,7 +43,7 @@ class TransactionsScreen extends ConsumerWidget {
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(child: Text('No transactions yet.'));
+            return Center(child: Text(t.noTransactionsYet));
           }
           return RefreshIndicator(
             onRefresh: () async {
@@ -66,9 +68,13 @@ class _TransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations t = AppLocalizations.of(context);
     final bool income = txn.type.isIncome;
     final Color color = income ? Colors.green : Colors.red;
     final String sign = income ? '+' : '−';
+    final String title = (txn.note == null || txn.note!.isEmpty)
+        ? (income ? t.income : t.expense)
+        : txn.note!;
 
     return ListTile(
       leading: CircleAvatar(
@@ -78,9 +84,7 @@ class _TransactionTile extends StatelessWidget {
           color: color,
         ),
       ),
-      title: Text(
-        (txn.note == null || txn.note!.isEmpty) ? txn.type.api : txn.note!,
-      ),
+      title: Text(title),
       subtitle: Text(
         '${txn.occurredOn.year}-${txn.occurredOn.month.toString().padLeft(2, '0')}-${txn.occurredOn.day.toString().padLeft(2, '0')}',
       ),

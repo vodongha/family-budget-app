@@ -19,6 +19,8 @@ transactions.
 | **Dashboard** | Net balance, total income/expense, and per-wallet derived balances. Pull to refresh. |
 | **Add transaction** | Expense/income toggle, amount in đồng, wallet picker (create a wallet inline), note, date. |
 | **Transactions** | Recent list, newest first, signed amounts (income +, expense −). |
+| **Profile** | Edit display name, switch language, sign out, and **delete account** (Google Play policy — soft-delete + 30-day purge on the backend). |
+| **Localization** | English & Tiếng Việt. Follows the device language by default; the choice is selectable in Profile and persisted. |
 
 ## Money rule
 
@@ -36,6 +38,8 @@ units, and the app only ever *formats* them (`lib/src/core/money.dart`). Money i
 | HTTP | Dio (one configured client + bearer-token interceptor) |
 | Routing | go_router (auth-aware redirect guard) |
 | Secure storage | flutter_secure_storage (Keychain / Keystore) |
+| Localization | flutter_localizations + ARB (`lib/l10n`, generated `AppLocalizations`) |
+| Preferences | shared_preferences (persists the chosen language) |
 | Formatting | intl |
 
 ## Architecture
@@ -48,16 +52,24 @@ presentation (widgets)  →  application (Riverpod controllers)  →  data (repo
 
 ```
 lib/
-├── main.dart                      # ProviderScope + app
+├── main.dart                      # loads prefs, ProviderScope + app
+├── l10n/                          # app_en.arb, app_vi.arb (generated AppLocalizations, gitignored)
 └── src/
-    ├── app.dart                   # MaterialApp.router
-    ├── core/                      # config, Dio client, token storage, router, theme, money
+    ├── app.dart                   # MaterialApp.router + localization + locale
+    ├── core/                      # config, Dio client, token storage, prefs/locale, router, theme, money
     └── features/
-        ├── auth/                  # login, register, session (AuthController)
+        ├── auth/                  # login, register, session, profile (edit name / language / delete)
         ├── dashboard/             # summary cards + wallet list
         ├── wallets/               # wallet model + repo + controller
         └── transactions/          # add + list
 ```
+
+### Localization
+
+Strings live in `lib/l10n/app_en.arb` (template) and `app_vi.arb`. `flutter gen-l10n`
+generates `AppLocalizations` into `lib/l10n/` (gitignored — regenerated on build / in CI).
+The active locale is held by `LocaleController` (persisted via `shared_preferences`); `null`
+means "follow the device". Add a string by editing both ARB files, then `flutter gen-l10n`.
 
 Each feature is split `domain/` (models), `data/` (repository + Dio), `application/`
 (Riverpod controller), `presentation/` (screens).

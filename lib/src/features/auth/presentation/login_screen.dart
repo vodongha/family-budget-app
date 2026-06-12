@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../application/auth_controller.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -34,6 +35,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations t = AppLocalizations.of(context);
     final AsyncValue<Object?> auth = ref.watch(authControllerProvider);
     final bool busy = auth.isLoading;
 
@@ -58,7 +60,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Family Budget',
+                    t.appTitle,
                     style: Theme.of(context).textTheme.headlineMedium,
                     textAlign: TextAlign.center,
                   ),
@@ -67,19 +69,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
                     autofillHints: const [AutofillHints.email],
-                    decoration: const InputDecoration(labelText: 'Email'),
-                    validator: (v) =>
-                        (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
+                    decoration: InputDecoration(labelText: t.email),
+                    validator: (v) => (v == null || !v.contains('@'))
+                        ? t.enterValidEmail
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _password,
                     obscureText: true,
                     autofillHints: const [AutofillHints.password],
-                    decoration: const InputDecoration(labelText: 'Password'),
+                    decoration: InputDecoration(labelText: t.password),
                     onFieldSubmitted: (_) => _submit(),
                     validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Enter your password' : null,
+                        (v == null || v.isEmpty) ? t.enterPassword : null,
                   ),
                   const SizedBox(height: 24),
                   FilledButton(
@@ -90,11 +93,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Sign in'),
+                        : Text(t.signIn),
                   ),
                   TextButton(
                     onPressed: busy ? null : () => context.push('/register'),
-                    child: const Text('Create a new family'),
+                    child: Text(t.createNewFamily),
                   ),
                 ],
               ),
