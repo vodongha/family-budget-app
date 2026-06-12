@@ -55,5 +55,15 @@
   "deleteAccountConfirm": "Xóa tài khoản của tôi",
   "ownerMustTransfer": "Bạn là chủ gia đình. Hãy chuyển quyền cho thành viên khác trước khi xóa tài khoản.",
   "accountDeleted": "Tài khoản của bạn đã được xóa.",
-  "saved": "Đã lưu"
+  "saved": "Đã lưu",
+  "settings": "Cài đặt",
+  "general": "Chung",
+  "appearance": "Giao diện",
+  "theme": "Chủ đề",
+  "light": "Sáng",
+  "dark": "Tối",
+  "editProfile": "Sửa hồ sơ",
+  "manageYourAccount": "Quản lý tài khoản",
+  "overview": "Tổng quan",
+  "thisMonth": "Tháng này"
 }

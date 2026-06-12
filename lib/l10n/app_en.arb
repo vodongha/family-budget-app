@@ -61,5 +61,15 @@
   "deleteAccountConfirm": "Delete my account",
   "ownerMustTransfer": "You are the family owner. Transfer ownership to another member before deleting your account.",
   "accountDeleted": "Your account has been deleted.",
-  "saved": "Saved"
+  "saved": "Saved",
+  "settings": "Settings",
+  "general": "General",
+  "appearance": "Appearance",
+  "theme": "Theme",
+  "light": "Light",
+  "dark": "Dark",
+  "editProfile": "Edit profile",
+  "manageYourAccount": "Manage your account",
+  "overview": "Overview",
+  "thisMonth": "This month"
 }

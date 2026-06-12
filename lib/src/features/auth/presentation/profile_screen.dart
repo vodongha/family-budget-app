@@ -2,201 +2,168 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../../core/api_client.dart';
-import '../../../core/prefs.dart';
 import '../application/auth_controller.dart';
 import '../domain/auth_user.dart';
+import 'avatar.dart';
 
-class ProfileScreen extends ConsumerWidget {
+/// Edit-profile screen: large avatar, editable display name, read-only email
+/// and role. Modern, single-column layout.
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  final _name = TextEditingController();
+  bool _saving = false;
+  bool _initialised = false;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save(AppLocalizations t) async {
+    final String name = _name.text.trim();
+    if (name.isEmpty) {
+      return;
+    }
+    setState(() => _saving = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(authControllerProvider.notifier).updateDisplayName(name);
+      messenger.showSnackBar(SnackBar(content: Text(t.saved)));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) {
+        setState(() => _saving = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final AppLocalizations t = AppLocalizations.of(context);
+    final ColorScheme cs = Theme.of(context).colorScheme;
     final AuthUser? user = ref.watch(authControllerProvider).valueOrNull;
-    final Locale? locale = ref.watch(localeControllerProvider);
 
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+    if (!_initialised) {
+      _name.text = user.displayName;
+      _initialised = true;
+    }
 
     return Scaffold(
-      appBar: AppBar(title: Text(t.profile)),
+      appBar: AppBar(title: Text(t.editProfile)),
       body: ListView(
+        padding: const EdgeInsets.all(20),
         children: [
-          ListTile(
-            leading: const Icon(Icons.person_outline),
-            title: Text(t.displayName),
-            subtitle: Text(user.displayName),
-            trailing: const Icon(Icons.edit_outlined),
-            onTap: () => _editName(context, ref, t, user.displayName),
+          Center(
+            child: Column(
+              children: [
+                UserAvatar(name: user.displayName, radius: 44),
+                const SizedBox(height: 12),
+                Text(
+                  user.email,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: cs.onSurfaceVariant),
+                ),
+              ],
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.email_outlined),
-            title: Text(t.email),
-            subtitle: Text(user.email),
-          ),
-          ListTile(
-            leading: const Icon(Icons.shield_outlined),
-            title: Text(t.role),
-            subtitle: Text(user.isOwner ? t.roleOwner : t.roleMember),
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: Text(t.language),
-            subtitle: Text(_localeLabel(t, locale)),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _pickLanguage(context, ref, t, locale),
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: Text(t.signOut),
-            onTap: () => ref.read(authControllerProvider.notifier).logout(),
+          const SizedBox(height: 28),
+          Text(
+            t.displayName.toUpperCase(),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: cs.onSurfaceVariant,
+                  letterSpacing: 0.8,
+                ),
           ),
           const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error,
-                side: BorderSide(color: Theme.of(context).colorScheme.error),
-                minimumSize: const Size.fromHeight(48),
-              ),
-              icon: const Icon(Icons.delete_forever),
-              label: Text(t.deleteAccount),
-              onPressed: () => _confirmDelete(context, ref, t),
+          TextField(
+            controller: _name,
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.badge_outlined),
+              hintText: t.displayName,
             ),
+            onSubmitted: (_) => _save(t),
           ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  String _localeLabel(AppLocalizations t, Locale? locale) {
-    return switch (locale?.languageCode) {
-      'en' => t.english,
-      'vi' => t.vietnamese,
-      _ => t.systemDefault,
-    };
-  }
-
-  Future<void> _editName(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations t,
-    String current,
-  ) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final notifier = ref.read(authControllerProvider.notifier);
-    final controller = TextEditingController(text: current);
-    final String? name = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(t.editName),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(labelText: t.displayName),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx), child: Text(t.cancel)),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: Text(t.save),
-          ),
-        ],
-      ),
-    );
-    if (name == null || name.isEmpty || name == current) {
-      return;
-    }
-    try {
-      await notifier.updateDisplayName(name);
-      messenger.showSnackBar(SnackBar(content: Text(t.saved)));
-    } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
-    }
-  }
-
-  Future<void> _pickLanguage(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations t,
-    Locale? current,
-  ) async {
-    final String selected = current?.languageCode ?? 'system';
-    final options = <(String, String)>[
-      ('system', t.systemDefault),
-      ('en', t.english),
-      ('vi', t.vietnamese),
-    ];
-    // Returns a marker: 'system' / 'en' / 'vi'; a null result means dismissed.
-    final String? choice = await showModalBottomSheet<String>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final (code, label) in options)
-              ListTile(
-                title: Text(label),
-                trailing: code == selected
-                    ? Icon(Icons.check,
-                        color: Theme.of(ctx).colorScheme.primary)
-                    : null,
-                onTap: () => Navigator.pop(ctx, code),
+          const SizedBox(height: 16),
+          _InfoCard(
+            children: [
+              _InfoRow(
+                icon: Icons.email_outlined,
+                label: t.email,
+                value: user.email,
               ),
-          ],
-        ),
-      ),
-    );
-    if (choice == null) {
-      return; // dismissed without choosing
-    }
-    final Locale? locale = choice == 'system' ? null : Locale(choice);
-    await ref.read(localeControllerProvider.notifier).setLocale(locale);
-  }
-
-  Future<void> _confirmDelete(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations t,
-  ) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final notifier = ref.read(authControllerProvider.notifier);
-    final bool? ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(t.deleteAccount),
-        content: Text(t.deleteAccountWarning),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(t.cancel)),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(t.deleteAccountConfirm),
+              const Divider(height: 1),
+              _InfoRow(
+                icon: Icons.shield_outlined,
+                label: t.role,
+                value: user.isOwner ? t.roleOwner : t.roleMember,
+              ),
+            ],
+          ),
+          const SizedBox(height: 28),
+          FilledButton.icon(
+            onPressed: _saving ? null : () => _save(t),
+            icon: _saving
+                ? const SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.check),
+            label: Text(t.save),
           ),
         ],
       ),
     );
-    if (ok != true) {
-      return;
-    }
-    try {
-      await notifier.deleteAccount();
-      // Auth state is now null → the router redirects to /login automatically.
-      messenger.showSnackBar(SnackBar(content: Text(t.accountDeleted)));
-    } on ApiException catch (e) {
-      final String msg = e.statusCode == 409 ? t.ownerMustTransfer : e.message;
-      messenger.showSnackBar(SnackBar(content: Text(msg)));
-    }
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({required this.children});
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(children: children),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow(
+      {required this.icon, required this.label, required this.value});
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return ListTile(
+      leading: Icon(icon, color: cs.primary),
+      title: Text(label,
+          style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
+      subtitle: Text(
+        value,
+        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
+      ),
+    );
   }
 }

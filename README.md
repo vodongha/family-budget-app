@@ -19,8 +19,10 @@ transactions.
 | **Dashboard** | Net balance, total income/expense, and per-wallet derived balances. Pull to refresh. |
 | **Add transaction** | Expense/income toggle, amount in đồng, wallet picker (create a wallet inline), note, date. |
 | **Transactions** | Recent list, newest first, signed amounts (income +, expense −). |
-| **Profile** | Edit display name, switch language, sign out, and **delete account** (Google Play policy — soft-delete + 30-day purge on the backend). |
-| **Localization** | English & Tiếng Việt. Follows the device language by default; the choice is selectable in Profile and persisted. |
+| **Account menu** | Tap the avatar → a modern sheet: edit profile, settings, sign out, **delete account** (Google Play policy — soft-delete + 30-day purge on the backend). |
+| **Settings** | **Light / dark / system** theme and language, both persisted. Default follows the system. |
+| **Localization** | English & Tiếng Việt. Follows the device language by default; selectable in Settings and persisted. |
+| **Modern UI** | Material 3 with a tonal indigo palette, gradient balance hero, rounded cards, filled inputs — light & dark. |
 
 ## Money rule
 

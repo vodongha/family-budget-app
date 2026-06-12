@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,3 +33,24 @@ class LocaleController extends Notifier<Locale?> {
 
 final localeControllerProvider =
     NotifierProvider<LocaleController, Locale?>(LocaleController.new);
+
+/// Holds the light/dark/system theme preference, persisted across restarts.
+/// Defaults to [ThemeMode.system].
+class ThemeController extends Notifier<ThemeMode> {
+  static const String _key = 'theme_mode';
+
+  @override
+  ThemeMode build() {
+    final String? name = ref.read(sharedPreferencesProvider).getString(_key);
+    return ThemeMode.values
+        .firstWhere((m) => m.name == name, orElse: () => ThemeMode.system);
+  }
+
+  Future<void> setMode(ThemeMode mode) async {
+    await ref.read(sharedPreferencesProvider).setString(_key, mode.name);
+    state = mode;
+  }
+}
+
+final themeControllerProvider =
+    NotifierProvider<ThemeController, ThemeMode>(ThemeController.new);

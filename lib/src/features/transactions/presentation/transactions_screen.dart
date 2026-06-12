@@ -77,14 +77,20 @@ class _TransactionTile extends StatelessWidget {
         : txn.note!;
 
     return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: color.withValues(alpha: 0.15),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      leading: Container(
+        height: 44,
+        width: 44,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(14),
+        ),
         child: Icon(
-          income ? Icons.south_west : Icons.north_east,
+          income ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
           color: color,
         ),
       ),
-      title: Text(title),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(
         '${txn.occurredOn.year}-${txn.occurredOn.month.toString().padLeft(2, '0')}-${txn.occurredOn.day.toString().padLeft(2, '0')}',
       ),

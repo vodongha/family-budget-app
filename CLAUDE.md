@@ -90,6 +90,17 @@ English + Vietnamese via the official `flutter_localizations` + ARB pipeline.
   `shared_preferences`; `null` = follow the device. `SharedPreferences` is loaded in `main()`
   and injected through `sharedPreferencesProvider`.
 
+## Theming & settings
+
+- The design system lives in `core/theme.dart` (`AppTheme.light()` / `dark()`) — one seed
+  colour, rounded cards, filled inputs, low elevation. Use `Theme.of(context).colorScheme`
+  tokens (`primary`, `onSurfaceVariant`, …); **don't hardcode colours**.
+- `ThemeController` (`core/prefs.dart`) holds `ThemeMode` (system/light/dark), persisted via
+  `shared_preferences`, default `system`. `MaterialApp.router` reads it via `themeControllerProvider`.
+- **Settings** (`features/settings/presentation/settings_screen.dart`, `/settings`) chooses theme
+  + language. **Account menu** (`features/auth/presentation/account_menu.dart`, `showAccountSheet`)
+  is the bottom sheet opened from the dashboard avatar: edit profile, settings, sign out, delete.
+
 ## Profile & account deletion
 
 `features/auth/presentation/profile_screen.dart` (`/profile`, reached from the dashboard):
