@@ -20,7 +20,8 @@ class BudgetRepository {
     }
   }
 
-  Future<void> create({required String categoryRid, required int amount}) async {
+  Future<void> create(
+      {required String categoryRid, required int amount}) async {
     try {
       await _dio.post('/budgets',
           data: {'category_rid': categoryRid, 'amount': amount});

@@ -25,7 +25,8 @@ class TransactionsScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: t.filter,
-            icon: Icon(filterActive ? Icons.filter_alt : Icons.filter_alt_outlined),
+            icon: Icon(
+                filterActive ? Icons.filter_alt : Icons.filter_alt_outlined),
             onPressed: () => showModalBottomSheet<void>(
               context: context,
               isScrollControlled: true,
@@ -91,9 +92,8 @@ class _TransactionTile extends StatelessWidget {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final bool transfer = txn.type.isTransfer;
     final bool inflow = txn.type.isInflow;
-    final Color color = transfer
-        ? cs.onSurfaceVariant
-        : (inflow ? Colors.green : Colors.red);
+    final Color color =
+        transfer ? cs.onSurfaceVariant : (inflow ? Colors.green : Colors.red);
     final String sign = inflow ? '+' : '−';
     final String date =
         '${txn.occurredOn.year}-${txn.occurredOn.month.toString().padLeft(2, '0')}-${txn.occurredOn.day.toString().padLeft(2, '0')}';
@@ -101,9 +101,8 @@ class _TransactionTile extends StatelessWidget {
 
     final String title;
     if (transfer) {
-      title = txn.type == TransactionType.transferIn
-          ? t.transferIn
-          : t.transferOut;
+      title =
+          txn.type == TransactionType.transferIn ? t.transferIn : t.transferOut;
     } else {
       title = (txn.note == null || txn.note!.isEmpty)
           ? (categoryName ?? (inflow ? t.income : t.expense))

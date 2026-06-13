@@ -39,7 +39,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     super.initState();
     final Transaction? e = widget.existing;
     if (e != null) {
-      _type = e.type.isIncome ? TransactionType.income : TransactionType.expense;
+      _type =
+          e.type.isIncome ? TransactionType.income : TransactionType.expense;
       _amount.text = e.amount.toString();
       _note.text = e.note ?? '';
       _walletRid = e.walletRid;
@@ -218,7 +219,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
         setState(() => _saving = false);
       }
     }
