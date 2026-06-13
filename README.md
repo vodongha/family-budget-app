@@ -19,7 +19,8 @@ transactions.
 | **Dashboard** | Net balance, total income/expense, and per-wallet derived balances. Pull to refresh. |
 | **Add transaction** | Expense/income toggle, amount in đồng, wallet picker (create a wallet inline), note, date. |
 | **Transactions** | Recent list, newest first, signed amounts (income +, expense −). |
-| **Statistics** | Charts (`fl_chart`): monthly income/expense bars (3M/6M/12M), income-vs-expense donut, balance-by-wallet bars. |
+| **Personal vs family** | A scope toggle (**Personal** on the left, **Family** on the right) switches the dashboard, transactions and statistics between the user's private wallets and the shared family wallets. |
+| **Statistics** | Charts (`fl_chart`): monthly income/expense bars (3M/6M/12M), income-vs-expense donut, balance-by-wallet bars, and a by-category donut. A scope toggle on the screen shows **personal** and **family** statistics separately. |
 | **Members & invites** | A **Members** screen lists the family; an owner can **transfer ownership** to another member. Owners invite by email or phone: if the contact already has an account the invite arrives **in-app** (an **Invitations** inbox to accept/decline — no link); otherwise a shareable registration link is shown. |
 | **Account menu** | Tap the avatar → a modern sheet: edit profile (incl. phone), members, invitations, settings, sign out, **delete account** (Google Play policy — soft-delete + 30-day purge on the backend). |
 | **Settings** | **Light / dark / system** theme and language, both persisted. Default follows the system. |
