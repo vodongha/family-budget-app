@@ -20,6 +20,7 @@ This repo was renamed from `eShopSolution` (old .NET sample). Git history is kep
 - **Dio** for HTTP — a single configured client with a bearer-token interceptor
 - **go_router** for navigation with an auth-aware redirect guard
 - **flutter_secure_storage** for the JWT (Keychain / Keystore — never plain prefs)
+- **phone_form_field** for the optional phone number (country-code picker → E.164)
 - **intl** for money/date formatting
 
 ## Money rules (must follow)
@@ -62,31 +63,49 @@ Rules:
 Base URL via `--dart-define=API_BASE_URL=...` (default `http://10.0.2.2:8000`, the Android
 emulator's route to host localhost).
 
-- `POST /auth/register` `{email, password, display_name, family_name}` — creates family + owner (no auto-login; app logs in after).
+- `POST /auth/register` `{email, password, display_name, family_name, phone?}` — creates
+  family + owner (no auto-login; app logs in after). `phone` optional, E.164.
 - `POST /auth/login` — **form-encoded** `username` + `password` → `{access_token}`.
-- `GET /auth/me` → user incl. `role` (`owner`/`member`).
+- `GET /auth/me` → user incl. `role` (`owner`/`member`) and `phone` (nullable).
 - `POST /auth/google {id_token}` → `{access_token}` (Sign in with Google).
-- `PATCH /auth/me {display_name}` → updated user. `DELETE /auth/me` → `204` self-service
+- `PATCH /auth/me {display_name, phone}` → updated user. `phone` is always sent (blank
+  clears it); `422` invalid number, `409` duplicate. `DELETE /auth/me` → `204` self-service
   account deletion (soft-delete; backend purges after 30 days). `409` when an owner must
   transfer ownership first — the app maps it to a localized message.
+- `GET /members` → active family members `[{rid, display_name, email, phone?, role}]`.
+- `POST /families/transfer-ownership {target_rid}` (owner-only) → new owner; the caller
+  becomes a member (single-owner model).
 - `GET /wallets`, `POST /wallets {name}` — balances are derived.
 - `GET /transactions?wallet_rid&limit`, `POST /transactions {wallet_rid, type, amount, note?, occurred_on?}`.
 - `GET /dashboard/summary` → `{total_income, total_expense, net_balance, wallet_count, wallets[]}`.
 - `GET /stats/monthly?months=N` → `[{month, income, expense}]` (statistics charts).
-- `POST /invitations {email?|phone?}` (owner) → invite + token; `GET /invitations/{token}`
-  (public) → `{family_name, role, status, email?}`; `POST /invitations/accept {token, password,
-  display_name, email?}` (public) → `{access_token}` (auto-login).
+- `POST /invitations {email?|phone?}` (owner) → invite incl. `in_app` (true when the contact
+  matched an existing account). `GET /invitations/{token}` (public) → `{family_name, role,
+  status, email?}`; `POST /invitations/accept {token, password, display_name, email?}` (public)
+  → `{access_token}` (auto-login).
+- **In-app invites** (existing accounts): `GET /invitations/inbox` (auth) → pending invites
+  `[{rid, family_name, invited_by, role}]`; `POST /invitations/{rid}/accept-existing` (auth)
+  → `{access_token}` (joins the family; `409` if the caller owns a family with other members);
+  `POST /invitations/{rid}/decline` (auth).
 
 Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner-only), 404
 (not found in this family / cross-family), 409 (duplicate), 422 (validation).
 
 ## Members, invites & statistics
 
-- **Members/invites** (`features/invitations/`): owner-only Add member screen (`/members/add`,
-  from the account menu) creates an invitation by email or phone and shows a shareable link
-  `<origin>/#/invite/<token>`. The **public** `/invite/:token` landing (router whitelists it
-  when signed-out) reads `GET /invitations/{token}`, registers the invitee, and re-reads the
-  auth controller to enter the app. One user belongs to one family — invites are for new users.
+- **Members** (`features/members/`): the `/members` screen (account menu) lists active
+  members with their role; an owner sees a transfer-ownership action per member that calls
+  `POST /families/transfer-ownership` (the caller is demoted to member). `MembersController`
+  refreshes the list and the auth user (role changed) after a transfer.
+- **Invites** (`features/invitations/`): owner-only Add-member screen (`/members/add`) creates
+  an invitation by email or phone. If the contact matches an **existing account** the response
+  is `in_app` and the screen shows an "invitation sent" card (no link); otherwise it shows a
+  shareable link `<origin>/#/invite/<token>`. The **public** `/invite/:token` landing (router
+  whitelists it when signed-out) registers a brand-new invitee. **In-app invites** land in the
+  invitee's **Invitations** inbox (`/invitations`, `InboxController`): accepting calls
+  `accept-existing`, stores the new token, refreshes the user, and invalidates family-scoped
+  providers (dashboard/wallets/transactions/stats/members) before going home. One user belongs
+  to one family — accepting moves them (their now-empty old family is soft-deleted server-side).
 - **Statistics** (`features/stats/`): `/stats` (dashboard bar-chart icon) draws `fl_chart`
   charts from `GET /stats/monthly` + the dashboard summary. A `3M/6M/12M` selector drives
   `monthlyStatsProvider(months)`.
@@ -132,7 +151,8 @@ English + Vietnamese via the official `flutter_localizations` + ARB pipeline.
 ## Profile & account deletion
 
 `features/auth/presentation/profile_screen.dart` (`/profile`, reached from the dashboard):
-edit display name (`PATCH /auth/me`), pick language, sign out, and **delete account**. Deletion
+edit display name and **phone** (optional, via `AppPhoneField` → E.164; `PATCH /auth/me`),
+pick language, sign out, and **delete account**. Deletion
 shows a Google-Play-policy warning, calls `DELETE /auth/me`, then the auth state goes null and
 the router redirects to login. A `409` (owner must transfer first) is shown as a localized
 message. Keep this entry point — Google Play requires in-app account deletion.
