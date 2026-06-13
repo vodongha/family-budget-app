@@ -63,23 +63,63 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
   Widget build(BuildContext context) {
     final AppLocalizations t = AppLocalizations.of(context);
     if (kIsWeb) {
-      // Full-width GIS button, sized to the surrounding column so it lines up
-      // with the other buttons. GIS caps the width at 400.
-      return LayoutBuilder(
-        builder: (context, constraints) => SizedBox(
-          height: 48,
-          width: double.infinity,
-          child: Align(
-            alignment: Alignment.center,
-            child: googleRenderButton(constraints.maxWidth),
+      // GIS only hands back an ID token through its own rendered button, and
+      // that button can't be sized to match the app (height caps at 40, corners
+      // are fixed). So we draw our own button styled like the other ones and
+      // lay the real GIS button on top, transparent, to capture the tap.
+      return Stack(
+        children: [
+          // Visual layer — matches the FilledButton/OutlinedButton geometry
+          // (52 high, 14 radius) from the theme. Ignores pointers so taps fall
+          // through to the GIS button above it.
+          IgnorePointer(
+            child: OutlinedButton.icon(
+              onPressed: () {},
+              icon: const _GoogleG(),
+              label: Text(t.continueWithGoogle),
+            ),
           ),
-        ),
+          // Click layer — the real GIS button, stretched to fill and made
+          // invisible (a hair above 0 so the DOM element stays clickable).
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.01,
+              child: LayoutBuilder(
+                builder: (context, constraints) => FittedBox(
+                  fit: BoxFit.fill,
+                  child: SizedBox(
+                    width: constraints.maxWidth,
+                    height: 40,
+                    child: googleRenderButton(constraints.maxWidth),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       );
     }
     return OutlinedButton.icon(
       onPressed: () => _gsi.signIn(),
-      icon: const Icon(Icons.login),
+      icon: const _GoogleG(),
       label: Text(t.continueWithGoogle),
+    );
+  }
+}
+
+/// A small Google "G" mark for the sign-in button.
+class _GoogleG extends StatelessWidget {
+  const _GoogleG();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text(
+      'G',
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFF4285F4),
+      ),
     );
   }
 }

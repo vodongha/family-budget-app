@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone_form_field/phone_form_field.dart';
 
 import '../l10n/app_localizations.dart';
 import 'core/prefs.dart';
@@ -21,7 +22,10 @@ class FamilyBudgetApp extends ConsumerWidget {
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,
       locale: locale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: [
+        ...AppLocalizations.localizationsDelegates,
+        ...PhoneFieldLocalization.delegates,
+      ],
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
     );

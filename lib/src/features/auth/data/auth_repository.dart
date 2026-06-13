@@ -34,6 +34,7 @@ class AuthRepository {
     required String password,
     required String displayName,
     required String familyName,
+    String? phone,
   }) async {
     try {
       await _dio.post('/auth/register', data: {
@@ -41,6 +42,7 @@ class AuthRepository {
         'password': password,
         'display_name': displayName,
         'family_name': familyName,
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
       });
     } catch (e) {
       throw toApiException(e);
@@ -68,11 +70,16 @@ class AuthRepository {
     }
   }
 
-  Future<AuthUser> updateDisplayName(String displayName) async {
+  /// Update the display name and (optional) phone. The phone is always sent so a
+  /// blank value clears it; the backend validates/normalises it to E.164.
+  Future<AuthUser> updateProfile({
+    required String displayName,
+    String? phone,
+  }) async {
     try {
       final Response<dynamic> res = await _dio.patch(
         '/auth/me',
-        data: {'display_name': displayName},
+        data: {'display_name': displayName, 'phone': phone ?? ''},
       );
       return AuthUser.fromJson((res.data as Map).cast<String, dynamic>());
     } catch (e) {

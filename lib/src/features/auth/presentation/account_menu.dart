@@ -78,6 +78,22 @@ class _AccountSheet extends ConsumerWidget {
                 parentContext.push('/profile');
               },
             ),
+            _MenuTile(
+              icon: Icons.people_outline,
+              label: t.members,
+              onTap: () {
+                Navigator.pop(context);
+                parentContext.push('/members');
+              },
+            ),
+            _MenuTile(
+              icon: Icons.mail_outline,
+              label: t.invitations,
+              onTap: () {
+                Navigator.pop(context);
+                parentContext.push('/invitations');
+              },
+            ),
             if (user.isOwner)
               _MenuTile(
                 icon: Icons.group_add_outlined,

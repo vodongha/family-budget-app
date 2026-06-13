@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/phone_field.dart';
 import '../application/auth_controller.dart';
 import '../domain/auth_user.dart';
 import 'avatar.dart';
@@ -17,6 +18,7 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _name = TextEditingController();
+  String? _phone;
   bool _saving = false;
   bool _initialised = false;
 
@@ -34,7 +36,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     setState(() => _saving = true);
     final messenger = ScaffoldMessenger.of(context);
     try {
-      await ref.read(authControllerProvider.notifier).updateDisplayName(name);
+      await ref
+          .read(authControllerProvider.notifier)
+          .updateProfile(displayName: name, phone: _phone);
       messenger.showSnackBar(SnackBar(content: Text(t.saved)));
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('$e')));
@@ -56,6 +60,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
     if (!_initialised) {
       _name.text = user.displayName;
+      _phone = user.phone;
       _initialised = true;
     }
 
@@ -96,6 +101,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               hintText: t.displayName,
             ),
             onSubmitted: (_) => _save(t),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            t.phone.toUpperCase(),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: cs.onSurfaceVariant,
+                  letterSpacing: 0.8,
+                ),
+          ),
+          const SizedBox(height: 8),
+          AppPhoneField(
+            initialE164: user.phone,
+            label: t.phoneOptional,
+            invalidMessage: t.invalidPhone,
+            onChanged: (e164) => _phone = e164,
           ),
           const SizedBox(height: 16),
           _InfoCard(

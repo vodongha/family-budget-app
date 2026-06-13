@@ -5,6 +5,7 @@ class FamilyInvitation {
     required this.role,
     required this.status,
     required this.token,
+    required this.inApp,
     this.email,
     this.phone,
   });
@@ -13,6 +14,9 @@ class FamilyInvitation {
   final String role;
   final String status;
   final String token;
+
+  /// True when the invite targets an existing account (delivered in-app, no link).
+  final bool inApp;
   final String? email;
   final String? phone;
 
@@ -22,8 +26,33 @@ class FamilyInvitation {
       role: json['role'] as String,
       status: json['status'] as String,
       token: json['token'] as String,
+      inApp: (json['in_app'] ?? false) as bool,
       email: json['email'] as String?,
       phone: json['phone'] as String?,
+    );
+  }
+}
+
+/// A pending in-app invite shown to the invited (existing) account — their inbox.
+class InboxInvitation {
+  const InboxInvitation({
+    required this.rid,
+    required this.familyName,
+    required this.invitedBy,
+    required this.role,
+  });
+
+  final String rid;
+  final String familyName;
+  final String invitedBy;
+  final String role;
+
+  factory InboxInvitation.fromJson(Map<String, dynamic> json) {
+    return InboxInvitation(
+      rid: json['rid'] as String,
+      familyName: (json['family_name'] ?? '') as String,
+      invitedBy: (json['invited_by'] ?? '') as String,
+      role: (json['role'] ?? 'member') as String,
     );
   }
 }

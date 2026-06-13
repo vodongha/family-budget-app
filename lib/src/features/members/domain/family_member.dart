@@ -1,30 +1,28 @@
-/// The authenticated user, as returned by `GET /auth/me`.
-class AuthUser {
-  const AuthUser({
+/// A member of the current family, as returned by `GET /members`.
+class FamilyMember {
+  const FamilyMember({
     required this.rid,
-    required this.email,
     required this.displayName,
+    required this.email,
     required this.role,
     this.phone,
   });
 
   final String rid;
-  final String email;
   final String displayName;
-
-  /// Optional contact number in E.164 (e.g. `+84912345678`), or null.
+  final String email;
   final String? phone;
 
-  /// `owner` or `member`. Owners may manage invitations.
+  /// `owner` or `member`.
   final String role;
 
   bool get isOwner => role == 'owner';
 
-  factory AuthUser.fromJson(Map<String, dynamic> json) {
-    return AuthUser(
+  factory FamilyMember.fromJson(Map<String, dynamic> json) {
+    return FamilyMember(
       rid: json['rid'] as String,
-      email: json['email'] as String,
       displayName: (json['display_name'] ?? '') as String,
+      email: json['email'] as String,
       phone: json['phone'] as String?,
       role: (json['role'] ?? 'member') as String,
     );

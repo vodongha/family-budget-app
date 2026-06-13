@@ -9,7 +9,9 @@ import '../features/auth/presentation/profile_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/invitations/presentation/add_member_screen.dart';
+import '../features/invitations/presentation/invitations_inbox_screen.dart';
 import '../features/invitations/presentation/invite_screen.dart';
+import '../features/members/presentation/members_screen.dart';
 import '../features/settings/presentation/about_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/stats/presentation/stats_screen.dart';
@@ -79,8 +81,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const DashboardScreen(),
         routes: [
           GoRoute(
+            path: 'members',
+            builder: (_, __) => const MembersScreen(),
+          ),
+          GoRoute(
             path: 'members/add',
             builder: (_, __) => const AddMemberScreen(),
+          ),
+          GoRoute(
+            path: 'invitations',
+            builder: (_, __) => const InvitationsInboxScreen(),
           ),
           GoRoute(
             path: 'transactions',

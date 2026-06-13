@@ -25,6 +25,40 @@ class InvitationRepository {
     }
   }
 
+  /// Pending in-app invites addressed to the signed-in account.
+  Future<List<InboxInvitation>> inbox() async {
+    try {
+      final Response<dynamic> res = await _dio.get('/invitations/inbox');
+      return (res.data as List)
+          .map((e) =>
+              InboxInvitation.fromJson((e as Map).cast<String, dynamic>()))
+          .toList();
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Accept an in-app invite: join the inviting family. Stores the returned JWT
+  /// (the new family scope). Re-read the auth controller afterwards.
+  Future<void> acceptExisting(String rid) async {
+    try {
+      final Response<dynamic> res =
+          await _dio.post('/invitations/$rid/accept-existing');
+      await _storage.write((res.data as Map)['access_token'] as String);
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Decline an in-app invite.
+  Future<void> decline(String rid) async {
+    try {
+      await _dio.post('/invitations/$rid/decline');
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
   /// Public — read an invitation by token to show the landing page.
   Future<InvitationPublic> getPublic(String token) async {
     try {

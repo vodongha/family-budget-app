@@ -92,5 +92,33 @@
   "monthlyTrend": "Thu & chi theo tháng",
   "incomeVsExpense": "Thu so với chi",
   "balanceByWallet": "Số dư theo ví",
-  "noData": "Chưa có dữ liệu"
+  "noData": "Chưa có dữ liệu",
+  "phoneOptional": "Số điện thoại (không bắt buộc)",
+  "invalidPhone": "Số điện thoại không hợp lệ",
+  "members": "Thành viên",
+  "transferOwnership": "Chuyển quyền sở hữu",
+  "transferOwnershipConfirm": "Chuyển quyền sở hữu cho {name}? Bạn sẽ trở thành thành viên.",
+  "@transferOwnershipConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "makeOwner": "Chuyển quyền",
+  "ownershipTransferred": "Đã chuyển quyền sở hữu",
+  "invitations": "Lời mời",
+  "noInvitations": "Không có lời mời nào",
+  "invitedYouToJoin": "{inviter} mời bạn tham gia {family}",
+  "@invitedYouToJoin": {
+    "placeholders": {
+      "inviter": { "type": "String" },
+      "family": { "type": "String" }
+    }
+  },
+  "accept": "Đồng ý",
+  "decline": "Từ chối",
+  "joinedFamily": "Bạn đã tham gia {family}",
+  "@joinedFamily": {
+    "placeholders": { "family": { "type": "String" } }
+  },
+  "ownerMustTransferToJoin": "Bạn đang là chủ gia đình hiện tại. Hãy chuyển quyền sở hữu cho thành viên khác trước khi tham gia một gia đình khác.",
+  "inAppInviteSent": "Đã gửi lời mời",
+  "inAppInviteHint": "Người này đã có tài khoản — lời mời sẽ hiện trong ứng dụng của họ để họ xác nhận."
 }
