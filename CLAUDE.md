@@ -54,9 +54,9 @@ Rules:
 - **Repositories are stateless** and throw `ApiException` (see `core/api_client.dart`) — they
   never surface raw `DioException`.
 - **Controllers** own state as `AsyncValue<T>`; after a mutation that changes derived
-  balances, invalidate the affected providers (`walletsControllerProvider`,
-  `dashboardControllerProvider`, `transactionsControllerProvider`) — see
-  `TransactionsController.add`.
+  balances, invalidate the affected providers — `walletsControllerProvider`,
+  `dashboardControllerProvider`, `monthlyStatsProvider`, `categoryStatsProvider` — see
+  `TransactionsController._invalidateDerived` (add/edit/remove/transfer all call it).
 
 ## Backend API (contract this app depends on)
 
@@ -79,7 +79,15 @@ emulator's route to host localhost).
   `visibility` is `family` (shared) or `personal` (private to creator); each wallet
   carries `visibility`. `DELETE /wallets/{rid}` (owner for shared, owner-of-wallet
   for personal). Balances are derived.
-- `GET /transactions?wallet_rid&scope&limit`, `POST /transactions {wallet_rid, type, amount, note?, occurred_on?}`.
+- `GET /transactions?wallet_rid&scope&limit&type&category_rid&date_from&date_to`,
+  `POST /transactions {wallet_rid, type, amount, note?, category_rid?, occurred_on?}`,
+  `PATCH /transactions/{rid}` (same body — full update), `DELETE /transactions/{rid}` (`204`).
+  The list may include `transfer_in`/`transfer_out` legs (read-only in the UI).
+- `GET /budgets` → `[{rid, category, amount, spent}]` (current-month spend per category);
+  `POST /budgets {category_rid, amount}` (`409` if the category already has a budget),
+  `PATCH /budgets/{rid} {amount}`, `DELETE /budgets/{rid}`.
+- `POST /transfers {from_wallet_rid, to_wallet_rid, amount, note?, occurred_on?}` → moves
+  money between wallets (two linked legs); `DELETE /transfers/{group_rid}`.
 - `GET /dashboard/summary?scope=all|family|personal` → `{total_income, total_expense, net_balance, wallet_count, wallets[]}`.
 - `GET /stats/monthly?months=N` → `[{month, income, expense}]` (statistics charts).
 - `GET /stats/by-category?kind=expense|income&months=N` →
@@ -96,6 +104,22 @@ emulator's route to host localhost).
 
 Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner-only), 404
 (not found in this family / cross-family), 409 (duplicate), 422 (validation).
+
+## Navigation, budgets, transfers & calendar
+
+- **Dashboard hub** (`features/dashboard/`): the home is balance card → wallets → a swipeable
+  **hub** (`_HubPager`, a `PageView` of 4×2 feature shortcuts with page dots). The account
+  sheet (`account_menu.dart`) is now account-only (profile / settings / sign out / delete);
+  all feature navigation lives in the hub.
+- **Transaction edit/filter** (`features/transactions/`): tap a row → `AddTransactionScreen`
+  in edit mode (delete from its app bar). `txnFilterProvider` (type/category/date) feeds the
+  list controller; the filter sheet lives in `transactions_screen.dart`.
+- **Budgets** (`features/budgets/`): `/budgets` lists per-category monthly limits with a
+  progress bar + over-budget warning; add/edit/delete.
+- **Transfers** (`features/wallets/presentation/transfer_screen.dart`): `/transfers/new` moves
+  money between two wallets via `TransactionsController.transfer`.
+- **Calendar** (`features/calendar/`): `/calendar` shows a month grid (each day's net amount)
+  via `monthTransactionsProvider`; tap a day for its totals + transactions. Scope-aware.
 
 ## Members, invites & statistics
 

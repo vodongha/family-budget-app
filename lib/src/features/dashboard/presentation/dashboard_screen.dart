@@ -48,11 +48,6 @@ class DashboardScreen extends ConsumerWidget {
           ],
         ),
         actions: [
-          IconButton(
-            tooltip: t.statistics,
-            icon: const Icon(Icons.bar_chart_outlined),
-            onPressed: () => context.push('/stats'),
-          ),
           Padding(
             padding: const EdgeInsets.only(right: 16, left: 4),
             child: InkWell(
@@ -121,9 +116,157 @@ class DashboardScreen extends ConsumerWidget {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: _WalletTile(wallet: w),
                     )),
+              const SizedBox(height: 16),
+              const _HubPager(),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// A grid of feature shortcuts on the dashboard (replaces the crowded account
+/// sheet). Owner-only entries (add member) are gated.
+class _HubPager extends ConsumerStatefulWidget {
+  const _HubPager();
+
+  @override
+  ConsumerState<_HubPager> createState() => _HubPagerState();
+}
+
+class _HubPagerState extends ConsumerState<_HubPager> {
+  final PageController _controller = PageController();
+  int _page = 0;
+
+  static const int _perPage = 8; // 4 columns × 2 rows
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// One page: two rows of four slots; empty slots keep the grid aligned.
+  Widget _buildPage(List<_HubItem> items) {
+    Widget row(int start) => SizedBox(
+          height: 92,
+          child: Row(
+            children: [
+              for (int c = 0; c < 4; c++)
+                Expanded(
+                  child: start + c < items.length
+                      ? _HubCell(item: items[start + c])
+                      : const SizedBox.shrink(),
+                ),
+            ],
+          ),
+        );
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [row(0), const SizedBox(height: 12), row(4)],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations t = AppLocalizations.of(context);
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final bool isOwner =
+        ref.watch(authControllerProvider).valueOrNull?.isOwner ?? false;
+    final List<_HubItem> items = [
+      _HubItem(Icons.receipt_long_outlined, t.transactions, '/transactions'),
+      _HubItem(Icons.bar_chart_outlined, t.statistics, '/stats'),
+      _HubItem(Icons.calendar_month_outlined, t.calendar, '/calendar'),
+      _HubItem(Icons.pie_chart_outline, t.budgets, '/budgets'),
+      _HubItem(Icons.swap_horiz, t.transferMoney, '/transfers/new'),
+      _HubItem(Icons.category_outlined, t.categories, '/categories'),
+      _HubItem(Icons.people_outline, t.members, '/members'),
+      _HubItem(Icons.mail_outline, t.invitations, '/invitations'),
+      if (isOwner)
+        _HubItem(Icons.group_add_outlined, t.addMember, '/members/add'),
+    ];
+    final List<List<_HubItem>> pages = [
+      for (int i = 0; i < items.length; i += _perPage)
+        items.sublist(
+            i, i + _perPage > items.length ? items.length : i + _perPage),
+    ];
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 196,
+          child: PageView.builder(
+            controller: _controller,
+            itemCount: pages.length,
+            onPageChanged: (p) => setState(() => _page = p),
+            itemBuilder: (_, p) => _buildPage(pages[p]),
+          ),
+        ),
+        if (pages.length > 1) ...[
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (int i = 0; i < pages.length; i++)
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: i == _page ? 18 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: i == _page ? cs.primary : cs.outlineVariant,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _HubItem {
+  const _HubItem(this.icon, this.label, this.route);
+  final IconData icon;
+  final String label;
+  final String route;
+}
+
+class _HubCell extends StatelessWidget {
+  const _HubCell({required this.item});
+  final _HubItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => context.push(item.route),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            height: 50,
+            width: 50,
+            decoration: BoxDecoration(
+              color: cs.primaryContainer,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(item.icon, color: cs.onPrimaryContainer),
+          ),
+          const SizedBox(height: 6),
+          Flexible(
+            child: Text(
+              item.label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+            ),
+          ),
+        ],
       ),
     );
   }
