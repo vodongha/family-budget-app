@@ -7,6 +7,7 @@ import '../../../core/money.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/presentation/account_menu.dart';
 import '../../auth/presentation/avatar.dart';
+import '../../wallets/application/wallets_controller.dart';
 import '../../wallets/domain/wallet.dart';
 import '../application/dashboard_controller.dart';
 import '../domain/dashboard_summary.dart';
@@ -258,16 +259,19 @@ class _HeroStat extends StatelessWidget {
   }
 }
 
-class _WalletTile extends StatelessWidget {
+class _WalletTile extends ConsumerWidget {
   const _WalletTile({required this.wallet});
   final Wallet wallet;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations t = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final bool isOwner =
+        ref.watch(authControllerProvider).valueOrNull?.isOwner ?? false;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: EdgeInsets.fromLTRB(16, 14, isOwner ? 4 : 16, 14),
         child: Row(
           children: [
             Container(
@@ -293,10 +297,68 @@ class _WalletTile extends StatelessWidget {
               Money.format(wallet.balance),
               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
             ),
+            if (isOwner)
+              PopupMenuButton<String>(
+                icon: Icon(Icons.more_vert, color: cs.onSurfaceVariant),
+                onSelected: (_) => _confirmDelete(context, ref, t),
+                itemBuilder: (_) => [
+                  PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, color: cs.error, size: 20),
+                        const SizedBox(width: 10),
+                        Text(t.deleteWallet,
+                            style: TextStyle(color: cs.error)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations t,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
+        title: Text(t.deleteWallet),
+        content: Text(t.deleteWalletConfirm(wallet.name, wallet.txnCount)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(t.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: cs.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(t.deleteWallet),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) {
+      return;
+    }
+    try {
+      final int removed =
+          await ref.read(walletsControllerProvider.notifier).delete(wallet.rid);
+      messenger.showSnackBar(
+        SnackBar(content: Text(t.walletDeleted(removed))),
+      );
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    }
   }
 }
 
