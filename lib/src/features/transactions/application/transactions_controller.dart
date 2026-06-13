@@ -18,6 +18,7 @@ class TransactionsController extends AsyncNotifier<List<Transaction>> {
     required TransactionType type,
     required int amount,
     String? note,
+    String? categoryRid,
     DateTime? occurredOn,
   }) async {
     await ref.read(transactionRepositoryProvider).create(
@@ -25,6 +26,7 @@ class TransactionsController extends AsyncNotifier<List<Transaction>> {
           type: type,
           amount: amount,
           note: note,
+          categoryRid: categoryRid,
           occurredOn: occurredOn,
         );
     // Balances are derived — invalidate everything that shows them.

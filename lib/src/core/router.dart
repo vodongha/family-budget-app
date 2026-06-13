@@ -7,6 +7,7 @@ import '../features/auth/domain/auth_user.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/profile_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
+import '../features/categories/presentation/categories_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/invitations/presentation/add_member_screen.dart';
 import '../features/invitations/presentation/invitations_inbox_screen.dart';
@@ -115,6 +116,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'stats',
             builder: (_, __) => const StatsScreen(),
+          ),
+          GoRoute(
+            path: 'categories',
+            builder: (_, __) => const CategoriesScreen(),
           ),
         ],
       ),

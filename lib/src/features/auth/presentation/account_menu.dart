@@ -104,6 +104,14 @@ class _AccountSheet extends ConsumerWidget {
                 },
               ),
             _MenuTile(
+              icon: Icons.category_outlined,
+              label: t.categories,
+              onTap: () {
+                Navigator.pop(context);
+                parentContext.push('/categories');
+              },
+            ),
+            _MenuTile(
               icon: Icons.settings_outlined,
               label: t.settings,
               onTap: () {

@@ -132,5 +132,29 @@
   "walletDeleted": "Đã xóa ví (đã xóa {count} giao dịch)",
   "@walletDeleted": {
     "placeholders": { "count": { "type": "int" } }
-  }
+  },
+  "categories": "Phân loại",
+  "addCategory": "Thêm phân loại",
+  "categoryName": "Tên phân loại",
+  "iconOptional": "Biểu tượng (không bắt buộc)",
+  "categoryOptional": "Phân loại (không bắt buộc)",
+  "noCategory": "Không phân loại",
+  "deleteCategory": "Xóa phân loại",
+  "deleteCategoryConfirm": "Xóa \"{name}\"? Các giao dịch của nó sẽ thành chưa phân loại.",
+  "@deleteCategoryConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "rename": "Đổi tên",
+  "delete": "Xóa",
+  "categoryFood": "Ăn uống",
+  "categoryTransport": "Đi lại",
+  "categoryShopping": "Mua sắm",
+  "categoryBills": "Hóa đơn",
+  "categoryHousing": "Nhà ở",
+  "categoryHealth": "Sức khỏe",
+  "categoryEntertainment": "Giải trí",
+  "categoryEducation": "Giáo dục",
+  "categoryOther": "Khác",
+  "categorySalary": "Lương",
+  "categoryBonus": "Thưởng"
 }
