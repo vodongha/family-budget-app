@@ -67,5 +67,11 @@
   "overview": "Tổng quan",
   "thisMonth": "Tháng này",
   "continueWithGoogle": "Tiếp tục với Google",
-  "orDivider": "hoặc"
+  "orDivider": "hoặc",
+  "about": "Giới thiệu",
+  "version": "Phiên bản",
+  "developer": "Nhà phát hành",
+  "website": "Website",
+  "appIntro": "Ngân sách Gia đình giúp cả nhà cùng theo dõi thu chi — ví dùng chung và tổng quan rõ ràng theo tháng, trên mọi thiết bị.",
+  "openLinkFailed": "Không mở được liên kết"
 }

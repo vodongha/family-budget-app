@@ -29,6 +29,10 @@ dependencies:
   google_sign_in: ^6.2.1
   # Web-only: renderButton() for the GIS button (imported directly on web).
   google_sign_in_web: any
+  # App version (shown in Settings / About).
+  package_info_plus: ^8.1.1
+  # Opening the publisher website.
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

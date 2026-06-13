@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_info.dart';
 import '../../../core/prefs.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -12,6 +14,11 @@ class SettingsScreen extends ConsumerWidget {
     final AppLocalizations t = AppLocalizations.of(context);
     final ThemeMode mode = ref.watch(themeControllerProvider);
     final Locale? locale = ref.watch(localeControllerProvider);
+    final String version = ref.watch(packageInfoProvider).maybeWhen(
+          data: (i) => 'v${i.version} (${i.buildNumber})',
+          orElse: () => '',
+        );
+    final ColorScheme cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: Text(t.settings)),
@@ -73,6 +80,27 @@ class SettingsScreen extends ConsumerWidget {
                 onTap: () => ref
                     .read(localeControllerProvider.notifier)
                     .setLocale(const Locale('vi')),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _SectionHeader(t.about),
+          _OptionCard(
+            children: [
+              ListTile(
+                leading: Icon(Icons.info_outline, color: cs.primary),
+                title: Text(t.about),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/about'),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: Icon(Icons.tag, color: cs.primary),
+                title: Text(t.version),
+                trailing: Text(
+                  version,
+                  style: TextStyle(color: cs.onSurfaceVariant),
+                ),
               ),
             ],
           ),

@@ -73,5 +73,11 @@
   "overview": "Overview",
   "thisMonth": "This month",
   "continueWithGoogle": "Continue with Google",
-  "orDivider": "or"
+  "orDivider": "or",
+  "about": "About",
+  "version": "Version",
+  "developer": "Developer",
+  "website": "Website",
+  "appIntro": "Family Budget helps your whole family track income and expenses together — shared wallets and a clear monthly overview, on any device.",
+  "openLinkFailed": "Could not open the link"
 }
