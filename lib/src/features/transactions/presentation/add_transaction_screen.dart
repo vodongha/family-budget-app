@@ -11,7 +11,10 @@ import '../application/transactions_controller.dart';
 import '../domain/transaction.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
-  const AddTransactionScreen({super.key});
+  const AddTransactionScreen({super.key, this.existing});
+
+  /// When set, the screen edits this transaction instead of creating a new one.
+  final Transaction? existing;
 
   @override
   ConsumerState<AddTransactionScreen> createState() =>
@@ -28,6 +31,22 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   String? _categoryRid;
   DateTime _date = DateTime.now();
   bool _saving = false;
+
+  bool get _isEdit => widget.existing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final Transaction? e = widget.existing;
+    if (e != null) {
+      _type = e.type.isIncome ? TransactionType.income : TransactionType.expense;
+      _amount.text = e.amount.toString();
+      _note.text = e.note ?? '';
+      _walletRid = e.walletRid;
+      _categoryRid = e.category?.rid;
+      _date = e.occurredOn;
+    }
+  }
 
   @override
   void dispose() {
@@ -128,14 +147,27 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
     setState(() => _saving = true);
     try {
-      await ref.read(transactionsControllerProvider.notifier).add(
-            walletRid: _walletRid!,
-            type: _type,
-            amount: amount,
-            note: _note.text.trim(),
-            categoryRid: _categoryRid,
-            occurredOn: _date,
-          );
+      final notifier = ref.read(transactionsControllerProvider.notifier);
+      if (_isEdit) {
+        await notifier.edit(
+          rid: widget.existing!.rid,
+          walletRid: _walletRid!,
+          type: _type,
+          amount: amount,
+          note: _note.text.trim(),
+          categoryRid: _categoryRid,
+          occurredOn: _date,
+        );
+      } else {
+        await notifier.add(
+          walletRid: _walletRid!,
+          type: _type,
+          amount: amount,
+          note: _note.text.trim(),
+          categoryRid: _categoryRid,
+          occurredOn: _date,
+        );
+      }
       if (mounted) {
         Navigator.pop(context);
       }
@@ -147,6 +179,46 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       }
     } finally {
       if (mounted) {
+        setState(() => _saving = false);
+      }
+    }
+  }
+
+  Future<void> _confirmDelete(AppLocalizations t) async {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
+        title: Text(t.deleteTransaction),
+        content: Text(t.deleteTransactionConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(t.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: cs.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(t.delete),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) {
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      await ref
+          .read(transactionsControllerProvider.notifier)
+          .remove(widget.existing!.rid);
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
         setState(() => _saving = false);
       }
     }
@@ -166,7 +238,17 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(t.addTransaction)),
+      appBar: AppBar(
+        title: Text(_isEdit ? t.editTransaction : t.addTransaction),
+        actions: [
+          if (_isEdit)
+            IconButton(
+              tooltip: t.delete,
+              icon: const Icon(Icons.delete_outline),
+              onPressed: _saving ? null : () => _confirmDelete(t),
+            ),
+        ],
+      ),
       body: Form(
         key: _formKey,
         child: ListView(

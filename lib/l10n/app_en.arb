@@ -166,5 +166,38 @@
   "categoryEducation": "Education",
   "categoryOther": "Other",
   "categorySalary": "Salary",
-  "categoryBonus": "Bonus"
+  "categoryBonus": "Bonus",
+  "editTransaction": "Edit transaction",
+  "deleteTransaction": "Delete transaction",
+  "deleteTransactionConfirm": "Permanently delete this transaction?",
+  "transferOut": "Transfer out",
+  "transferIn": "Transfer in",
+  "filter": "Filter",
+  "all": "All",
+  "noMatches": "No matching transactions",
+  "from": "From",
+  "to": "To",
+  "clear": "Clear",
+  "apply": "Apply",
+  "budgets": "Budgets",
+  "addBudget": "Add budget",
+  "noBudgetsYet": "No budgets yet. Add one to track monthly spending by category.",
+  "noCategoryForBudget": "All expense categories already have a budget.",
+  "category": "Category",
+  "monthlyLimit": "Monthly limit (₫)",
+  "budgetDeleted": "Budget deleted",
+  "overBudgetBy": "Over by {amount}",
+  "@overBudgetBy": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "remainingAmount": "{amount} left",
+  "@remainingAmount": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "transferMoney": "Transfer money",
+  "transferSameWallet": "Choose two different wallets",
+  "transferDone": "Transfer complete",
+  "transferNeedsTwoWallets": "You need at least two wallets to transfer between.",
+  "fromWallet": "From wallet",
+  "toWallet": "To wallet"
 }

@@ -1,0 +1,254 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../l10n/app_localizations.dart';
+import '../../../core/money.dart';
+import '../../categories/application/categories_controller.dart';
+import '../../categories/domain/category.dart';
+import '../application/budgets_controller.dart';
+import '../domain/budget.dart';
+
+class BudgetsScreen extends ConsumerWidget {
+  const BudgetsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations t = AppLocalizations.of(context);
+    final budgets = ref.watch(budgetsControllerProvider);
+
+    return Scaffold(
+      appBar: AppBar(title: Text(t.budgets)),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _addBudget(context, ref, t),
+        icon: const Icon(Icons.add),
+        label: Text(t.addBudget),
+      ),
+      body: budgets.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('$e')),
+        data: (list) {
+          if (list.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(t.noBudgetsYet, textAlign: TextAlign.center),
+              ),
+            );
+          }
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+            itemCount: list.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, i) => _BudgetCard(
+              budget: list[i],
+              onEdit: () => _editBudget(context, ref, t, list[i]),
+              onDelete: () => _deleteBudget(context, ref, t, list[i]),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _addBudget(
+    BuildContext context, WidgetRef ref, AppLocalizations t) async {
+    final budgeted = (ref.read(budgetsControllerProvider).valueOrNull ?? [])
+        .map((b) => b.category.rid)
+        .toSet();
+    final List<Category> options = ref
+        .read(categoriesByKindProvider('expense'))
+        .where((c) => !budgeted.contains(c.rid))
+        .toList();
+    if (options.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(t.noCategoryForBudget)));
+      return;
+    }
+    String? categoryRid = options.first.rid;
+    final amount = TextEditingController();
+    final messenger = ScaffoldMessenger.of(context);
+
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: Text(t.addBudget),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<String>(
+                initialValue: categoryRid,
+                isExpanded: true,
+                decoration: InputDecoration(labelText: t.category),
+                items: options
+                    .map((c) => DropdownMenuItem(
+                          value: c.rid,
+                          child: Text('${c.icon ?? ''} ${c.label(t)}'.trim()),
+                        ))
+                    .toList(),
+                onChanged: (v) => setLocal(() => categoryRid = v),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: amount,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: t.monthlyLimit),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(t.cancel)),
+            FilledButton(
+                onPressed: () => Navigator.pop(ctx, true), child: Text(t.save)),
+          ],
+        ),
+      ),
+    );
+    if (ok != true || categoryRid == null) {
+      return;
+    }
+    final int? value = Money.parse(amount.text);
+    if (value == null || value <= 0) {
+      messenger.showSnackBar(SnackBar(content: Text(t.enterAmountGtZero)));
+      return;
+    }
+    try {
+      await ref
+          .read(budgetsControllerProvider.notifier)
+          .create(categoryRid: categoryRid!, amount: value);
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
+  Future<void> _editBudget(
+    BuildContext context, WidgetRef ref, AppLocalizations t, Budget b) async {
+    final amount = TextEditingController(text: b.amount.toString());
+    final messenger = ScaffoldMessenger.of(context);
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(b.category.label(t)),
+        content: TextField(
+          controller: amount,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(labelText: t.monthlyLimit),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(t.cancel)),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true), child: Text(t.save)),
+        ],
+      ),
+    );
+    if (ok != true) {
+      return;
+    }
+    final int? value = Money.parse(amount.text);
+    if (value == null || value <= 0) {
+      messenger.showSnackBar(SnackBar(content: Text(t.enterAmountGtZero)));
+      return;
+    }
+    try {
+      await ref
+          .read(budgetsControllerProvider.notifier)
+          .edit(rid: b.rid, amount: value);
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
+  Future<void> _deleteBudget(
+    BuildContext context, WidgetRef ref, AppLocalizations t, Budget b) async {
+    final messenger = ScaffoldMessenger.of(context);
+    await ref.read(budgetsControllerProvider.notifier).remove(b.rid);
+    messenger.showSnackBar(SnackBar(content: Text(t.budgetDeleted)));
+  }
+}
+
+class _BudgetCard extends StatelessWidget {
+  const _BudgetCard({
+    required this.budget,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final Budget budget;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations t = AppLocalizations.of(context);
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final Color barColor = budget.isOver ? cs.error : cs.primary;
+    final String emoji = budget.category.icon ?? '';
+
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onEdit,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  if (emoji.isNotEmpty) ...[
+                    Text(emoji, style: const TextStyle(fontSize: 18)),
+                    const SizedBox(width: 8),
+                  ],
+                  Expanded(
+                    child: Text(
+                      budget.category.label(t),
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete_outline, color: cs.error, size: 20),
+                    onPressed: onDelete,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: budget.progress,
+                  minHeight: 10,
+                  backgroundColor: cs.surfaceContainerHighest,
+                  color: barColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${Money.format(budget.spent)} / ${Money.format(budget.amount)}',
+                    style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
+                  ),
+                  Text(
+                    budget.isOver
+                        ? t.overBudgetBy(Money.format(-budget.remaining))
+                        : t.remainingAmount(Money.format(budget.remaining)),
+                    style: TextStyle(
+                      color: budget.isOver ? cs.error : cs.onSurfaceVariant,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

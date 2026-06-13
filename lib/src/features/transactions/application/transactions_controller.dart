@@ -1,19 +1,47 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../dashboard/application/dashboard_controller.dart';
+import '../../stats/data/stats_repository.dart';
 import '../../wallets/application/wallet_scope.dart';
 import '../../wallets/application/wallets_controller.dart';
 import '../data/transaction_repository.dart';
 import '../domain/transaction.dart';
 
-/// The recent transaction list. Adding a transaction invalidates this, the
-/// wallets list, and the dashboard summary so derived balances stay consistent.
+/// Active filters for the transaction list. `null` fields mean "no filter".
+typedef TxnFilter = ({
+  TransactionType? type,
+  String? categoryRid,
+  DateTime? from,
+  DateTime? to,
+});
+
+const TxnFilter emptyTxnFilter =
+    (type: null, categoryRid: null, from: null, to: null);
+
+final txnFilterProvider = StateProvider<TxnFilter>((ref) => emptyTxnFilter);
+
+/// The recent transaction list. Mutations invalidate the wallets list, the
+/// dashboard summary and the statistics so derived balances stay consistent.
 class TransactionsController extends AsyncNotifier<List<Transaction>> {
   @override
   Future<List<Transaction>> build() {
-    // Reflects the family/personal scope toggle.
     final WalletScope scope = ref.watch(walletScopeProvider);
-    return ref.read(transactionRepositoryProvider).list(scope: scope.api);
+    final TxnFilter f = ref.watch(txnFilterProvider);
+    return ref.read(transactionRepositoryProvider).list(
+          scope: scope.api,
+          type: f.type,
+          categoryRid: f.categoryRid,
+          dateFrom: f.from,
+          dateTo: f.to,
+        );
+  }
+
+  void _invalidateDerived() {
+    ref.invalidateSelf();
+    ref.invalidate(walletsControllerProvider);
+    ref.invalidate(dashboardControllerProvider);
+    ref.invalidate(monthlyStatsProvider);
+    ref.invalidate(categoryStatsProvider);
   }
 
   Future<void> add({
@@ -32,10 +60,53 @@ class TransactionsController extends AsyncNotifier<List<Transaction>> {
           categoryRid: categoryRid,
           occurredOn: occurredOn,
         );
-    // Balances are derived — invalidate everything that shows them.
-    ref.invalidateSelf();
-    ref.invalidate(walletsControllerProvider);
-    ref.invalidate(dashboardControllerProvider);
+    _invalidateDerived();
+    await future;
+  }
+
+  Future<void> edit({
+    required String rid,
+    required String walletRid,
+    required TransactionType type,
+    required int amount,
+    String? note,
+    String? categoryRid,
+    DateTime? occurredOn,
+  }) async {
+    await ref.read(transactionRepositoryProvider).update(
+          rid: rid,
+          walletRid: walletRid,
+          type: type,
+          amount: amount,
+          note: note,
+          categoryRid: categoryRid,
+          occurredOn: occurredOn,
+        );
+    _invalidateDerived();
+    await future;
+  }
+
+  Future<void> remove(String rid) async {
+    await ref.read(transactionRepositoryProvider).delete(rid);
+    _invalidateDerived();
+    await future;
+  }
+
+  Future<void> transfer({
+    required String fromWalletRid,
+    required String toWalletRid,
+    required int amount,
+    String? note,
+    DateTime? occurredOn,
+  }) async {
+    await ref.read(transactionRepositoryProvider).transfer(
+          fromWalletRid: fromWalletRid,
+          toWalletRid: toWalletRid,
+          amount: amount,
+          note: note,
+          occurredOn: occurredOn,
+        );
+    _invalidateDerived();
     await future;
   }
 }
