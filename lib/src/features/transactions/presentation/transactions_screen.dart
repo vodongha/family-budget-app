@@ -88,9 +88,7 @@ class _TransactionTile extends StatelessWidget {
             width: 44,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: txn.category!
-                  .colorOr(color)
-                  .withValues(alpha: 0.16),
+              color: txn.category!.colorOr(color).withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Text(emoji, style: const TextStyle(fontSize: 20)),

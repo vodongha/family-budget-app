@@ -9,9 +9,13 @@ class DashboardRepository {
 
   final Dio _dio;
 
-  Future<DashboardSummary> summary() async {
+  /// [scope] is the API value (`all` / `family` / `personal`).
+  Future<DashboardSummary> summary({String scope = 'all'}) async {
     try {
-      final Response<dynamic> res = await _dio.get('/dashboard/summary');
+      final Response<dynamic> res = await _dio.get(
+        '/dashboard/summary',
+        queryParameters: {'scope': scope},
+      );
       return DashboardSummary.fromJson(
           (res.data as Map).cast<String, dynamic>());
     } catch (e) {

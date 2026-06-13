@@ -7,6 +7,7 @@ import '../../../core/money.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/presentation/account_menu.dart';
 import '../../auth/presentation/avatar.dart';
+import '../../wallets/application/wallet_scope.dart';
 import '../../wallets/application/wallets_controller.dart';
 import '../../wallets/domain/wallet.dart';
 import '../application/dashboard_controller.dart';
@@ -81,6 +82,14 @@ class DashboardScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
             children: [
+              _ScopeToggle(
+                scope: ref.watch(walletScopeProvider),
+                familyLabel: t.family,
+                personalLabel: t.personal,
+                onChanged: (s) =>
+                    ref.read(walletScopeProvider.notifier).state = s,
+              ),
+              const SizedBox(height: 20),
               _BalanceHero(
                 netLabel: t.netBalance,
                 net: s.netBalance,
@@ -121,6 +130,46 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Switches the whole dashboard (and stats) between shared family spending and
+/// the user's private personal spending.
+class _ScopeToggle extends StatelessWidget {
+  const _ScopeToggle({
+    required this.scope,
+    required this.familyLabel,
+    required this.personalLabel,
+    required this.onChanged,
+  });
+
+  final WalletScope scope;
+  final String familyLabel;
+  final String personalLabel;
+  final ValueChanged<WalletScope> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: SegmentedButton<WalletScope>(
+        segments: [
+          ButtonSegment(
+            value: WalletScope.family,
+            label: Text(familyLabel),
+            icon: const Icon(Icons.people_outline),
+          ),
+          ButtonSegment(
+            value: WalletScope.personal,
+            label: Text(personalLabel),
+            icon: const Icon(Icons.lock_outline),
+          ),
+        ],
+        selected: {scope},
+        showSelectedIcon: false,
+        onSelectionChanged: (s) => onChanged(s.first),
       ),
     );
   }
@@ -269,9 +318,12 @@ class _WalletTile extends ConsumerWidget {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final bool isOwner =
         ref.watch(authControllerProvider).valueOrNull?.isOwner ?? false;
+    // A personal wallet is private to its owner (who is the only one seeing it),
+    // so they may delete it; a shared family wallet only by the family owner.
+    final bool canDelete = isOwner || wallet.isPersonal;
     return Card(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 14, isOwner ? 4 : 16, 14),
+        padding: EdgeInsets.fromLTRB(16, 14, canDelete ? 4 : 16, 14),
         child: Row(
           children: [
             Container(
@@ -281,8 +333,12 @@ class _WalletTile extends ConsumerWidget {
                 color: cs.primaryContainer,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(Icons.account_balance_wallet_outlined,
-                  color: cs.onPrimaryContainer),
+              child: Icon(
+                wallet.isPersonal
+                    ? Icons.lock_outline
+                    : Icons.account_balance_wallet_outlined,
+                color: cs.onPrimaryContainer,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -297,7 +353,7 @@ class _WalletTile extends ConsumerWidget {
               Money.format(wallet.balance),
               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
             ),
-            if (isOwner)
+            if (canDelete)
               PopupMenuButton<String>(
                 icon: Icon(Icons.more_vert, color: cs.onSurfaceVariant),
                 onSelected: (_) => _confirmDelete(context, ref, t),
@@ -308,8 +364,7 @@ class _WalletTile extends ConsumerWidget {
                       children: [
                         Icon(Icons.delete_outline, color: cs.error, size: 20),
                         const SizedBox(width: 10),
-                        Text(t.deleteWallet,
-                            style: TextStyle(color: cs.error)),
+                        Text(t.deleteWallet, style: TextStyle(color: cs.error)),
                       ],
                     ),
                   ),

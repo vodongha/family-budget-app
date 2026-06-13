@@ -49,9 +49,8 @@ class Transaction {
       amount: (json['amount'] ?? 0) as int,
       occurredOn: DateTime.parse(json['occurred_on'] as String),
       note: json['note'] as String?,
-      category: cat is Map
-          ? Category.fromJson(cat.cast<String, dynamic>())
-          : null,
+      category:
+          cat is Map ? Category.fromJson(cat.cast<String, dynamic>()) : null,
     );
   }
 }

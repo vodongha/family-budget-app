@@ -75,10 +75,16 @@ emulator's route to host localhost).
 - `GET /members` → active family members `[{rid, display_name, email, phone?, role}]`.
 - `POST /families/transfer-ownership {target_rid}` (owner-only) → new owner; the caller
   becomes a member (single-owner model).
-- `GET /wallets`, `POST /wallets {name}` — balances are derived.
-- `GET /transactions?wallet_rid&limit`, `POST /transactions {wallet_rid, type, amount, note?, occurred_on?}`.
-- `GET /dashboard/summary` → `{total_income, total_expense, net_balance, wallet_count, wallets[]}`.
+- `GET /wallets?scope=all|family|personal`, `POST /wallets {name, visibility}` —
+  `visibility` is `family` (shared) or `personal` (private to creator); each wallet
+  carries `visibility`. `DELETE /wallets/{rid}` (owner for shared, owner-of-wallet
+  for personal). Balances are derived.
+- `GET /transactions?wallet_rid&scope&limit`, `POST /transactions {wallet_rid, type, amount, note?, occurred_on?}`.
+- `GET /dashboard/summary?scope=all|family|personal` → `{total_income, total_expense, net_balance, wallet_count, wallets[]}`.
 - `GET /stats/monthly?months=N` → `[{month, income, expense}]` (statistics charts).
+- `GET /stats/by-category?kind=expense|income&months=N` →
+  `[{category_rid?, name?, icon?, color?, default_key?, amount}]` sorted by amount desc;
+  the uncategorized bucket has `category_rid` null + `default_key` `"uncategorized"`.
 - `POST /invitations {email?|phone?}` (owner) → invite incl. `in_app` (true when the contact
   matched an existing account). `GET /invitations/{token}` (public) → `{family_name, role,
   status, email?}`; `POST /invitations/accept {token, password, display_name, email?}` (public)
@@ -108,7 +114,22 @@ Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner
   to one family — accepting moves them (their now-empty old family is soft-deleted server-side).
 - **Statistics** (`features/stats/`): `/stats` (dashboard bar-chart icon) draws `fl_chart`
   charts from `GET /stats/monthly` + the dashboard summary. A `3M/6M/12M` selector drives
-  `monthlyStatsProvider(months)`.
+  `monthlyStatsProvider(months)`. A **by-category** donut card (expense/income toggle) reads
+  `categoryStatsProvider((kind, months))` from `GET /stats/by-category`; slices reuse the
+  category colour/emoji and `defaultCategoryLabel` for localized names, with a fallback palette.
+
+## Personal vs family spending
+
+Wallets are **shared (family)** or **private (personal)**. A `WalletScope`
+(`features/wallets/application/wallet_scope.dart`) `StateProvider` holds the
+current view, defaulting to **family**; the dashboard's segmented toggle
+(`_ScopeToggle`) flips it. The dashboard, transactions, and stats read providers
+**watch** `walletScopeProvider` and pass `scope` to the API, so the whole UI
+switches between shared and private spending at once. The add-transaction
+"new wallet" dialog chooses shared/private; the wallet picker, wallet tiles, and
+the scope toggle mark personal wallets with a lock icon. A personal wallet can be
+deleted by its owner even if they aren't the family owner (`walletsController`
+keeps `scope=all` so the picker always lists every wallet you can see).
 
 ## Localization (i18n)
 

@@ -35,7 +35,8 @@ class Category {
 
   /// The localized display name: a localized label for seeded defaults,
   /// otherwise the stored [name].
-  String label(AppLocalizations t) => _defaultLabel(t, defaultKey) ?? name;
+  String label(AppLocalizations t) =>
+      defaultCategoryLabel(t, defaultKey) ?? name;
 
   /// Parsed [color], falling back to [fallback] when unset/invalid.
   Color colorOr(Color fallback) {
@@ -61,7 +62,7 @@ class Category {
 }
 
 /// Maps a seeded category's [defaultKey] to its localized name (null if custom).
-String? _defaultLabel(AppLocalizations t, String? key) {
+String? defaultCategoryLabel(AppLocalizations t, String? key) {
   switch (key) {
     case 'food':
       return t.categoryFood;
