@@ -48,6 +48,17 @@ class AuthRepository {
     await login(email, password);
   }
 
+  /// Exchanges a Google ID token (obtained on the client) for our JWT.
+  Future<void> googleLogin(String idToken) async {
+    try {
+      final Response<dynamic> res =
+          await _dio.post('/auth/google', data: {'id_token': idToken});
+      await _storage.write((res.data as Map)['access_token'] as String);
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
   Future<AuthUser> me() async {
     try {
       final Response<dynamic> res = await _dio.get('/auth/me');

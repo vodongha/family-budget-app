@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../application/auth_controller.dart';
+import 'google_sign_in_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -119,6 +120,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           )
                         : Text(t.signIn),
                   ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Expanded(child: Divider()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          t.orDivider,
+                          style: TextStyle(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      const Expanded(child: Divider()),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const GoogleSignInButton(),
+                  const SizedBox(height: 8),
                   TextButton(
                     onPressed: busy ? null : () => context.push('/register'),
                     child: Text(t.createNewFamily),

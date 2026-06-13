@@ -71,5 +71,7 @@
   "editProfile": "Edit profile",
   "manageYourAccount": "Manage your account",
   "overview": "Overview",
-  "thisMonth": "This month"
+  "thisMonth": "This month",
+  "continueWithGoogle": "Continue with Google",
+  "orDivider": "or"
 }

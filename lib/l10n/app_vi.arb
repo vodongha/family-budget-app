@@ -65,5 +65,7 @@
   "editProfile": "Sửa hồ sơ",
   "manageYourAccount": "Quản lý tài khoản",
   "overview": "Tổng quan",
-  "thisMonth": "Tháng này"
+  "thisMonth": "Tháng này",
+  "continueWithGoogle": "Tiếp tục với Google",
+  "orDivider": "hoặc"
 }

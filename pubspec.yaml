@@ -25,6 +25,10 @@ dependencies:
   intl: any
   # Persists the chosen language (and other simple prefs).
   shared_preferences: ^2.3.3
+  # Sign in with Google (web uses Google Identity Services).
+  google_sign_in: ^6.2.1
+  # Web-only: renderButton() for the GIS button (imported directly on web).
+  google_sign_in_web: any
 
 dev_dependencies:
   flutter_test:

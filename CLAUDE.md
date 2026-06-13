@@ -90,6 +90,18 @@ English + Vietnamese via the official `flutter_localizations` + ARB pipeline.
   `shared_preferences`; `null` = follow the device. `SharedPreferences` is loaded in `main()`
   and injected through `sharedPreferencesProvider`.
 
+## Sign in with Google
+
+- `GoogleSignInButton` (`features/auth/presentation/google_sign_in_button.dart`) gets a Google
+  **ID token** and calls `POST /auth/google`. On **web**, Google Identity Services only returns
+  an ID token via its own rendered button (`google_render_button*.dart`, conditional import); on
+  mobile it's a normal button calling `signIn()`.
+- **Web config:** add the client ID as a meta tag in `web/index.html`:
+  `<meta name="google-signin-client_id" content="...apps.googleusercontent.com">`. (`web/` is a
+  generated, uncommitted platform folder — re-add the tag after `flutter create .`.) The authorized
+  JavaScript origin in Google Cloud must match the run origin (we use `--web-port=8080`).
+- **Backend** needs `GOOGLE_CLIENT_ID` set to the same client ID (its token audience check).
+
 ## Theming & settings
 
 - The design system lives in `core/theme.dart` (`AppTheme.light()` / `dark()`) — one seed

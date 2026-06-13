@@ -11,4 +11,11 @@ class AppConfig {
     'API_BASE_URL',
     defaultValue: 'http://10.0.2.2:8000',
   );
+
+  /// Google OAuth client ID. On web it can also come from the
+  /// `google-signin-client_id` meta tag in `web/index.html`; passing it here
+  /// (via `--dart-define=GOOGLE_CLIENT_ID=...`) is optional. Empty hides the
+  /// Google button on platforms that need it configured.
+  static const String googleClientId =
+      String.fromEnvironment('GOOGLE_CLIENT_ID');
 }

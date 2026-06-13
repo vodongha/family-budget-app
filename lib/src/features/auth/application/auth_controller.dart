@@ -53,6 +53,15 @@ class AuthController extends AsyncNotifier<AuthUser?> {
     });
   }
 
+  /// Sign in with a Google ID token: exchange it for our JWT and load the user.
+  Future<void> signInWithGoogle(String idToken) async {
+    state = const AsyncValue<AuthUser?>.loading().copyWithPrevious(state);
+    state = await AsyncValue.guard(() async {
+      await _repo.googleLogin(idToken);
+      return _repo.me();
+    });
+  }
+
   /// Update the display name and reflect it in the session immediately.
   Future<void> updateDisplayName(String displayName) async {
     final AuthUser updated = await _repo.updateDisplayName(displayName);
