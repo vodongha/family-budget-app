@@ -98,5 +98,33 @@
   "monthlyTrend": "Monthly income & expense",
   "incomeVsExpense": "Income vs expense",
   "balanceByWallet": "Balance by wallet",
-  "noData": "No data yet"
+  "noData": "No data yet",
+  "phoneOptional": "Phone (optional)",
+  "invalidPhone": "Invalid phone number",
+  "members": "Members",
+  "transferOwnership": "Transfer ownership",
+  "transferOwnershipConfirm": "Make {name} the owner? You will become a member.",
+  "@transferOwnershipConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "makeOwner": "Make owner",
+  "ownershipTransferred": "Ownership transferred",
+  "invitations": "Invitations",
+  "noInvitations": "No invitations",
+  "invitedYouToJoin": "{inviter} invited you to join {family}",
+  "@invitedYouToJoin": {
+    "placeholders": {
+      "inviter": { "type": "String" },
+      "family": { "type": "String" }
+    }
+  },
+  "accept": "Accept",
+  "decline": "Decline",
+  "joinedFamily": "You joined {family}",
+  "@joinedFamily": {
+    "placeholders": { "family": { "type": "String" } }
+  },
+  "ownerMustTransferToJoin": "You own your current family. Transfer ownership to another member before joining a different family.",
+  "inAppInviteSent": "Invitation sent",
+  "inAppInviteHint": "This person already has an account — the invitation will appear in their app for them to accept."
 }

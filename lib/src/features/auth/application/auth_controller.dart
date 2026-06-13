@@ -40,6 +40,7 @@ class AuthController extends AsyncNotifier<AuthUser?> {
     required String password,
     required String displayName,
     required String familyName,
+    String? phone,
   }) async {
     state = const AsyncValue<AuthUser?>.loading().copyWithPrevious(state);
     state = await AsyncValue.guard(() async {
@@ -48,6 +49,7 @@ class AuthController extends AsyncNotifier<AuthUser?> {
         password: password,
         displayName: displayName,
         familyName: familyName,
+        phone: phone,
       );
       return _repo.me();
     });
@@ -62,10 +64,20 @@ class AuthController extends AsyncNotifier<AuthUser?> {
     });
   }
 
-  /// Update the display name and reflect it in the session immediately.
-  Future<void> updateDisplayName(String displayName) async {
-    final AuthUser updated = await _repo.updateDisplayName(displayName);
+  /// Update the display name and phone, reflecting it in the session immediately.
+  Future<void> updateProfile({
+    required String displayName,
+    String? phone,
+  }) async {
+    final AuthUser updated =
+        await _repo.updateProfile(displayName: displayName, phone: phone);
     state = AsyncValue.data(updated);
+  }
+
+  /// Re-read the current user (e.g. after joining a different family changes the
+  /// stored token). Keeps the session but refreshes role/family scope.
+  Future<void> refreshUser() async {
+    state = await AsyncValue.guard(() => _repo.me());
   }
 
   /// Delete the account, then drop the session. Throws [ApiException] on failure

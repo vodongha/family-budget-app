@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/phone_field.dart';
 import '../application/auth_controller.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -17,6 +18,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _displayName = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  String? _phone;
 
   @override
   void dispose() {
@@ -36,6 +38,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           password: _password.text,
           displayName: _displayName.text.trim(),
           familyName: _familyName.text.trim(),
+          phone: _phone,
         );
   }
 
@@ -88,6 +91,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     validator: (v) => (v == null || !v.contains('@'))
                         ? t.enterValidEmail
                         : null,
+                  ),
+                  const SizedBox(height: 16),
+                  AppPhoneField(
+                    initialE164: null,
+                    label: t.phoneOptional,
+                    invalidMessage: t.invalidPhone,
+                    onChanged: (e164) => _phone = e164,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
