@@ -33,6 +33,7 @@ class TransactionRepository {
     required TransactionType type,
     required int amount,
     String? note,
+    String? categoryRid,
     DateTime? occurredOn,
   }) async {
     try {
@@ -41,6 +42,7 @@ class TransactionRepository {
         'type': type.api,
         'amount': amount,
         if (note != null && note.isNotEmpty) 'note': note,
+        if (categoryRid != null) 'category_rid': categoryRid,
         if (occurredOn != null) 'occurred_on': _ymd.format(occurredOn),
       });
       return Transaction.fromJson((res.data as Map).cast<String, dynamic>());

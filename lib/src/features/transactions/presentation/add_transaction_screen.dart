@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/money.dart';
+import '../../categories/application/categories_controller.dart';
+import '../../categories/domain/category.dart';
 import '../../wallets/application/wallets_controller.dart';
 import '../../wallets/domain/wallet.dart';
 import '../application/transactions_controller.dart';
@@ -23,6 +25,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
   TransactionType _type = TransactionType.expense;
   String? _walletRid;
+  String? _categoryRid;
   DateTime _date = DateTime.now();
   bool _saving = false;
 
@@ -96,6 +99,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             type: _type,
             amount: amount,
             note: _note.text.trim(),
+            categoryRid: _categoryRid,
             occurredOn: _date,
           );
       if (mounted) {
@@ -120,6 +124,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final AsyncValue<List<Wallet>> wallets =
         ref.watch(walletsControllerProvider);
 
+    // Drop a stale selection if it no longer matches the current kind.
+    final List<Category> kindCats =
+        ref.watch(categoriesByKindProvider(_type.api));
+    if (_categoryRid != null && !kindCats.any((c) => c.rid == _categoryRid)) {
+      _categoryRid = null;
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text(t.addTransaction)),
       body: Form(
@@ -141,7 +152,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 ),
               ],
               selected: {_type},
-              onSelectionChanged: (s) => setState(() => _type = s.first),
+              onSelectionChanged: (s) => setState(() {
+                _type = s.first;
+                // Categories are kind-specific — reset when switching.
+                _categoryRid = null;
+              }),
             ),
             const SizedBox(height: 20),
             TextFormField(
@@ -185,6 +200,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            _CategoryPicker(
+              kind: _type.api,
+              selectedRid: _categoryRid,
+              onChanged: (rid) => setState(() => _categoryRid = rid),
+            ),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _note,
               decoration: InputDecoration(labelText: t.noteOptional),
@@ -213,6 +234,41 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// A dropdown of the family's categories for the given [kind], plus a
+/// "no category" option. Reports the selected category rid (or null).
+class _CategoryPicker extends ConsumerWidget {
+  const _CategoryPicker({
+    required this.kind,
+    required this.selectedRid,
+    required this.onChanged,
+  });
+
+  final String kind;
+  final String? selectedRid;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations t = AppLocalizations.of(context);
+    final List<Category> cats = ref.watch(categoriesByKindProvider(kind));
+    return DropdownButtonFormField<String?>(
+      initialValue: selectedRid,
+      isExpanded: true,
+      decoration: InputDecoration(labelText: t.categoryOptional),
+      items: [
+        DropdownMenuItem<String?>(value: null, child: Text(t.noCategory)),
+        ...cats.map(
+          (c) => DropdownMenuItem<String?>(
+            value: c.rid,
+            child: Text('${c.icon ?? ''} ${c.label(t)}'.trim()),
+          ),
+        ),
+      ],
+      onChanged: onChanged,
     );
   }
 }

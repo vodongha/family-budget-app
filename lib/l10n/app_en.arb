@@ -138,5 +138,29 @@
   "walletDeleted": "Wallet deleted ({count} transaction(s) removed)",
   "@walletDeleted": {
     "placeholders": { "count": { "type": "int" } }
-  }
+  },
+  "categories": "Categories",
+  "addCategory": "Add category",
+  "categoryName": "Category name",
+  "iconOptional": "Icon (optional)",
+  "categoryOptional": "Category (optional)",
+  "noCategory": "No category",
+  "deleteCategory": "Delete category",
+  "deleteCategoryConfirm": "Delete \"{name}\"? Its transactions will become uncategorized.",
+  "@deleteCategoryConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "rename": "Rename",
+  "delete": "Delete",
+  "categoryFood": "Food & drink",
+  "categoryTransport": "Transport",
+  "categoryShopping": "Shopping",
+  "categoryBills": "Bills & utilities",
+  "categoryHousing": "Housing",
+  "categoryHealth": "Health",
+  "categoryEntertainment": "Entertainment",
+  "categoryEducation": "Education",
+  "categoryOther": "Other",
+  "categorySalary": "Salary",
+  "categoryBonus": "Bonus"
 }
