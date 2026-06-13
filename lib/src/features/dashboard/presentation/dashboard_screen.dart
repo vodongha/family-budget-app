@@ -7,8 +7,8 @@ import '../../../core/money.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/presentation/account_menu.dart';
 import '../../auth/presentation/avatar.dart';
-import '../../wallets/application/wallet_scope.dart';
 import '../../wallets/application/wallets_controller.dart';
+import '../../wallets/presentation/scope_toggle.dart';
 import '../../wallets/domain/wallet.dart';
 import '../application/dashboard_controller.dart';
 import '../domain/dashboard_summary.dart';
@@ -82,13 +82,7 @@ class DashboardScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
             children: [
-              _ScopeToggle(
-                scope: ref.watch(walletScopeProvider),
-                familyLabel: t.family,
-                personalLabel: t.personal,
-                onChanged: (s) =>
-                    ref.read(walletScopeProvider.notifier).state = s,
-              ),
+              const ScopeToggle(),
               const SizedBox(height: 20),
               _BalanceHero(
                 netLabel: t.netBalance,
@@ -130,46 +124,6 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Switches the whole dashboard (and stats) between shared family spending and
-/// the user's private personal spending.
-class _ScopeToggle extends StatelessWidget {
-  const _ScopeToggle({
-    required this.scope,
-    required this.familyLabel,
-    required this.personalLabel,
-    required this.onChanged,
-  });
-
-  final WalletScope scope;
-  final String familyLabel;
-  final String personalLabel;
-  final ValueChanged<WalletScope> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: SegmentedButton<WalletScope>(
-        segments: [
-          ButtonSegment(
-            value: WalletScope.family,
-            label: Text(familyLabel),
-            icon: const Icon(Icons.people_outline),
-          ),
-          ButtonSegment(
-            value: WalletScope.personal,
-            label: Text(personalLabel),
-            icon: const Icon(Icons.lock_outline),
-          ),
-        ],
-        selected: {scope},
-        showSelectedIcon: false,
-        onSelectionChanged: (s) => onChanged(s.first),
       ),
     );
   }

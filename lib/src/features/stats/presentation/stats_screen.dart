@@ -7,6 +7,7 @@ import '../../../core/money.dart';
 import '../../dashboard/application/dashboard_controller.dart';
 import '../../dashboard/domain/dashboard_summary.dart';
 import '../../wallets/application/wallet_scope.dart';
+import '../../wallets/presentation/scope_toggle.dart';
 import '../data/stats_repository.dart';
 import '../domain/category_slice.dart';
 import '../domain/monthly_point.dart';
@@ -35,6 +36,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          const ScopeToggle(),
+          const SizedBox(height: 16),
           Center(
             child: SegmentedButton<int>(
               segments: const [
