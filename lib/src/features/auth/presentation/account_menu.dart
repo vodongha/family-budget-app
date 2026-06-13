@@ -79,63 +79,6 @@ class _AccountSheet extends ConsumerWidget {
               },
             ),
             _MenuTile(
-              icon: Icons.people_outline,
-              label: t.members,
-              onTap: () {
-                Navigator.pop(context);
-                parentContext.push('/members');
-              },
-            ),
-            _MenuTile(
-              icon: Icons.mail_outline,
-              label: t.invitations,
-              onTap: () {
-                Navigator.pop(context);
-                parentContext.push('/invitations');
-              },
-            ),
-            if (user.isOwner)
-              _MenuTile(
-                icon: Icons.group_add_outlined,
-                label: t.addMember,
-                onTap: () {
-                  Navigator.pop(context);
-                  parentContext.push('/members/add');
-                },
-              ),
-            _MenuTile(
-              icon: Icons.category_outlined,
-              label: t.categories,
-              onTap: () {
-                Navigator.pop(context);
-                parentContext.push('/categories');
-              },
-            ),
-            _MenuTile(
-              icon: Icons.pie_chart_outline,
-              label: t.budgets,
-              onTap: () {
-                Navigator.pop(context);
-                parentContext.push('/budgets');
-              },
-            ),
-            _MenuTile(
-              icon: Icons.calendar_month_outlined,
-              label: t.calendar,
-              onTap: () {
-                Navigator.pop(context);
-                parentContext.push('/calendar');
-              },
-            ),
-            _MenuTile(
-              icon: Icons.swap_horiz,
-              label: t.transferMoney,
-              onTap: () {
-                Navigator.pop(context);
-                parentContext.push('/transfers/new');
-              },
-            ),
-            _MenuTile(
               icon: Icons.settings_outlined,
               label: t.settings,
               onTap: () {
