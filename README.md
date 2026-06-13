@@ -125,5 +125,12 @@ Workflow.
 
 ---
 
-History note: this repo was renamed from `eShopSolution` (an old .NET sample). The git
-history is intentionally kept; the content was replaced.
+## License
+
+[MIT](LICENSE)
+
+---
+
+## Built with
+
+[Claude Code](https://claude.ai/code) by Anthropic. 🤖
