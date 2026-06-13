@@ -29,6 +29,17 @@ class WalletRepository {
       throw toApiException(e);
     }
   }
+
+  /// Delete a wallet and all its transactions (owner-only). Returns the number
+  /// of transactions removed.
+  Future<int> delete(String rid) async {
+    try {
+      final Response<dynamic> res = await _dio.delete('/wallets/$rid');
+      return ((res.data as Map)['deleted_transactions'] ?? 0) as int;
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
 }
 
 final walletRepositoryProvider = Provider<WalletRepository>((ref) {

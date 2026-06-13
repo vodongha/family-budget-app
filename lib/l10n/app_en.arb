@@ -126,5 +126,17 @@
   },
   "ownerMustTransferToJoin": "You own your current family. Transfer ownership to another member before joining a different family.",
   "inAppInviteSent": "Invitation sent",
-  "inAppInviteHint": "This person already has an account — the invitation will appear in their app for them to accept."
+  "inAppInviteHint": "This person already has an account — the invitation will appear in their app for them to accept.",
+  "deleteWallet": "Delete wallet",
+  "deleteWalletConfirm": "Delete \"{name}\" and its {count} transaction(s)? This cannot be undone.",
+  "@deleteWalletConfirm": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "walletDeleted": "Wallet deleted ({count} transaction(s) removed)",
+  "@walletDeleted": {
+    "placeholders": { "count": { "type": "int" } }
+  }
 }

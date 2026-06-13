@@ -120,5 +120,17 @@
   },
   "ownerMustTransferToJoin": "Bạn đang là chủ gia đình hiện tại. Hãy chuyển quyền sở hữu cho thành viên khác trước khi tham gia một gia đình khác.",
   "inAppInviteSent": "Đã gửi lời mời",
-  "inAppInviteHint": "Người này đã có tài khoản — lời mời sẽ hiện trong ứng dụng của họ để họ xác nhận."
+  "inAppInviteHint": "Người này đã có tài khoản — lời mời sẽ hiện trong ứng dụng của họ để họ xác nhận.",
+  "deleteWallet": "Xóa ví",
+  "deleteWalletConfirm": "Xóa ví \"{name}\" và {count} giao dịch của nó? Không thể hoàn tác.",
+  "@deleteWalletConfirm": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "walletDeleted": "Đã xóa ví (đã xóa {count} giao dịch)",
+  "@walletDeleted": {
+    "placeholders": { "count": { "type": "int" } }
+  }
 }

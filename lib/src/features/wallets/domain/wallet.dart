@@ -6,6 +6,7 @@ class Wallet {
     required this.rid,
     required this.name,
     required this.balance,
+    this.txnCount = 0,
   });
 
   final String rid;
@@ -14,11 +15,15 @@ class Wallet {
   /// Integer đồng.
   final int balance;
 
+  /// Number of transactions in this wallet (shown before deleting).
+  final int txnCount;
+
   factory Wallet.fromJson(Map<String, dynamic> json) {
     return Wallet(
       rid: json['rid'] as String,
       name: json['name'] as String,
       balance: (json['balance'] ?? 0) as int,
+      txnCount: (json['txn_count'] ?? 0) as int,
     );
   }
 }
