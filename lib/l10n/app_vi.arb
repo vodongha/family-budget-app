@@ -160,5 +160,38 @@
   "categoryEducation": "Giáo dục",
   "categoryOther": "Khác",
   "categorySalary": "Lương",
-  "categoryBonus": "Thưởng"
+  "categoryBonus": "Thưởng",
+  "editTransaction": "Sửa giao dịch",
+  "deleteTransaction": "Xoá giao dịch",
+  "deleteTransactionConfirm": "Xoá vĩnh viễn giao dịch này?",
+  "transferOut": "Chuyển đi",
+  "transferIn": "Chuyển đến",
+  "filter": "Lọc",
+  "all": "Tất cả",
+  "noMatches": "Không có giao dịch khớp",
+  "from": "Từ ngày",
+  "to": "Đến ngày",
+  "clear": "Xoá lọc",
+  "apply": "Áp dụng",
+  "budgets": "Ngân sách",
+  "addBudget": "Thêm ngân sách",
+  "noBudgetsYet": "Chưa có ngân sách. Thêm để theo dõi chi tiêu theo danh mục mỗi tháng.",
+  "noCategoryForBudget": "Mọi danh mục chi đều đã có ngân sách.",
+  "category": "Danh mục",
+  "monthlyLimit": "Hạn mức tháng (₫)",
+  "budgetDeleted": "Đã xoá ngân sách",
+  "overBudgetBy": "Vượt {amount}",
+  "@overBudgetBy": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "remainingAmount": "Còn {amount}",
+  "@remainingAmount": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "transferMoney": "Chuyển tiền",
+  "transferSameWallet": "Chọn hai ví khác nhau",
+  "transferDone": "Chuyển tiền thành công",
+  "transferNeedsTwoWallets": "Cần ít nhất hai ví để chuyển tiền.",
+  "fromWallet": "Từ ví",
+  "toWallet": "Đến ví"
 }

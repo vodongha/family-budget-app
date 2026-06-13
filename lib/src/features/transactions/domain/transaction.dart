@@ -2,16 +2,41 @@ import '../../categories/domain/category.dart';
 
 /// Direction of a transaction. The amount itself is always a positive integer;
 /// the type decides whether it adds to or subtracts from a wallet's balance.
+/// `transferIn`/`transferOut` are the two legs of a wallet-to-wallet transfer.
 enum TransactionType {
   expense,
-  income;
+  income,
+  transferOut,
+  transferIn;
 
   static TransactionType fromApi(String value) {
-    return value == 'income' ? TransactionType.income : TransactionType.expense;
+    switch (value) {
+      case 'income':
+        return TransactionType.income;
+      case 'transfer_in':
+        return TransactionType.transferIn;
+      case 'transfer_out':
+        return TransactionType.transferOut;
+      default:
+        return TransactionType.expense;
+    }
   }
 
-  String get api => name; // 'expense' | 'income'
+  /// The backend value. expense/income round-trip; transfers are created via the
+  /// transfer endpoint, so their api form uses snake_case for filtering.
+  String get api => switch (this) {
+        TransactionType.transferIn => 'transfer_in',
+        TransactionType.transferOut => 'transfer_out',
+        _ => name,
+      };
+
   bool get isIncome => this == TransactionType.income;
+  bool get isTransfer =>
+      this == TransactionType.transferIn || this == TransactionType.transferOut;
+
+  /// Whether this leg increases the wallet balance (income or transfer in).
+  bool get isInflow =>
+      this == TransactionType.income || this == TransactionType.transferIn;
 }
 
 class Transaction {
@@ -37,8 +62,8 @@ class Transaction {
   /// The category this transaction is filed under, or null (uncategorized).
   final Category? category;
 
-  /// Signed amount for display (income +, expense −).
-  int get signedAmount => type.isIncome ? amount : -amount;
+  /// Signed amount for display (inflow +, outflow −).
+  int get signedAmount => type.isInflow ? amount : -amount;
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
     final dynamic cat = json['category'];

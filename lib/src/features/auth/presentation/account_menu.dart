@@ -112,6 +112,22 @@ class _AccountSheet extends ConsumerWidget {
               },
             ),
             _MenuTile(
+              icon: Icons.pie_chart_outline,
+              label: t.budgets,
+              onTap: () {
+                Navigator.pop(context);
+                parentContext.push('/budgets');
+              },
+            ),
+            _MenuTile(
+              icon: Icons.swap_horiz,
+              label: t.transferMoney,
+              onTap: () {
+                Navigator.pop(context);
+                parentContext.push('/transfers/new');
+              },
+            ),
+            _MenuTile(
               icon: Icons.settings_outlined,
               label: t.settings,
               onTap: () {

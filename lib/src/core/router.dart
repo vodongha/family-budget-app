@@ -7,6 +7,7 @@ import '../features/auth/domain/auth_user.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/profile_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
+import '../features/budgets/presentation/budgets_screen.dart';
 import '../features/categories/presentation/categories_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/invitations/presentation/add_member_screen.dart';
@@ -16,8 +17,10 @@ import '../features/members/presentation/members_screen.dart';
 import '../features/settings/presentation/about_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/stats/presentation/stats_screen.dart';
+import '../features/transactions/domain/transaction.dart';
 import '../features/transactions/presentation/add_transaction_screen.dart';
 import '../features/transactions/presentation/transactions_screen.dart';
+import '../features/wallets/presentation/transfer_screen.dart';
 
 /// The app router. It watches the auth session and redirects:
 /// - while the session is still bootstrapping → a splash spinner;
@@ -100,6 +103,19 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'transactions/new',
             builder: (_, __) => const AddTransactionScreen(),
+          ),
+          GoRoute(
+            path: 'transactions/edit',
+            builder: (_, state) =>
+                AddTransactionScreen(existing: state.extra as Transaction?),
+          ),
+          GoRoute(
+            path: 'transfers/new',
+            builder: (_, __) => const TransferScreen(),
+          ),
+          GoRoute(
+            path: 'budgets',
+            builder: (_, __) => const BudgetsScreen(),
           ),
           GoRoute(
             path: 'profile',
