@@ -15,10 +15,12 @@ transactions.
 
 | Area | What it does |
 |---|---|
-| **Auth** | Sign in (OAuth2 password → JWT), or register a new family (you become its **owner**). Token stored in the OS secure store, auto-resumed on launch. |
+| **Auth** | Sign in (OAuth2 password → JWT) or **Sign in with Google**, or register a new family (you become its **owner**). Token stored in the OS secure store, auto-resumed on launch. |
 | **Dashboard** | Net balance, total income/expense, and per-wallet derived balances. Pull to refresh. |
 | **Add transaction** | Expense/income toggle, amount in đồng, wallet picker (create a wallet inline), note, date. |
 | **Transactions** | Recent list, newest first, signed amounts (income +, expense −). |
+| **Statistics** | Charts (`fl_chart`): monthly income/expense bars (3M/6M/12M), income-vs-expense donut, balance-by-wallet bars. |
+| **Members & invites** | Owners invite by email or phone → a shareable invite link; opening it (signed-out) registers the invitee and joins the family. |
 | **Account menu** | Tap the avatar → a modern sheet: edit profile, settings, sign out, **delete account** (Google Play policy — soft-delete + 30-day purge on the backend). |
 | **Settings** | **Light / dark / system** theme and language, both persisted. Default follows the system. |
 | **Localization** | English & Tiếng Việt. Follows the device language by default; selectable in Settings and persisted. |
@@ -41,7 +43,10 @@ units, and the app only ever *formats* them (`lib/src/core/money.dart`). Money i
 | Routing | go_router (auth-aware redirect guard) |
 | Secure storage | flutter_secure_storage (Keychain / Keystore) |
 | Localization | flutter_localizations + ARB (`lib/l10n`, generated `AppLocalizations`) |
-| Preferences | shared_preferences (persists the chosen language) |
+| Preferences | shared_preferences (language + theme) |
+| Auth | google_sign_in (web: Google Identity Services) |
+| Charts | fl_chart |
+| Misc | package_info_plus (version), url_launcher (publisher link) |
 | Formatting | intl |
 
 ## Architecture

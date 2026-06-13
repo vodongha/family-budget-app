@@ -65,15 +65,31 @@ emulator's route to host localhost).
 - `POST /auth/register` `{email, password, display_name, family_name}` — creates family + owner (no auto-login; app logs in after).
 - `POST /auth/login` — **form-encoded** `username` + `password` → `{access_token}`.
 - `GET /auth/me` → user incl. `role` (`owner`/`member`).
+- `POST /auth/google {id_token}` → `{access_token}` (Sign in with Google).
 - `PATCH /auth/me {display_name}` → updated user. `DELETE /auth/me` → `204` self-service
   account deletion (soft-delete; backend purges after 30 days). `409` when an owner must
   transfer ownership first — the app maps it to a localized message.
 - `GET /wallets`, `POST /wallets {name}` — balances are derived.
 - `GET /transactions?wallet_rid&limit`, `POST /transactions {wallet_rid, type, amount, note?, occurred_on?}`.
 - `GET /dashboard/summary` → `{total_income, total_expense, net_balance, wallet_count, wallets[]}`.
+- `GET /stats/monthly?months=N` → `[{month, income, expense}]` (statistics charts).
+- `POST /invitations {email?|phone?}` (owner) → invite + token; `GET /invitations/{token}`
+  (public) → `{family_name, role, status, email?}`; `POST /invitations/accept {token, password,
+  display_name, email?}` (public) → `{access_token}` (auto-login).
 
 Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner-only), 404
 (not found in this family / cross-family), 409 (duplicate), 422 (validation).
+
+## Members, invites & statistics
+
+- **Members/invites** (`features/invitations/`): owner-only Add member screen (`/members/add`,
+  from the account menu) creates an invitation by email or phone and shows a shareable link
+  `<origin>/#/invite/<token>`. The **public** `/invite/:token` landing (router whitelists it
+  when signed-out) reads `GET /invitations/{token}`, registers the invitee, and re-reads the
+  auth controller to enter the app. One user belongs to one family — invites are for new users.
+- **Statistics** (`features/stats/`): `/stats` (dashboard bar-chart icon) draws `fl_chart`
+  charts from `GET /stats/monthly` + the dashboard summary. A `3M/6M/12M` selector drives
+  `monthlyStatsProvider(months)`.
 
 ## Localization (i18n)
 
