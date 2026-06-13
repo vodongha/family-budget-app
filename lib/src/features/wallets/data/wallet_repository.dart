@@ -9,9 +9,14 @@ class WalletRepository {
 
   final Dio _dio;
 
-  Future<List<Wallet>> list() async {
+  /// Wallets the caller may see. [scope] is the API value (`all` / `family` /
+  /// `personal`); defaults to everything visible so pickers can list them all.
+  Future<List<Wallet>> list({String scope = 'all'}) async {
     try {
-      final Response<dynamic> res = await _dio.get('/wallets');
+      final Response<dynamic> res = await _dio.get(
+        '/wallets',
+        queryParameters: {'scope': scope},
+      );
       return (res.data as List)
           .map((e) => Wallet.fromJson((e as Map).cast<String, dynamic>()))
           .toList();
@@ -20,10 +25,13 @@ class WalletRepository {
     }
   }
 
-  Future<Wallet> create(String name) async {
+  /// Create a wallet. [visibility] is `family` (shared) or `personal` (private).
+  Future<Wallet> create(String name, {String visibility = 'family'}) async {
     try {
-      final Response<dynamic> res =
-          await _dio.post('/wallets', data: {'name': name});
+      final Response<dynamic> res = await _dio.post(
+        '/wallets',
+        data: {'name': name, 'visibility': visibility},
+      );
       return Wallet.fromJson((res.data as Map).cast<String, dynamic>());
     } catch (e) {
       throw toApiException(e);

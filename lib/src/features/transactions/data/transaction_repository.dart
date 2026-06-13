@@ -11,12 +11,17 @@ class TransactionRepository {
   final Dio _dio;
   static final DateFormat _ymd = DateFormat('yyyy-MM-dd');
 
-  Future<List<Transaction>> list({String? walletRid, int limit = 50}) async {
+  Future<List<Transaction>> list({
+    String? walletRid,
+    String scope = 'all',
+    int limit = 50,
+  }) async {
     try {
       final Response<dynamic> res = await _dio.get(
         '/transactions',
         queryParameters: {
           if (walletRid != null) 'wallet_rid': walletRid,
+          'scope': scope,
           'limit': limit,
         },
       );

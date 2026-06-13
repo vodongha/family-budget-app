@@ -50,29 +50,63 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
   Future<void> _createWallet(AppLocalizations t) async {
     final TextEditingController name = TextEditingController();
-    final String? result = await showDialog<String>(
+    bool personal = false;
+    final ({String name, bool personal})? result =
+        await showDialog<({String name, bool personal})>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(t.newWallet),
-        content: TextField(
-          controller: name,
-          autofocus: true,
-          decoration: InputDecoration(labelText: t.walletName),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: Text(t.newWallet),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: name,
+                autofocus: true,
+                decoration: InputDecoration(labelText: t.walletName),
+              ),
+              const SizedBox(height: 12),
+              // Shared (family) vs private (only me).
+              SegmentedButton<bool>(
+                segments: [
+                  ButtonSegment(
+                    value: false,
+                    label: Text(t.sharedWallet),
+                    icon: const Icon(Icons.people_outline),
+                  ),
+                  ButtonSegment(
+                    value: true,
+                    label: Text(t.privateWallet),
+                    icon: const Icon(Icons.lock_outline),
+                  ),
+                ],
+                selected: {personal},
+                showSelectedIcon: false,
+                onSelectionChanged: (s) => setLocal(() => personal = s.first),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(t.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(
+                ctx,
+                (name: name.text.trim(), personal: personal),
+              ),
+              child: Text(t.create),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(t.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, name.text.trim()),
-            child: Text(t.create),
-          ),
-        ],
       ),
     );
-    if (result != null && result.isNotEmpty) {
-      await ref.read(walletsControllerProvider.notifier).create(result);
+    if (result != null && result.name.isNotEmpty) {
+      await ref.read(walletsControllerProvider.notifier).create(
+            result.name,
+            visibility: result.personal ? 'personal' : 'family',
+          );
     }
   }
 
@@ -185,7 +219,20 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                       items: list
                           .map((w) => DropdownMenuItem(
                                 value: w.rid,
-                                child: Text(w.name),
+                                child: Row(
+                                  children: [
+                                    if (w.isPersonal) ...[
+                                      const Icon(Icons.lock_outline, size: 16),
+                                      const SizedBox(width: 6),
+                                    ],
+                                    Flexible(
+                                      child: Text(
+                                        w.name,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ))
                           .toList(),
                       onChanged: (v) => setState(() => _walletRid = v),

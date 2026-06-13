@@ -149,8 +149,8 @@ class _CategoryTile extends ConsumerWidget {
           color: category.colorOr(cs.primary).withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Text(category.icon ?? '🏷️',
-            style: const TextStyle(fontSize: 18)),
+        child:
+            Text(category.icon ?? '🏷️', style: const TextStyle(fontSize: 18)),
       ),
       title: Text(category.label(t)),
       trailing: PopupMenuButton<String>(

@@ -14,8 +14,12 @@ class WalletsController extends AsyncNotifier<List<Wallet>> {
     return ref.read(walletRepositoryProvider).list();
   }
 
-  Future<void> create(String name) async {
-    await ref.read(walletRepositoryProvider).create(name);
+  Future<void> create(String name, {String visibility = 'family'}) async {
+    await ref
+        .read(walletRepositoryProvider)
+        .create(name, visibility: visibility);
+    // A new personal wallet may change what the scoped dashboard shows.
+    ref.invalidate(dashboardControllerProvider);
     ref.invalidateSelf();
     await future;
   }

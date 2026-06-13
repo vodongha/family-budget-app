@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../dashboard/application/dashboard_controller.dart';
+import '../../wallets/application/wallet_scope.dart';
 import '../../wallets/application/wallets_controller.dart';
 import '../data/transaction_repository.dart';
 import '../domain/transaction.dart';
@@ -10,7 +11,9 @@ import '../domain/transaction.dart';
 class TransactionsController extends AsyncNotifier<List<Transaction>> {
   @override
   Future<List<Transaction>> build() {
-    return ref.read(transactionRepositoryProvider).list();
+    // Reflects the family/personal scope toggle.
+    final WalletScope scope = ref.watch(walletScopeProvider);
+    return ref.read(transactionRepositoryProvider).list(scope: scope.api);
   }
 
   Future<void> add({

@@ -6,7 +6,9 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../core/money.dart';
 import '../../dashboard/application/dashboard_controller.dart';
 import '../../dashboard/domain/dashboard_summary.dart';
+import '../../wallets/application/wallet_scope.dart';
 import '../data/stats_repository.dart';
+import '../domain/category_slice.dart';
 import '../domain/monthly_point.dart';
 
 class StatsScreen extends ConsumerStatefulWidget {
@@ -22,8 +24,9 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations t = AppLocalizations.of(context);
+    final WalletScope scope = ref.watch(walletScopeProvider);
     final AsyncValue<List<MonthlyPoint>> monthly =
-        ref.watch(monthlyStatsProvider(_months));
+        ref.watch(monthlyStatsProvider((months: _months, scope: scope.api)));
     final AsyncValue<DashboardSummary> summary =
         ref.watch(dashboardControllerProvider);
 
@@ -79,8 +82,168 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 16),
+          _ByCategoryCard(months: _months, scope: scope.api),
         ],
       ),
+    );
+  }
+}
+
+/// Spending/earning broken down by category, with an expense/income toggle.
+class _ByCategoryCard extends ConsumerStatefulWidget {
+  const _ByCategoryCard({required this.months, required this.scope});
+  final int months;
+  final String scope;
+
+  @override
+  ConsumerState<_ByCategoryCard> createState() => _ByCategoryCardState();
+}
+
+class _ByCategoryCardState extends ConsumerState<_ByCategoryCard> {
+  String _kind = 'expense';
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations t = AppLocalizations.of(context);
+    final AsyncValue<List<CategorySlice>> slices = ref.watch(
+      categoryStatsProvider(
+        (kind: _kind, months: widget.months, scope: widget.scope),
+      ),
+    );
+
+    return _ChartCard(
+      title: t.spendingByCategory,
+      child: Column(
+        children: [
+          SegmentedButton<String>(
+            segments: [
+              ButtonSegment(value: 'expense', label: Text(t.expense)),
+              ButtonSegment(value: 'income', label: Text(t.income)),
+            ],
+            selected: {_kind},
+            onSelectionChanged: (s) => setState(() => _kind = s.first),
+          ),
+          const SizedBox(height: 16),
+          slices.when(
+            loading: () => const _ChartLoading(),
+            error: (e, _) => _ChartMessage('$e'),
+            data: (data) => _CategoryDonut(slices: data, emptyLabel: t.noData),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryDonut extends StatelessWidget {
+  const _CategoryDonut({required this.slices, required this.emptyLabel});
+  final List<CategorySlice> slices;
+  final String emptyLabel;
+
+  // Fallback palette for slices without a stored colour.
+  static const List<Color> _palette = [
+    Color(0xFF5B8DEF),
+    Color(0xFFEF767A),
+    Color(0xFF49C5B6),
+    Color(0xFFF2A65A),
+    Color(0xFF9B6DD6),
+    Color(0xFF6DBE6A),
+    Color(0xFFE4A0C7),
+    Color(0xFF7C8CA0),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    if (slices.isEmpty) {
+      return _ChartMessage(emptyLabel);
+    }
+    final AppLocalizations t = AppLocalizations.of(context);
+    final int total = slices.fold(0, (a, s) => a + s.amount);
+    final List<Color> colors = [
+      for (int i = 0; i < slices.length; i++)
+        slices[i].colorOr(_palette[i % _palette.length]),
+    ];
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 180,
+          child: PieChart(
+            PieChartData(
+              sectionsSpace: 2,
+              centerSpaceRadius: 48,
+              sections: [
+                for (int i = 0; i < slices.length; i++)
+                  PieChartSectionData(
+                    value: slices[i].amount.toDouble(),
+                    color: colors[i],
+                    radius: 44,
+                    showTitle: false,
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        for (int i = 0; i < slices.length; i++) ...[
+          if (i > 0) const SizedBox(height: 6),
+          _CategoryLegend(
+            color: colors[i],
+            icon: slices[i].icon,
+            label: slices[i].label(t),
+            amount: slices[i].amount,
+            percent: total == 0 ? 0 : slices[i].amount / total,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _CategoryLegend extends StatelessWidget {
+  const _CategoryLegend({
+    required this.color,
+    required this.icon,
+    required this.label,
+    required this.amount,
+    required this.percent,
+  });
+  final Color color;
+  final String? icon;
+  final String label;
+  final int amount;
+  final double percent;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 8),
+        if (icon != null && icon!.isNotEmpty) ...[
+          Text(icon!, style: const TextStyle(fontSize: 14)),
+          const SizedBox(width: 6),
+        ],
+        Expanded(
+          child: Text(label, overflow: TextOverflow.ellipsis),
+        ),
+        Text(
+          '${(percent * 100).round()}%',
+          style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
+        ),
+        const SizedBox(width: 10),
+        Text(Money.format(amount),
+            style: const TextStyle(fontWeight: FontWeight.w600)),
+      ],
     );
   }
 }
