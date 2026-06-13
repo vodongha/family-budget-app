@@ -12,6 +12,7 @@ import '../features/invitations/presentation/add_member_screen.dart';
 import '../features/invitations/presentation/invite_screen.dart';
 import '../features/settings/presentation/about_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/stats/presentation/stats_screen.dart';
 import '../features/transactions/presentation/add_transaction_screen.dart';
 import '../features/transactions/presentation/transactions_screen.dart';
 
@@ -100,6 +101,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'about',
             builder: (_, __) => const AboutScreen(),
+          ),
+          GoRoute(
+            path: 'stats',
+            builder: (_, __) => const StatsScreen(),
           ),
         ],
       ),

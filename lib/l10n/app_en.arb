@@ -93,5 +93,10 @@
   "invitedToJoin": "You're invited to join",
   "acceptAndJoin": "Accept & join",
   "invitationInvalid": "This invitation is invalid or has expired.",
-  "createYourPassword": "Create a password"
+  "createYourPassword": "Create a password",
+  "statistics": "Statistics",
+  "monthlyTrend": "Monthly income & expense",
+  "incomeVsExpense": "Income vs expense",
+  "balanceByWallet": "Balance by wallet",
+  "noData": "No data yet"
 }

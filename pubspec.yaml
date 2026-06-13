@@ -33,6 +33,8 @@ dependencies:
   package_info_plus: ^8.1.1
   # Opening the publisher website.
   url_launcher: ^6.3.1
+  # Charts on the statistics screen.
+  fl_chart: ^0.69.2
 
 dev_dependencies:
   flutter_test:

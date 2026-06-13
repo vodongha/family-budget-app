@@ -87,5 +87,10 @@
   "invitedToJoin": "Bạn được mời tham gia",
   "acceptAndJoin": "Chấp nhận & tham gia",
   "invitationInvalid": "Lời mời không hợp lệ hoặc đã hết hạn.",
-  "createYourPassword": "Tạo mật khẩu"
+  "createYourPassword": "Tạo mật khẩu",
+  "statistics": "Thống kê",
+  "monthlyTrend": "Thu & chi theo tháng",
+  "incomeVsExpense": "Thu so với chi",
+  "balanceByWallet": "Số dư theo ví",
+  "noData": "Chưa có dữ liệu"
 }

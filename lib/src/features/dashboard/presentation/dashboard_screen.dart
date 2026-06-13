@@ -46,8 +46,13 @@ class DashboardScreen extends ConsumerWidget {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: t.statistics,
+            icon: const Icon(Icons.bar_chart_outlined),
+            onPressed: () => context.push('/stats'),
+          ),
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 16, left: 4),
             child: InkWell(
               borderRadius: BorderRadius.circular(24),
               onTap: () => showAccountSheet(context, ref),
