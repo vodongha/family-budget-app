@@ -79,5 +79,19 @@
   "developer": "Developer",
   "website": "Website",
   "appIntro": "Family Budget helps your whole family track income and expenses together — shared wallets and a clear monthly overview, on any device.",
-  "openLinkFailed": "Could not open the link"
+  "openLinkFailed": "Could not open the link",
+  "addMember": "Add member",
+  "inviteByEmailOrPhone": "Invite someone by email or phone number.",
+  "phone": "Phone",
+  "createInvite": "Create invite",
+  "emailOrPhoneRequired": "Enter an email or phone number",
+  "inviteLinkReady": "Invitation ready",
+  "inviteLinkHint": "Share this link with the person you're inviting — opening it lets them join the family.",
+  "copyLink": "Copy link",
+  "linkCopied": "Link copied",
+  "joinFamilyTitle": "Join family",
+  "invitedToJoin": "You're invited to join",
+  "acceptAndJoin": "Accept & join",
+  "invitationInvalid": "This invitation is invalid or has expired.",
+  "createYourPassword": "Create a password"
 }

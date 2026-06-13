@@ -8,6 +8,8 @@ import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/profile_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
+import '../features/invitations/presentation/add_member_screen.dart';
+import '../features/invitations/presentation/invite_screen.dart';
 import '../features/settings/presentation/about_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/transactions/presentation/add_transaction_screen.dart';
@@ -40,11 +42,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       final bool signedIn = auth.valueOrNull != null;
-      final bool onAuthPage = at == '/login' || at == '/register';
+      // The invite landing page is public (the invitee registers there).
+      final bool onInvite = at.startsWith('/invite');
+      final bool onAuthPage = at == '/login' || at == '/register' || onInvite;
 
       if (!signedIn) {
         return onAuthPage ? null : '/login';
       }
+      // Signed-in users can't join a second family — send them home.
       if (onAuthPage || at == '/splash') {
         return '/';
       }
@@ -64,9 +69,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const RegisterScreen(),
       ),
       GoRoute(
+        path: '/invite/:token',
+        builder: (_, state) =>
+            InviteScreen(token: state.pathParameters['token']!),
+      ),
+      GoRoute(
         path: '/',
         builder: (_, __) => const DashboardScreen(),
         routes: [
+          GoRoute(
+            path: 'members/add',
+            builder: (_, __) => const AddMemberScreen(),
+          ),
           GoRoute(
             path: 'transactions',
             builder: (_, __) => const TransactionsScreen(),

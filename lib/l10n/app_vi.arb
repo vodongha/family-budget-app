@@ -73,5 +73,19 @@
   "developer": "Nhà phát hành",
   "website": "Website",
   "appIntro": "Ngân sách Gia đình giúp cả nhà cùng theo dõi thu chi — ví dùng chung và tổng quan rõ ràng theo tháng, trên mọi thiết bị.",
-  "openLinkFailed": "Không mở được liên kết"
+  "openLinkFailed": "Không mở được liên kết",
+  "addMember": "Thêm thành viên",
+  "inviteByEmailOrPhone": "Mời ai đó qua email hoặc số điện thoại.",
+  "phone": "Số điện thoại",
+  "createInvite": "Tạo lời mời",
+  "emailOrPhoneRequired": "Nhập email hoặc số điện thoại",
+  "inviteLinkReady": "Đã tạo lời mời",
+  "inviteLinkHint": "Chia sẻ liên kết này cho người được mời — mở liên kết để họ tham gia gia đình.",
+  "copyLink": "Sao chép liên kết",
+  "linkCopied": "Đã sao chép liên kết",
+  "joinFamilyTitle": "Tham gia gia đình",
+  "invitedToJoin": "Bạn được mời tham gia",
+  "acceptAndJoin": "Chấp nhận & tham gia",
+  "invitationInvalid": "Lời mời không hợp lệ hoặc đã hết hạn.",
+  "createYourPassword": "Tạo mật khẩu"
 }
