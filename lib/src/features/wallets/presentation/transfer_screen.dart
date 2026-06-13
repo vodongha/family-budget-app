@@ -32,7 +32,8 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
 
   Future<void> _submit(AppLocalizations t, List<Wallet> wallets) async {
     final messenger = ScaffoldMessenger.of(context);
-    final String? from = _fromRid ?? (wallets.isNotEmpty ? wallets.first.rid : null);
+    final String? from =
+        _fromRid ?? (wallets.isNotEmpty ? wallets.first.rid : null);
     final String? to = _toRid;
     if (from == null || to == null) {
       messenger.showSnackBar(SnackBar(content: Text(t.pickWalletFirst)));

@@ -120,6 +120,14 @@ class _AccountSheet extends ConsumerWidget {
               },
             ),
             _MenuTile(
+              icon: Icons.calendar_month_outlined,
+              label: t.calendar,
+              onTap: () {
+                Navigator.pop(context);
+                parentContext.push('/calendar');
+              },
+            ),
+            _MenuTile(
               icon: Icons.swap_horiz,
               label: t.transferMoney,
               onTap: () {

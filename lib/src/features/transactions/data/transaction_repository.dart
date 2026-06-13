@@ -74,7 +74,8 @@ class TransactionRepository {
     DateTime? occurredOn,
   }) async {
     try {
-      final Response<dynamic> res = await _dio.patch('/transactions/$rid', data: {
+      final Response<dynamic> res =
+          await _dio.patch('/transactions/$rid', data: {
         'wallet_rid': walletRid,
         'type': type.api,
         'amount': amount,

@@ -51,7 +51,7 @@ class BudgetsScreen extends ConsumerWidget {
   }
 
   Future<void> _addBudget(
-    BuildContext context, WidgetRef ref, AppLocalizations t) async {
+      BuildContext context, WidgetRef ref, AppLocalizations t) async {
     final budgeted = (ref.read(budgetsControllerProvider).valueOrNull ?? [])
         .map((b) => b.category.rid)
         .toSet();
@@ -124,7 +124,7 @@ class BudgetsScreen extends ConsumerWidget {
   }
 
   Future<void> _editBudget(
-    BuildContext context, WidgetRef ref, AppLocalizations t, Budget b) async {
+      BuildContext context, WidgetRef ref, AppLocalizations t, Budget b) async {
     final amount = TextEditingController(text: b.amount.toString());
     final messenger = ScaffoldMessenger.of(context);
     final bool? ok = await showDialog<bool>(
@@ -163,7 +163,7 @@ class BudgetsScreen extends ConsumerWidget {
   }
 
   Future<void> _deleteBudget(
-    BuildContext context, WidgetRef ref, AppLocalizations t, Budget b) async {
+      BuildContext context, WidgetRef ref, AppLocalizations t, Budget b) async {
     final messenger = ScaffoldMessenger.of(context);
     await ref.read(budgetsControllerProvider.notifier).remove(b.rid);
     messenger.showSnackBar(SnackBar(content: Text(t.budgetDeleted)));

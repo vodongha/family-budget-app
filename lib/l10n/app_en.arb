@@ -199,5 +199,7 @@
   "transferDone": "Transfer complete",
   "transferNeedsTwoWallets": "You need at least two wallets to transfer between.",
   "fromWallet": "From wallet",
-  "toWallet": "To wallet"
+  "toWallet": "To wallet",
+  "calendar": "Calendar",
+  "noTransactionsThisDay": "No transactions on this day"
 }

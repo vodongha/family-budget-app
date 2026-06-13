@@ -8,6 +8,7 @@ import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/profile_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/budgets/presentation/budgets_screen.dart';
+import '../features/calendar/presentation/calendar_screen.dart';
 import '../features/categories/presentation/categories_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/invitations/presentation/add_member_screen.dart';
@@ -116,6 +117,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'budgets',
             builder: (_, __) => const BudgetsScreen(),
+          ),
+          GoRoute(
+            path: 'calendar',
+            builder: (_, __) => const CalendarScreen(),
           ),
           GoRoute(
             path: 'profile',

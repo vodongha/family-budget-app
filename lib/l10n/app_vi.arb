@@ -193,5 +193,7 @@
   "transferDone": "Chuyển tiền thành công",
   "transferNeedsTwoWallets": "Cần ít nhất hai ví để chuyển tiền.",
   "fromWallet": "Từ ví",
-  "toWallet": "Đến ví"
+  "toWallet": "Đến ví",
+  "calendar": "Lịch",
+  "noTransactionsThisDay": "Không có giao dịch ngày này"
 }

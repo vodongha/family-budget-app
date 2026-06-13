@@ -10,7 +10,8 @@ class BudgetsController extends AsyncNotifier<List<Budget>> {
     return ref.read(budgetRepositoryProvider).list();
   }
 
-  Future<void> create({required String categoryRid, required int amount}) async {
+  Future<void> create(
+      {required String categoryRid, required int amount}) async {
     await ref
         .read(budgetRepositoryProvider)
         .create(categoryRid: categoryRid, amount: amount);
