@@ -117,6 +117,17 @@
   "phoneOptional": "Số điện thoại",
   "invalidPhone": "Số điện thoại không hợp lệ",
   "members": "Thành viên",
+  "manageFamily": "Quản lý gia đình",
+  "renameFamily": "Đổi tên gia đình",
+  "leaveFamily": "Rời gia đình",
+  "leaveFamilyConfirm": "Rời gia đình này? Dữ liệu cá nhân của bạn được giữ lại. Nếu bạn là thành viên duy nhất, gia đình sẽ bị xóa.",
+  "deleteFamily": "Xóa gia đình",
+  "deleteFamilyConfirm": "Xóa gia đình này cùng toàn bộ ví và giao dịch chung? Dữ liệu cá nhân của bạn được giữ lại. Không thể hoàn tác.",
+  "removeMember": "Xóa khỏi gia đình",
+  "removeMemberConfirm": "Xóa {name} khỏi gia đình? Dữ liệu cá nhân của họ được giữ lại.",
+  "@removeMemberConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
   "transferOwnership": "Chuyển quyền sở hữu",
   "transferOwnershipConfirm": "Chuyển quyền sở hữu cho {name}? Bạn sẽ trở thành thành viên.",
   "@transferOwnershipConfirm": {

@@ -11,8 +11,9 @@ enum WalletScope {
   String get api => name;
 }
 
-/// The currently selected scope. Defaults to the shared family view; the
-/// dashboard toggle flips it, and family-scoped read providers watch it.
+/// The currently selected scope. Defaults to the **personal** view — a new
+/// account has no family yet, and personal works without one; switching to the
+/// family tab prompts to create a family if there isn't one.
 final walletScopeProvider = StateProvider<WalletScope>(
-  (ref) => WalletScope.family,
+  (ref) => WalletScope.personal,
 );

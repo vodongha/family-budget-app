@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../auth/application/auth_controller.dart';
 import '../application/wallets_controller.dart';
 import '../domain/wallet.dart';
 
@@ -82,9 +83,13 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
           color: _color,
         );
       } else {
+        // No family → only a personal wallet is possible.
+        final bool hasFamily =
+            ref.read(authControllerProvider).valueOrNull?.hasFamily ?? false;
+        final bool personal = _personal || !hasFamily;
         await notifier.create(
           name,
-          visibility: _personal ? 'personal' : 'family',
+          visibility: personal ? 'personal' : 'family',
           icon: icon.isEmpty ? null : icon,
           color: _color,
         );
@@ -103,6 +108,10 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
   Widget build(BuildContext context) {
     final AppLocalizations t = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
+    // Without a family there's no "shared" option — only personal wallets.
+    final bool hasFamily =
+        ref.watch(authControllerProvider).valueOrNull?.hasFamily ?? false;
+    final bool showVisibility = !_isEdit && hasFamily;
     // Scrollable so the Save button is always reachable even when the sheet is
     // taller than the viewport (e.g. a short window on web). Width-capped and
     // centred so it isn't a giant strip on wide screens.
@@ -135,7 +144,7 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
                   decoration: InputDecoration(labelText: t.walletName),
                 ),
                 const SizedBox(height: 12),
-                if (!_isEdit)
+                if (showVisibility)
                   SegmentedButton<bool>(
                     segments: [
                       ButtonSegment(
@@ -154,7 +163,7 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
                     onSelectionChanged: (s) =>
                         setState(() => _personal = s.first),
                   ),
-                if (!_isEdit) const SizedBox(height: 12),
+                if (showVisibility) const SizedBox(height: 12),
                 TextField(
                   controller: _icon,
                   maxLength: 4,

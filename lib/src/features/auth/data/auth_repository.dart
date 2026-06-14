@@ -62,6 +62,27 @@ class AuthRepository {
     }
   }
 
+  /// Delete the family (owner-only, only when no other members) and store the
+  /// fresh JWT (now family-less). Personal data is kept.
+  Future<void> deleteFamily() async {
+    try {
+      final Response<dynamic> res = await _dio.delete('/families');
+      await _storage.write((res.data as Map)['access_token'] as String);
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Leave the current family and store the fresh JWT (now family-less).
+  Future<void> leaveFamily() async {
+    try {
+      final Response<dynamic> res = await _dio.post('/families/leave');
+      await _storage.write((res.data as Map)['access_token'] as String);
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
   /// Exchanges a Google ID token (obtained on the client) for our JWT.
   Future<void> googleLogin(String idToken) async {
     try {

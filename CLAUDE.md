@@ -65,13 +65,17 @@ emulator's route to host localhost).
 
 - `POST /auth/register` `{email, password, display_name, family_name?, phone?}` — creates an
   **account** (no auto-login; app logs in after). `family_name` is **optional**: the app omits it,
-  so the new account has **no family** and is sent to onboarding to create/join one. `phone`
-  optional, E.164.
+  so the new account has **no family** — it lands on the **personal** tab and creates/joins one on
+  demand. `phone` optional, E.164.
 - `POST /families {name}` → `{access_token}` — create a family for a family-less account (owner +
   seeded categories). The app stores the **new token** (it carries the family scope) and refreshes.
+- `PATCH /families {name}` → `{name}` (rename, owner). `DELETE /families` → `{access_token}` (delete;
+  owner + sole member; keeps personal data → family-less token). `POST /families/leave` →
+  `{access_token}` (leave; owner with members → `409`). `DELETE /families/members/{rid}` → `204`
+  (owner removes a member). Calls that change *your own* family return a fresh token (store it).
 - `POST /auth/login` — **form-encoded** `username` + `password` → `{access_token}`.
-- `GET /auth/me` → user incl. `role` (`owner`/`member`), `phone` (nullable), `has_family`
-  (false → onboarding) and `has_password` (false → "set password" instead of "change").
+- `GET /auth/me` → user incl. `role` (`owner`/`member`), `phone` (nullable), `has_family`,
+  `family_name` (nullable) and `has_password` (false → "set password" instead of "change").
 - `POST /auth/google {id_token}` → `{access_token}` (Sign in with Google). Links to an existing
   account by email (**case-insensitive**); a brand-new Google account has no family yet.
 - `POST /auth/change-password {current_password?, new_password}` → `204`. Omit `current_password`
@@ -87,7 +91,9 @@ emulator's route to host localhost).
   `visibility` is `family` (shared) or `personal` (private to creator); each wallet
   carries `visibility`, `icon` (emoji) and `color` (hex). `PATCH /wallets/{rid} {name?, icon?,
   color?}` edits it (owner for shared, owner-of-wallet for personal; visibility immutable).
-  `DELETE /wallets/{rid}` (same permission). Balances are derived.
+  `DELETE /wallets/{rid}` (same permission). Balances are derived. **Personal wallets work without
+  a family**; creating a `family` wallet without one is `400`. Wallets/transactions/dashboard/stats
+  all accept an optional family, so the **personal** tab works for a family-less account.
 - `GET /transactions?wallet_rid&scope&limit&type&category_rid&date_from&date_to`,
   `POST /transactions {wallet_rid, type, amount, note?, category_rid?, occurred_on?}`,
   `PATCH /transactions/{rid}` (same body — full update), `DELETE /transactions/{rid}` (`204`).
@@ -126,10 +132,18 @@ Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner
   (`${AppConfig.apiBaseUrl}/privacy?lang=<locale>`). `privacy_web_view.dart` is a conditional
   export — `webview_flutter` on Android/iOS, an `<iframe>` (`package:web` + `dart:ui_web`) on
   web. The backend is the single source of truth; the app just embeds it.
-- **Onboarding** (`features/auth/presentation/onboarding_screen.dart`, `/onboarding`): a signed-in
-  account with **no family** (`AuthUser.hasFamily` false) is forced here by the router — create a
-  family (`POST /families`) or open Invitations to join one. Registration creates an account only;
-  the family comes after.
+- **No-family flow (personal-first).** There is no forced onboarding screen. A signed-in account
+  with **no family** (`AuthUser.hasFamily` false) lands on the app with the scope toggle defaulting
+  to **Personal** (`walletScopeProvider` default = personal), which works without a family. Tapping
+  the **Family** tab, or a **family-only hub item** (Budgets / Categories / Members), opens
+  `showCreateFamilyDialog` (`features/family/presentation/create_family_dialog.dart`) — create a
+  family (`POST /families`) or jump to Invitations — instead of navigating into a 403. The
+  create-wallet sheet hides the shared/private toggle (forces personal) when there's no family.
+- **Family management** (`features/family/presentation/family_screen.dart`, `/family`, from the
+  account menu when `hasFamily`): rename, leave, and (owner + sole member) delete the family; the
+  Members screen adds owner **remove-member** (per-row menu) and a **Leave family** app-bar action.
+  Leaving/deleting resets the scope to personal and goes home. The family controllers store the
+  fresh token (delete/leave) via `authController.deleteFamily`/`leaveFamily` then `refreshUser`.
 - **Change/set password** (`features/auth/presentation/change_password_screen.dart`,
   `/change-password`, from Settings): `POST /auth/change-password`; for a Google-only account
   (`hasPassword` false) it's "set password" with no current-password field.
