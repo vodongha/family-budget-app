@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
 import '../../categories/application/categories_controller.dart';
 import '../../categories/domain/category.dart';
@@ -72,20 +73,19 @@ class BudgetsScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
+          actionsOverflowDirection: VerticalDirection.up,
           title: Text(t.addBudget),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              DropdownButtonFormField<String>(
-                initialValue: categoryRid,
-                isExpanded: true,
-                decoration: InputDecoration(labelText: t.category),
-                items: options
-                    .map((c) => DropdownMenuItem(
-                          value: c.rid,
-                          child: Text('${c.icon ?? ''} ${c.label(t)}'.trim()),
-                        ))
-                    .toList(),
+              AppPicker<String>(
+                label: t.category,
+                value: categoryRid ?? '',
+                options: [
+                  for (final c in options)
+                    PickerOption(
+                        value: c.rid, label: c.label(t), emoji: c.icon),
+                ],
                 onChanged: (v) => setLocal(() => categoryRid = v),
               ),
               const SizedBox(height: 12),
@@ -130,6 +130,7 @@ class BudgetsScreen extends ConsumerWidget {
     final bool? ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        actionsOverflowDirection: VerticalDirection.up,
         title: Text(b.category.label(t)),
         content: TextField(
           controller: amount,

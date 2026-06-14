@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
 import '../../categories/application/categories_controller.dart';
 import '../../categories/domain/category.dart';
@@ -230,16 +231,14 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
               onSelectionChanged: (s) => setState(() => _type = s.first),
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<String?>(
-              initialValue: _categoryRid,
-              isExpanded: true,
-              decoration: InputDecoration(labelText: t.categoryOptional),
-              items: [
-                DropdownMenuItem<String?>(value: null, child: Text(t.all)),
-                ...cats.map((c) => DropdownMenuItem<String?>(
-                      value: c.rid,
-                      child: Text('${c.icon ?? ''} ${c.label(t)}'.trim()),
-                    )),
+            AppPicker<String?>(
+              label: t.categoryOptional,
+              value: _categoryRid,
+              options: [
+                PickerOption<String?>(value: null, label: t.all),
+                for (final c in cats)
+                  PickerOption<String?>(
+                      value: c.rid, label: c.label(t), emoji: c.icon),
               ],
               onChanged: (v) => setState(() => _categoryRid = v),
             ),

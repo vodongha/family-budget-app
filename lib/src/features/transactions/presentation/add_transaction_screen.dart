@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
 import '../../categories/application/categories_controller.dart';
 import '../../categories/domain/category.dart';
@@ -76,6 +77,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
+          actionsOverflowDirection: VerticalDirection.up,
           title: Text(t.newWallet),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -190,6 +192,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final bool? ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        actionsOverflowDirection: VerticalDirection.up,
         icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
         title: Text(t.deleteTransaction),
         content: Text(t.deleteTransactionConfirm),
@@ -293,42 +296,33 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             wallets.when(
               loading: () => const LinearProgressIndicator(),
               error: (e, _) => Text('$e'),
-              data: (list) => Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _walletRid ??
-                          (list.isNotEmpty ? list.first.rid : null),
-                      decoration: InputDecoration(labelText: t.wallet),
-                      items: list
-                          .map((w) => DropdownMenuItem(
-                                value: w.rid,
-                                child: Row(
-                                  children: [
-                                    if (w.isPersonal) ...[
-                                      const Icon(Icons.lock_outline, size: 16),
-                                      const SizedBox(width: 6),
-                                    ],
-                                    Flexible(
-                                      child: Text(
-                                        w.name,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ))
-                          .toList(),
-                      onChanged: (v) => setState(() => _walletRid = v),
+              data: (list) {
+                _walletRid ??= list.isNotEmpty ? list.first.rid : null;
+                return Row(
+                  children: [
+                    Expanded(
+                      child: AppPicker<String>(
+                        label: t.wallet,
+                        value: _walletRid ?? '',
+                        options: [
+                          for (final w in list)
+                            PickerOption(
+                              value: w.rid,
+                              label: w.name,
+                              icon: w.isPersonal ? Icons.lock_outline : null,
+                            ),
+                        ],
+                        onChanged: (v) => setState(() => _walletRid = v),
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    tooltip: t.newWallet,
-                    icon: const Icon(Icons.add_circle_outline),
-                    onPressed: () => _createWallet(t),
-                  ),
-                ],
-              ),
+                    IconButton(
+                      tooltip: t.newWallet,
+                      icon: const Icon(Icons.add_circle_outline),
+                      onPressed: () => _createWallet(t),
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 16),
             _CategoryPicker(
@@ -386,18 +380,13 @@ class _CategoryPicker extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations t = AppLocalizations.of(context);
     final List<Category> cats = ref.watch(categoriesByKindProvider(kind));
-    return DropdownButtonFormField<String?>(
-      initialValue: selectedRid,
-      isExpanded: true,
-      decoration: InputDecoration(labelText: t.categoryOptional),
-      items: [
-        DropdownMenuItem<String?>(value: null, child: Text(t.noCategory)),
-        ...cats.map(
-          (c) => DropdownMenuItem<String?>(
-            value: c.rid,
-            child: Text('${c.icon ?? ''} ${c.label(t)}'.trim()),
-          ),
-        ),
+    return AppPicker<String?>(
+      label: t.categoryOptional,
+      value: selectedRid,
+      options: [
+        PickerOption<String?>(value: null, label: t.noCategory),
+        for (final c in cats)
+          PickerOption<String?>(value: c.rid, label: c.label(t), emoji: c.icon),
       ],
       onChanged: onChanged,
     );

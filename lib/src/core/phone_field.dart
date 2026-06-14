@@ -34,6 +34,8 @@ class AppPhoneField extends StatelessWidget {
     return PhoneFormField(
       initialValue: initial ?? const PhoneNumber(isoCode: IsoCode.VN, nsn: ''),
       isCountrySelectionEnabled: true,
+      countrySelectorNavigator:
+          const CountrySelectorNavigator.modalBottomSheet(),
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: const Icon(Icons.phone_outlined),
