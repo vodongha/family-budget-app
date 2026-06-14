@@ -55,6 +55,7 @@ class CategoriesScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
+          actionsOverflowDirection: VerticalDirection.up,
           title: Text(t.addCategory),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -183,6 +184,7 @@ class _CategoryTile extends ConsumerWidget {
     final String? name = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
+        actionsOverflowDirection: VerticalDirection.up,
         title: Text(t.rename),
         content: TextField(
           controller: controller,
@@ -223,6 +225,7 @@ class _CategoryTile extends ConsumerWidget {
     final bool? ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        actionsOverflowDirection: VerticalDirection.up,
         title: Text(t.deleteCategory),
         content: Text(t.deleteCategoryConfirm(category.label(t))),
         actions: [

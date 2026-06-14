@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
 import '../../transactions/application/transactions_controller.dart';
 import '../application/wallets_controller.dart';
@@ -69,23 +70,15 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
     }
   }
 
-  List<DropdownMenuItem<String>> _items(List<Wallet> wallets) {
-    return wallets
-        .map((w) => DropdownMenuItem(
-              value: w.rid,
-              child: Row(
-                children: [
-                  if (w.isPersonal) ...[
-                    const Icon(Icons.lock_outline, size: 16),
-                    const SizedBox(width: 6),
-                  ],
-                  Flexible(
-                    child: Text(w.name, overflow: TextOverflow.ellipsis),
-                  ),
-                ],
-              ),
-            ))
-        .toList();
+  List<PickerOption<String>> _options(List<Wallet> wallets) {
+    return [
+      for (final w in wallets)
+        PickerOption(
+          value: w.rid,
+          label: w.name,
+          icon: w.isPersonal ? Icons.lock_outline : null,
+        ),
+    ];
   }
 
   @override
@@ -113,17 +106,17 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              DropdownButtonFormField<String>(
-                initialValue: _fromRid,
-                decoration: InputDecoration(labelText: t.fromWallet),
-                items: _items(list),
+              AppPicker<String>(
+                label: t.fromWallet,
+                value: _fromRid ?? '',
+                options: _options(list),
                 onChanged: (v) => setState(() => _fromRid = v),
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: _toRid,
-                decoration: InputDecoration(labelText: t.toWallet),
-                items: _items(list),
+              AppPicker<String>(
+                label: t.toWallet,
+                value: _toRid ?? '',
+                options: _options(list),
                 onChanged: (v) => setState(() => _toRid = v),
               ),
               const SizedBox(height: 16),

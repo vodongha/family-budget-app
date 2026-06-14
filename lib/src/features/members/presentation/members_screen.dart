@@ -53,6 +53,7 @@ class MembersScreen extends ConsumerWidget {
     final bool? ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        actionsOverflowDirection: VerticalDirection.up,
         title: Text(t.transferOwnership),
         content: Text(t.transferOwnershipConfirm(member.displayName)),
         actions: [

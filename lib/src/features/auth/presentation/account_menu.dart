@@ -123,6 +123,7 @@ class _AccountSheet extends ConsumerWidget {
     final bool? ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        actionsOverflowDirection: VerticalDirection.up,
         icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
         title: Text(t.deleteAccount),
         content: Text(t.deleteAccountWarning),
