@@ -85,32 +85,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
           const SizedBox(height: 28),
-          Text(
-            t.displayName.toUpperCase(),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: cs.onSurfaceVariant,
-                  letterSpacing: 0.8,
-                ),
-          ),
-          const SizedBox(height: 8),
           TextField(
             controller: _name,
             textInputAction: TextInputAction.done,
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.badge_outlined),
-              hintText: t.displayName,
+              labelText: t.displayName,
             ),
             onSubmitted: (_) => _save(t),
           ),
-          const SizedBox(height: 20),
-          Text(
-            t.phone.toUpperCase(),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: cs.onSurfaceVariant,
-                  letterSpacing: 0.8,
-                ),
-          ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           AppPhoneField(
             initialE164: user.phone,
             label: t.phoneOptional,
