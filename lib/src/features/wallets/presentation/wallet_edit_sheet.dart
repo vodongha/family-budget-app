@@ -103,95 +103,109 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
   Widget build(BuildContext context) {
     final AppLocalizations t = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        4,
-        20,
-        20 + MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _isEdit ? t.editWallet : t.newWallet,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _name,
-            autofocus: !_isEdit,
-            decoration: InputDecoration(labelText: t.walletName),
-          ),
-          const SizedBox(height: 12),
-          if (!_isEdit)
-            SegmentedButton<bool>(
-              segments: [
-                ButtonSegment(
-                  value: false,
-                  label: Text(t.sharedWallet),
-                  icon: const Icon(Icons.people_outline),
+    // Scrollable so the Save button is always reachable even when the sheet is
+    // taller than the viewport (e.g. a short window on web). Width-capped and
+    // centred so it isn't a giant strip on wide screens.
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          4,
+          20,
+          20 + MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _isEdit ? t.editWallet : t.newWallet,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w700),
                 ),
-                ButtonSegment(
-                  value: true,
-                  label: Text(t.privateWallet),
-                  icon: const Icon(Icons.lock_outline),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _name,
+                  autofocus: !_isEdit,
+                  decoration: InputDecoration(labelText: t.walletName),
                 ),
-              ],
-              selected: {_personal},
-              showSelectedIcon: false,
-              onSelectionChanged: (s) => setState(() => _personal = s.first),
-            ),
-          if (!_isEdit) const SizedBox(height: 12),
-          TextField(
-            controller: _icon,
-            maxLength: 4,
-            decoration: InputDecoration(
-              labelText: t.iconOptional,
-              hintText: '💵',
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(t.colorOptional, style: TextStyle(color: cs.onSurfaceVariant)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              for (final hex in kWalletColors)
-                _ColorDot(
-                  hex: hex,
-                  selected: _color == hex,
-                  onTap: () => setState(
-                    () => _color = _color == hex ? null : hex,
+                const SizedBox(height: 12),
+                if (!_isEdit)
+                  SegmentedButton<bool>(
+                    segments: [
+                      ButtonSegment(
+                        value: false,
+                        label: Text(t.sharedWallet),
+                        icon: const Icon(Icons.people_outline),
+                      ),
+                      ButtonSegment(
+                        value: true,
+                        label: Text(t.privateWallet),
+                        icon: const Icon(Icons.lock_outline),
+                      ),
+                    ],
+                    selected: {_personal},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (s) =>
+                        setState(() => _personal = s.first),
+                  ),
+                if (!_isEdit) const SizedBox(height: 12),
+                TextField(
+                  controller: _icon,
+                  maxLength: 4,
+                  decoration: InputDecoration(
+                    labelText: t.iconOptional,
+                    hintText: '💵',
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton(
-                  onPressed: _saving ? null : () => _save(t),
-                  child: _saving
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(_isEdit ? t.save : t.create),
+                const SizedBox(height: 4),
+                Text(t.colorOptional,
+                    style: TextStyle(color: cs.onSurfaceVariant)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final hex in kWalletColors)
+                      _ColorDot(
+                        hex: hex,
+                        selected: _color == hex,
+                        onTap: () => setState(
+                          () => _color = _color == hex ? null : hex,
+                        ),
+                      ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              TextButton(
-                onPressed: _saving ? null : () => Navigator.pop(context),
-                child: Text(t.cancel),
-              ),
-            ],
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: _saving ? null : () => _save(t),
+                        child: _saving
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text(_isEdit ? t.save : t.create),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    TextButton(
+                      onPressed: _saving ? null : () => Navigator.pop(context),
+                      child: Text(t.cancel),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
