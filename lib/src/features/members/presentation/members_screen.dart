@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../auth/application/auth_controller.dart';
@@ -20,6 +21,14 @@ class MembersScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(t.members)),
+      // Only the owner can invite; the button replaces the old hub shortcut.
+      floatingActionButton: amOwner
+          ? FloatingActionButton.extended(
+              onPressed: () => context.push('/members/add'),
+              icon: const Icon(Icons.group_add_outlined),
+              label: Text(t.addMember),
+            )
+          : null,
       body: members.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => _ErrorView(

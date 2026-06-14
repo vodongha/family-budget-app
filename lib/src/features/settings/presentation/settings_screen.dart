@@ -15,7 +15,7 @@ class SettingsScreen extends ConsumerWidget {
     final ThemeMode mode = ref.watch(themeControllerProvider);
     final Locale? locale = ref.watch(localeControllerProvider);
     final String version = ref.watch(packageInfoProvider).maybeWhen(
-          data: (i) => 'v${i.version} (${i.buildNumber})',
+          data: (i) => 'v${i.version}',
           orElse: () => '',
         );
     final ColorScheme cs = Theme.of(context).colorScheme;

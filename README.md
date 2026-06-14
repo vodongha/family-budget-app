@@ -25,8 +25,8 @@ transactions.
 | **Calendar** | Month grid showing each day's net amount; tap a day for its income/expense totals and transactions. |
 | **Personal vs family** | A scope toggle (**Personal** on the left, **Family** on the right) switches the dashboard, transactions, statistics and calendar between the user's private wallets and the shared family wallets. |
 | **Statistics** | Charts (`fl_chart`): monthly income/expense bars (1M/3M/6M/12M, **default 1 month**), income-vs-expense donut, balance-by-wallet bars, and a by-category donut. A scope toggle shows **personal** and **family** statistics separately. |
-| **Members & invites** | A **Members** screen lists the family; an owner can **transfer ownership** to another member. Owners invite by email or phone: if the contact already has an account the invite arrives **in-app** (an **Invitations** inbox to accept/decline — no link); otherwise a shareable registration link is shown. |
-| **Account menu** | Tap the avatar → a focused sheet: edit profile (incl. phone), settings, sign out, **delete account** (Google Play policy — soft-delete + 30-day purge on the backend). Feature navigation lives in the dashboard hub. |
+| **Members & invites** | A **Members** screen lists the family; an owner can **transfer ownership** to another member and **add a member** from a button on that screen. Owners invite by email or phone: if the contact already has an account the invite arrives **in-app** (an **Invitations** inbox to accept/decline — no link); otherwise a shareable registration link is shown. |
+| **Account menu** | Tap the avatar → a focused sheet: edit profile (incl. phone), settings, **privacy policy** (shown in-app via a WebView), sign out, **delete account** (Google Play policy — soft-delete + 30-day purge on the backend). Feature navigation lives in the dashboard hub. |
 | **Settings** | **Light / dark / system** theme and language, both persisted. Default follows the system. |
 | **Localization** | English & Tiếng Việt. Follows the device language by default; selectable in Settings and persisted. |
 | **Modern UI** | Material 3 with a tonal indigo palette, gradient balance hero, rounded cards, filled inputs — light & dark. |
@@ -52,7 +52,7 @@ units, and the app only ever *formats* them (`lib/src/core/money.dart`). Money i
 | Auth | google_sign_in (web: Google Identity Services) |
 | Phone input | phone_form_field (country-code picker + E.164) |
 | Charts | fl_chart |
-| Misc | package_info_plus (version), url_launcher (publisher link) |
+| Misc | package_info_plus (version), url_launcher (publisher link), webview_flutter + web (in-app privacy policy) |
 | Formatting | intl |
 
 ## Architecture

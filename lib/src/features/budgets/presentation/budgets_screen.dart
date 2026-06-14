@@ -53,21 +53,32 @@ class BudgetsScreen extends ConsumerWidget {
 
   Future<void> _addBudget(
       BuildContext context, WidgetRef ref, AppLocalizations t) async {
+    final messenger = ScaffoldMessenger.of(context);
     final budgeted = (ref.read(budgetsControllerProvider).valueOrNull ?? [])
         .map((b) => b.category.rid)
         .toSet();
-    final List<Category> options = ref
-        .read(categoriesByKindProvider('expense'))
-        .where((c) => !budgeted.contains(c.rid))
+    // Categories load asynchronously — wait for them so we don't mistake a
+    // not-yet-loaded list for "no categories available".
+    final List<Category> all;
+    try {
+      all = await ref.read(categoriesControllerProvider.future);
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      return;
+    }
+    if (!context.mounted) {
+      return;
+    }
+    final List<Category> options = all
+        .where((c) =>
+            c.kind == 'expense' && !c.isArchived && !budgeted.contains(c.rid))
         .toList();
     if (options.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(t.noCategoryForBudget)));
+      messenger.showSnackBar(SnackBar(content: Text(t.noCategoryForBudget)));
       return;
     }
     String? categoryRid = options.first.rid;
     final amount = TextEditingController();
-    final messenger = ScaffoldMessenger.of(context);
 
     final bool? ok = await showDialog<bool>(
       context: context,

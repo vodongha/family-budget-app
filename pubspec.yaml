@@ -33,6 +33,10 @@ dependencies:
   package_info_plus: ^8.1.1
   # Opening the publisher website.
   url_launcher: ^6.3.1
+  # In-app WebView for the privacy policy (Android/iOS); web uses an iframe.
+  webview_flutter: ^4.10.0
+  # DOM interop for the web iframe fallback (HTMLIFrameElement).
+  web: ^1.1.0
   # Charts on the statistics screen.
   fl_chart: ^0.69.2
   phone_form_field: ^10.0.17
