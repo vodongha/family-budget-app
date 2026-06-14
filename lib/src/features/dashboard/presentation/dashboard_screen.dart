@@ -19,7 +19,6 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations t = AppLocalizations.of(context);
-    final ColorScheme cs = Theme.of(context).colorScheme;
     final AsyncValue<DashboardSummary> summary =
         ref.watch(dashboardControllerProvider);
     final String name =
@@ -29,23 +28,10 @@ class DashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         titleSpacing: 20,
         toolbarHeight: 72,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              t.overview,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: cs.onSurfaceVariant),
-            ),
-            Text(
-              name.isEmpty ? t.dashboard : t.greeting(name),
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+        title: Text(
+          name.isEmpty ? t.dashboard : t.greeting(name),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          overflow: TextOverflow.ellipsis,
         ),
         actions: [
           Padding(
@@ -110,7 +96,11 @@ class DashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               if (s.wallets.isEmpty)
-                _EmptyWallets(label: t.noWalletsYet)
+                _EmptyWallets(
+                  label: t.noWalletsYet,
+                  addLabel: t.newWallet,
+                  onAdd: () => _createWalletDialog(context, ref, t),
+                )
               else
                 ...s.wallets.map((w) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -123,6 +113,73 @@ class DashboardScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// Create-wallet dialog, shared by the empty-state button.
+Future<void> _createWalletDialog(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations t,
+) async {
+  final TextEditingController name = TextEditingController();
+  bool personal = false;
+  final ({String name, bool personal})? result =
+      await showDialog<({String name, bool personal})>(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setLocal) => AlertDialog(
+        actionsOverflowButtonSpacing: 8,
+        title: Text(t.newWallet),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: name,
+              autofocus: true,
+              decoration: InputDecoration(labelText: t.walletName),
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<bool>(
+              segments: [
+                ButtonSegment(
+                  value: false,
+                  label: Text(t.sharedWallet),
+                  icon: const Icon(Icons.people_outline),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text(t.privateWallet),
+                  icon: const Icon(Icons.lock_outline),
+                ),
+              ],
+              selected: {personal},
+              showSelectedIcon: false,
+              onSelectionChanged: (s) => setLocal(() => personal = s.first),
+            ),
+          ],
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(
+              ctx,
+              (name: name.text.trim(), personal: personal),
+            ),
+            child: Text(t.create),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(t.cancel),
+          ),
+        ],
+      ),
+    ),
+  );
+  if (result != null && result.name.isNotEmpty) {
+    await ref.read(walletsControllerProvider.notifier).create(
+          result.name,
+          visibility: result.personal ? 'personal' : 'family',
+        );
   }
 }
 
@@ -483,19 +540,19 @@ class _WalletTile extends ConsumerWidget {
     final bool? ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        actionsOverflowDirection: VerticalDirection.up,
+        actionsOverflowButtonSpacing: 8,
         icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
         title: Text(t.deleteWallet),
         content: Text(t.deleteWalletConfirm(wallet.name, wallet.txnCount)),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(t.cancel),
-          ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: cs.error),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(t.deleteWallet),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(t.cancel),
           ),
         ],
       ),
@@ -516,21 +573,33 @@ class _WalletTile extends ConsumerWidget {
 }
 
 class _EmptyWallets extends StatelessWidget {
-  const _EmptyWallets({required this.label});
+  const _EmptyWallets({
+    required this.label,
+    required this.addLabel,
+    required this.onAdd,
+  });
   final String label;
+  final String addLabel;
+  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40),
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
         child: Column(
           children: [
             Icon(Icons.account_balance_wallet_outlined,
                 size: 40, color: cs.onSurfaceVariant),
             const SizedBox(height: 12),
             Text(label, style: TextStyle(color: cs.onSurfaceVariant)),
+            const SizedBox(height: 16),
+            FilledButton.tonalIcon(
+              onPressed: onAdd,
+              icon: const Icon(Icons.add),
+              label: Text(addLabel),
+            ),
           ],
         ),
       ),

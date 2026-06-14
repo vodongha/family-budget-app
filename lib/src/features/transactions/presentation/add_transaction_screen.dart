@@ -77,7 +77,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
-          actionsOverflowDirection: VerticalDirection.up,
+          actionsOverflowButtonSpacing: 8,
           title: Text(t.newWallet),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -109,16 +109,16 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(t.cancel),
-            ),
             FilledButton(
               onPressed: () => Navigator.pop(
                 ctx,
                 (name: name.text.trim(), personal: personal),
               ),
               child: Text(t.create),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(t.cancel),
             ),
           ],
         ),
@@ -192,19 +192,19 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final bool? ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        actionsOverflowDirection: VerticalDirection.up,
+        actionsOverflowButtonSpacing: 8,
         icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
         title: Text(t.deleteTransaction),
         content: Text(t.deleteTransactionConfirm),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(t.cancel),
-          ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: cs.error),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(t.delete),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(t.cancel),
           ),
         ],
       ),

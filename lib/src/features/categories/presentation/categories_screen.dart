@@ -55,7 +55,7 @@ class CategoriesScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
-          actionsOverflowDirection: VerticalDirection.up,
+          actionsOverflowButtonSpacing: 8,
           title: Text(t.addCategory),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -86,13 +86,13 @@ class CategoriesScreen extends ConsumerWidget {
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(t.cancel),
-            ),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: Text(t.create),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(t.cancel),
             ),
           ],
         ),
@@ -184,7 +184,7 @@ class _CategoryTile extends ConsumerWidget {
     final String? name = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        actionsOverflowDirection: VerticalDirection.up,
+        actionsOverflowButtonSpacing: 8,
         title: Text(t.rename),
         content: TextField(
           controller: controller,
@@ -192,13 +192,13 @@ class _CategoryTile extends ConsumerWidget {
           decoration: InputDecoration(labelText: t.categoryName),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(t.cancel),
-          ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
             child: Text(t.save),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(t.cancel),
           ),
         ],
       ),
@@ -225,18 +225,18 @@ class _CategoryTile extends ConsumerWidget {
     final bool? ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        actionsOverflowDirection: VerticalDirection.up,
+        actionsOverflowButtonSpacing: 8,
         title: Text(t.deleteCategory),
         content: Text(t.deleteCategoryConfirm(category.label(t))),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(t.cancel),
-          ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: cs.error),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(t.delete),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(t.cancel),
           ),
         ],
       ),

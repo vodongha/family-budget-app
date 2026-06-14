@@ -113,7 +113,9 @@ Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner
   all feature navigation lives in the hub.
 - **Transaction edit/filter** (`features/transactions/`): tap a row → `AddTransactionScreen`
   in edit mode (delete from its app bar). `txnFilterProvider` (type/category/date) feeds the
-  list controller; the filter sheet lives in `transactions_screen.dart`.
+  list controller; the filter sheet lives in `transactions_screen.dart`. In **family scope**
+  each row shows its creator (`Transaction.createdBy` → avatar + name); edit/delete are gated
+  by `Transaction.canEdit` so only the creator can change their own entries (others get 403).
 - **Budgets** (`features/budgets/`): `/budgets` lists per-category monthly limits with a
   progress bar + over-budget warning; add/edit/delete.
 - **Transfers** (`features/wallets/presentation/transfer_screen.dart`): `/transfers/new` moves
@@ -137,8 +139,8 @@ Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner
   providers (dashboard/wallets/transactions/stats/members) before going home. One user belongs
   to one family — accepting moves them (their now-empty old family is soft-deleted server-side).
 - **Statistics** (`features/stats/`): `/stats` (dashboard bar-chart icon) draws `fl_chart`
-  charts from `GET /stats/monthly` + the dashboard summary. A `3M/6M/12M` selector drives
-  `monthlyStatsProvider(months)`. A **by-category** donut card (expense/income toggle) reads
+  charts from `GET /stats/monthly` + the dashboard summary. A `1M/3M/6M/12M` selector drives
+  `monthlyStatsProvider(months)`, defaulting to **1 month**. A **by-category** donut card (expense/income toggle) reads
   `categoryStatsProvider((kind, months))` from `GET /stats/by-category`; slices reuse the
   category colour/emoji and `defaultCategoryLabel` for localized names, with a fallback palette.
 
@@ -241,9 +243,11 @@ scaffold). `flutter create .` regenerates them without touching `lib/`, `pubspec
   git config --local user.name "vodongha"
   git config --local user.email "vodongha@hotmail.com"
   ```
-- **AI-assisted commits are authored by Claude**, committed by the personal identity:
+- **AI-assisted commits are authored by vodongha, committed by Claude** (the committer
+  override records that Claude made the commit while attributing authorship to the owner):
   ```bash
-  git commit --author="Claude Opus 4.8 <noreply@anthropic.com>" -m "..."
+  GIT_COMMITTER_NAME="Claude Opus 4.8" GIT_COMMITTER_EMAIL="noreply@anthropic.com" \
+    git commit --author="vodongha <vodongha@hotmail.com>" -m "..."
   ```
 - Branch off `master`; merge with merge commits (no squash/rebase). Reference the backend
   repo when a change tracks an API change.

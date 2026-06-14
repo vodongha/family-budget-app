@@ -20,7 +20,7 @@ class StatsScreen extends ConsumerStatefulWidget {
 }
 
 class _StatsScreenState extends ConsumerState<StatsScreen> {
-  int _months = 6;
+  int _months = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +41,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           Center(
             child: SegmentedButton<int>(
               segments: const [
+                ButtonSegment(value: 1, label: Text('1M')),
                 ButtonSegment(value: 3, label: Text('3M')),
                 ButtonSegment(value: 6, label: Text('6M')),
                 ButtonSegment(value: 12, label: Text('12M')),
