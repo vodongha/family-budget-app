@@ -229,8 +229,6 @@ class _HubPagerState extends ConsumerState<_HubPager> {
   Widget build(BuildContext context) {
     final AppLocalizations t = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
-    final bool isOwner =
-        ref.watch(authControllerProvider).valueOrNull?.isOwner ?? false;
     final List<_HubItem> items = [
       _HubItem(Icons.receipt_long_outlined, t.transactions, '/transactions'),
       _HubItem(Icons.bar_chart_outlined, t.statistics, '/stats'),
@@ -238,10 +236,9 @@ class _HubPagerState extends ConsumerState<_HubPager> {
       _HubItem(Icons.pie_chart_outline, t.budgets, '/budgets'),
       _HubItem(Icons.swap_horiz, t.transferMoney, '/transfers/new'),
       _HubItem(Icons.category_outlined, t.categories, '/categories'),
+      // Adding a member now lives as a button inside the Members screen.
       _HubItem(Icons.people_outline, t.members, '/members'),
       _HubItem(Icons.mail_outline, t.invitations, '/invitations'),
-      if (isOwner)
-        _HubItem(Icons.group_add_outlined, t.addMember, '/members/add'),
     ];
     final List<List<_HubItem>> pages = [
       for (int i = 0; i < items.length; i += _perPage)

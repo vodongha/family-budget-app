@@ -109,8 +109,14 @@ Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner
 
 - **Dashboard hub** (`features/dashboard/`): the home is balance card → wallets → a swipeable
   **hub** (`_HubPager`, a `PageView` of 4×2 feature shortcuts with page dots). The account
-  sheet (`account_menu.dart`) is now account-only (profile / settings / sign out / delete);
-  all feature navigation lives in the hub.
+  sheet (`account_menu.dart`) is account-only (profile / settings / **privacy policy** /
+  sign out / delete); all feature navigation lives in the hub. **Adding a member** is a
+  button on the Members screen, not a hub shortcut.
+- **Privacy policy** (`features/legal/`): the account sheet entry (below Settings) opens
+  `/privacy`, an in-app **WebView** that loads the backend's bilingual page
+  (`${AppConfig.apiBaseUrl}/privacy?lang=<locale>`). `privacy_web_view.dart` is a conditional
+  export — `webview_flutter` on Android/iOS, an `<iframe>` (`package:web` + `dart:ui_web`) on
+  web. The backend is the single source of truth; the app just embeds it.
 - **Transaction edit/filter** (`features/transactions/`): tap a row → `AddTransactionScreen`
   in edit mode (delete from its app bar). `txnFilterProvider` (type/category/date) feeds the
   list controller; the filter sheet lives in `transactions_screen.dart`. In **family scope**
@@ -125,10 +131,11 @@ Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner
 
 ## Members, invites & statistics
 
-- **Members** (`features/members/`): the `/members` screen (account menu) lists active
+- **Members** (`features/members/`): the `/members` screen (hub) lists active
   members with their role; an owner sees a transfer-ownership action per member that calls
   `POST /families/transfer-ownership` (the caller is demoted to member). `MembersController`
-  refreshes the list and the auth user (role changed) after a transfer.
+  refreshes the list and the auth user (role changed) after a transfer. An owner also gets an
+  **Add member** FAB here (→ `/members/add`) — this replaced the old hub shortcut.
 - **Invites** (`features/invitations/`): owner-only Add-member screen (`/members/add`) creates
   an invitation by email or phone. If the contact matches an **existing account** the response
   is `in_app` and the screen shows an "invitation sent" card (no link); otherwise it shows a

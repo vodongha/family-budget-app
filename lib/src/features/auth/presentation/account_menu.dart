@@ -86,6 +86,16 @@ class _AccountSheet extends ConsumerWidget {
                 parentContext.push('/settings');
               },
             ),
+            // Privacy policy sits below Settings; shown in-app via a WebView that
+            // loads the bilingual page served by the backend.
+            _MenuTile(
+              icon: Icons.privacy_tip_outlined,
+              label: t.privacyPolicy,
+              onTap: () {
+                Navigator.pop(context);
+                parentContext.push('/privacy');
+              },
+            ),
             _MenuTile(
               icon: Icons.logout,
               label: t.signOut,

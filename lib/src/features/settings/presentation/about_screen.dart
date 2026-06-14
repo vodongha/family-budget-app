@@ -16,7 +16,7 @@ class AboutScreen extends ConsumerWidget {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final AsyncValue<dynamic> info = ref.watch(packageInfoProvider);
     final String version = info.maybeWhen(
-      data: (i) => 'v${i.version} (${i.buildNumber})',
+      data: (i) => 'v${i.version}',
       orElse: () => '',
     );
 
