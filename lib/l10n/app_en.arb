@@ -123,6 +123,17 @@
   "phoneOptional": "Phone",
   "invalidPhone": "Invalid phone number",
   "members": "Members",
+  "manageFamily": "Manage family",
+  "renameFamily": "Rename family",
+  "leaveFamily": "Leave family",
+  "leaveFamilyConfirm": "Leave this family? Your personal data stays. If you're the only member, the family is deleted.",
+  "deleteFamily": "Delete family",
+  "deleteFamilyConfirm": "Delete this family and all its shared wallets and transactions? Your personal data stays. This can't be undone.",
+  "removeMember": "Remove from family",
+  "removeMemberConfirm": "Remove {name} from the family? Their personal data stays.",
+  "@removeMemberConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
   "transferOwnership": "Transfer ownership",
   "transferOwnershipConfirm": "Make {name} the owner? You will become a member.",
   "@transferOwnershipConfirm": {

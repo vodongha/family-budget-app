@@ -103,6 +103,20 @@ class AuthController extends AsyncNotifier<AuthUser?> {
     await refreshUser();
   }
 
+  /// Delete the family (owner-only, sole member) and refresh the session, which
+  /// becomes family-less. Throws [ApiException] (e.g. 409 if members remain).
+  Future<void> deleteFamily() async {
+    await _repo.deleteFamily();
+    await refreshUser();
+  }
+
+  /// Leave the current family and refresh the session (now family-less). Throws
+  /// [ApiException] (e.g. 409 if an owner must transfer ownership first).
+  Future<void> leaveFamily() async {
+    await _repo.leaveFamily();
+    await refreshUser();
+  }
+
   /// Delete the account, then drop the session. Throws [ApiException] on failure
   /// (e.g. 409 when an owner must transfer ownership first) — the caller shows it.
   Future<void> deleteAccount() async {

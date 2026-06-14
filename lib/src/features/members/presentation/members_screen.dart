@@ -6,6 +6,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/presentation/avatar.dart';
+import '../../wallets/application/wallet_scope.dart';
 import '../application/members_controller.dart';
 import '../domain/family_member.dart';
 
@@ -21,7 +22,16 @@ class MembersScreen extends ConsumerWidget {
         ref.watch(authControllerProvider).valueOrNull?.isOwner ?? false;
 
     return Scaffold(
-      appBar: AppBar(title: Text(t.members)),
+      appBar: AppBar(
+        title: Text(t.members),
+        actions: [
+          IconButton(
+            tooltip: t.leaveFamily,
+            icon: const Icon(Icons.logout),
+            onPressed: () => _confirmLeave(context, ref, t),
+          ),
+        ],
+      ),
       // Any family member can invite others (the invitee joins as a member).
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/members/add'),
@@ -43,8 +53,9 @@ class MembersScreen extends ConsumerWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 4),
               itemBuilder: (context, i) => _MemberTile(
                 member: list[i],
-                canTransfer: amOwner && !list[i].isOwner,
+                canManage: amOwner && !list[i].isOwner,
                 onTransfer: () => _confirmTransfer(context, ref, t, list[i]),
+                onRemove: () => _confirmRemove(context, ref, t, list[i]),
               ),
             ),
           ),
@@ -90,18 +101,100 @@ class MembersScreen extends ConsumerWidget {
       messenger.showSnackBar(SnackBar(content: Text('$e')));
     }
   }
+
+  Future<void> _confirmRemove(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations t,
+    FamilyMember member,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        actionsOverflowButtonSpacing: 8,
+        icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
+        title: Text(t.removeMember),
+        content: Text(t.removeMemberConfirm(member.displayName)),
+        actions: [
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: cs.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(t.removeMember),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(t.cancel),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) {
+      return;
+    }
+    try {
+      await ref
+          .read(membersControllerProvider.notifier)
+          .removeMember(member.rid);
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
+  Future<void> _confirmLeave(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations t,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        actionsOverflowButtonSpacing: 8,
+        icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
+        title: Text(t.leaveFamily),
+        content: Text(t.leaveFamilyConfirm),
+        actions: [
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: cs.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(t.leaveFamily),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(t.cancel),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) {
+      return;
+    }
+    try {
+      await ref.read(authControllerProvider.notifier).leaveFamily();
+      ref.read(walletScopeProvider.notifier).state = WalletScope.personal;
+      router.go('/');
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
 }
 
 class _MemberTile extends StatelessWidget {
   const _MemberTile({
     required this.member,
-    required this.canTransfer,
+    required this.canManage,
     required this.onTransfer,
+    required this.onRemove,
   });
 
   final FamilyMember member;
-  final bool canTransfer;
+  final bool canManage;
   final VoidCallback onTransfer;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -116,11 +209,39 @@ class _MemberTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _RolePill(label: member.isOwner ? t.roleOwner : t.roleMember),
-          if (canTransfer)
-            IconButton(
-              tooltip: t.transferOwnership,
-              icon: Icon(Icons.shield_outlined, color: cs.primary),
-              onPressed: onTransfer,
+          if (canManage)
+            PopupMenuButton<String>(
+              icon: Icon(Icons.more_vert, color: cs.onSurfaceVariant),
+              onSelected: (v) {
+                if (v == 'transfer') {
+                  onTransfer();
+                } else if (v == 'remove') {
+                  onRemove();
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem<String>(
+                  value: 'transfer',
+                  child: Row(
+                    children: [
+                      Icon(Icons.shield_outlined, color: cs.primary, size: 20),
+                      const SizedBox(width: 10),
+                      Text(t.transferOwnership),
+                    ],
+                  ),
+                ),
+                PopupMenuItem<String>(
+                  value: 'remove',
+                  child: Row(
+                    children: [
+                      Icon(Icons.person_remove_outlined,
+                          color: cs.error, size: 20),
+                      const SizedBox(width: 10),
+                      Text(t.removeMember, style: TextStyle(color: cs.error)),
+                    ],
+                  ),
+                ),
+              ],
             ),
         ],
       ),

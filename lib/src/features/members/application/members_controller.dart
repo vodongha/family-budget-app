@@ -20,6 +20,19 @@ class MembersController extends AsyncNotifier<List<FamilyMember>> {
       () => ref.read(memberRepositoryProvider).list(),
     );
   }
+
+  /// Remove [rid] from the family (owner-only). Refreshes the member list.
+  Future<void> removeMember(String rid) async {
+    await ref.read(memberRepositoryProvider).removeMember(rid);
+    state = await AsyncValue.guard(
+      () => ref.read(memberRepositoryProvider).list(),
+    );
+  }
+
+  /// Rename the family (owner-only).
+  Future<void> renameFamily(String name) async {
+    await ref.read(memberRepositoryProvider).renameFamily(name);
+  }
 }
 
 final membersControllerProvider =

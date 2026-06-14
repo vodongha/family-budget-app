@@ -8,6 +8,7 @@ import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/presentation/account_menu.dart';
 import '../../auth/presentation/avatar.dart';
+import '../../family/presentation/create_family_dialog.dart';
 import '../../transactions/application/transactions_controller.dart';
 import '../../transactions/domain/transaction.dart';
 import '../../wallets/application/wallets_controller.dart';
@@ -200,11 +201,13 @@ class _HubPagerState extends ConsumerState<_HubPager> {
       _HubItem(Icons.receipt_long_outlined, t.transactions, '/transactions'),
       _HubItem(Icons.bar_chart_outlined, t.statistics, '/stats'),
       _HubItem(Icons.calendar_month_outlined, t.calendar, '/calendar'),
-      _HubItem(Icons.pie_chart_outline, t.budgets, '/budgets'),
+      // Budgets, categories and members are shared family features.
+      _HubItem(Icons.pie_chart_outline, t.budgets, '/budgets',
+          familyOnly: true),
       _HubItem(Icons.swap_horiz, t.transferMoney, '/transfers/new'),
-      _HubItem(Icons.category_outlined, t.categories, '/categories'),
-      // Adding a member now lives as a button inside the Members screen.
-      _HubItem(Icons.people_outline, t.members, '/members'),
+      _HubItem(Icons.category_outlined, t.categories, '/categories',
+          familyOnly: true),
+      _HubItem(Icons.people_outline, t.members, '/members', familyOnly: true),
       _HubItem(Icons.mail_outline, t.invitations, '/invitations'),
     ];
     final List<List<_HubItem>> pages = [
@@ -249,22 +252,38 @@ class _HubPagerState extends ConsumerState<_HubPager> {
 }
 
 class _HubItem {
-  const _HubItem(this.icon, this.label, this.route);
+  const _HubItem(this.icon, this.label, this.route, {this.familyOnly = false});
   final IconData icon;
   final String label;
   final String route;
+
+  /// Requires a family (e.g. budgets, categories, members); a family-less user
+  /// is prompted to create one instead of navigating into a 403.
+  final bool familyOnly;
 }
 
-class _HubCell extends StatelessWidget {
+class _HubCell extends ConsumerWidget {
   const _HubCell({required this.item});
   final _HubItem item;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ColorScheme cs = Theme.of(context).colorScheme;
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: () => context.push(item.route),
+      onTap: () async {
+        if (item.familyOnly) {
+          final bool hasFamily =
+              ref.read(authControllerProvider).valueOrNull?.hasFamily ?? false;
+          if (!hasFamily) {
+            await showCreateFamilyDialog(context, ref);
+            return;
+          }
+        }
+        if (context.mounted) {
+          context.push(item.route);
+        }
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

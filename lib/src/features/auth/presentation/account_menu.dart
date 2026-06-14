@@ -66,7 +66,8 @@ class _AccountSheet extends ConsumerWidget {
                     ],
                   ),
                 ),
-                _RolePill(label: user.isOwner ? t.roleOwner : t.roleMember),
+                if (user.hasFamily)
+                  _RolePill(label: user.isOwner ? t.roleOwner : t.roleMember),
               ],
             ),
             const SizedBox(height: 20),
@@ -86,6 +87,15 @@ class _AccountSheet extends ConsumerWidget {
                 parentContext.push('/settings');
               },
             ),
+            if (user.hasFamily)
+              _MenuTile(
+                icon: Icons.diversity_3_outlined,
+                label: t.manageFamily,
+                onTap: () {
+                  Navigator.pop(context);
+                  parentContext.push('/family');
+                },
+              ),
             // Privacy policy sits below Settings; shown in-app via a WebView that
             // loads the bilingual page served by the backend.
             _MenuTile(

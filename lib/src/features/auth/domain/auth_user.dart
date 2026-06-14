@@ -8,6 +8,7 @@ class AuthUser {
     required this.hasFamily,
     required this.hasPassword,
     this.phone,
+    this.familyName,
   });
 
   final String rid;
@@ -21,9 +22,12 @@ class AuthUser {
   final String role;
 
   /// Whether the account belongs to a family yet. A freshly registered (or new
-  /// Google) account has none until it creates or joins one — the router sends
-  /// such a user to the onboarding screen.
+  /// Google) account has none until it creates or joins one; the personal tab
+  /// works without one.
   final bool hasFamily;
+
+  /// The family's display name, or null when the user has no family.
+  final String? familyName;
 
   /// Whether a password is set. False for Google-only accounts, which see a
   /// "set password" form (no current password) instead of "change password".
@@ -40,6 +44,7 @@ class AuthUser {
       role: (json['role'] ?? 'member') as String,
       hasFamily: (json['has_family'] ?? false) as bool,
       hasPassword: (json['has_password'] ?? true) as bool,
+      familyName: json['family_name'] as String?,
     );
   }
 }

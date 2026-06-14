@@ -32,6 +32,24 @@ class MemberRepository {
       throw toApiException(e);
     }
   }
+
+  /// Rename the family (owner-only).
+  Future<void> renameFamily(String name) async {
+    try {
+      await _dio.patch('/families', data: {'name': name});
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Remove a member from the family (owner-only). Their personal data stays.
+  Future<void> removeMember(String rid) async {
+    try {
+      await _dio.delete('/families/members/$rid');
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
 }
 
 final memberRepositoryProvider = Provider<MemberRepository>((ref) {
