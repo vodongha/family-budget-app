@@ -46,7 +46,20 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  # Generates the Android launcher icons from assets/icon/. Run with:
+  #   dart run flutter_launcher_icons
+  flutter_launcher_icons: ^0.14.1
 
 flutter:
   uses-material-design: true
   generate: true
+
+# App launcher icon. `icon.png` is the full white-background logo (legacy icon);
+# the adaptive icon uses a white background + a padded foreground so the round
+# mask doesn't crop the logo.
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
