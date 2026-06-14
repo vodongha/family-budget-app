@@ -182,27 +182,30 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: _saving ? null : () => _save(t),
-                        child: _saving
-                            ? const SizedBox(
-                                height: 18,
-                                width: 18,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : Text(_isEdit ? t.save : t.create),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    TextButton(
-                      onPressed: _saving ? null : () => Navigator.pop(context),
-                      child: Text(t.cancel),
-                    ),
-                  ],
+                // Full-width stacked buttons. Using SizedBox(infinity) instead of
+                // a Row+Expanded guarantees the button can't collapse to ~0 width
+                // (which made the "Lưu" label wrap vertically) regardless of the
+                // parent's width constraints.
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _saving ? null : () => _save(t),
+                    child: _saving
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(_isEdit ? t.save : t.create),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: _saving ? null : () => Navigator.pop(context),
+                    child: Text(t.cancel),
+                  ),
                 ),
               ],
             ),

@@ -106,6 +106,7 @@ class BudgetsScreen extends ConsumerWidget {
               TextField(
                 controller: amount,
                 keyboardType: TextInputType.number,
+                inputFormatters: [ThousandsSeparatorInputFormatter()],
                 decoration: InputDecoration(labelText: t.monthlyLimit),
               ),
             ],
@@ -139,7 +140,7 @@ class BudgetsScreen extends ConsumerWidget {
 
   Future<void> _editBudget(
       BuildContext context, WidgetRef ref, AppLocalizations t, Budget b) async {
-    final amount = TextEditingController(text: b.amount.toString());
+    final amount = TextEditingController(text: Money.group(b.amount));
     final messenger = ScaffoldMessenger.of(context);
     final bool? ok = await showDialog<bool>(
       context: context,
@@ -149,6 +150,7 @@ class BudgetsScreen extends ConsumerWidget {
         content: TextField(
           controller: amount,
           keyboardType: TextInputType.number,
+          inputFormatters: [ThousandsSeparatorInputFormatter()],
           decoration: InputDecoration(labelText: t.monthlyLimit),
         ),
         actions: [
