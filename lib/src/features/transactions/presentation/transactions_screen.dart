@@ -7,6 +7,7 @@ import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
 import '../../categories/application/categories_controller.dart';
 import '../../categories/domain/category.dart';
+import '../../wallets/application/wallet_scope.dart';
 import '../application/transactions_controller.dart';
 import '../domain/transaction.dart';
 
@@ -19,6 +20,8 @@ class TransactionsScreen extends ConsumerWidget {
     final AsyncValue<List<Transaction>> txns =
         ref.watch(transactionsControllerProvider);
     final bool filterActive = ref.watch(txnFilterProvider) != emptyTxnFilter;
+    final bool showCreator =
+        ref.watch(walletScopeProvider) == WalletScope.family;
 
     return Scaffold(
       appBar: AppBar(
@@ -74,7 +77,8 @@ class TransactionsScreen extends ConsumerWidget {
             child: ListView.separated(
               itemCount: list.length,
               separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (context, i) => _TransactionTile(txn: list[i]),
+              itemBuilder: (context, i) =>
+                  _TransactionTile(txn: list[i], showCreator: showCreator),
             ),
           );
         },
@@ -84,8 +88,9 @@ class TransactionsScreen extends ConsumerWidget {
 }
 
 class _TransactionTile extends StatelessWidget {
-  const _TransactionTile({required this.txn});
+  const _TransactionTile({required this.txn, this.showCreator = false});
   final Transaction txn;
+  final bool showCreator;
 
   @override
   Widget build(BuildContext context) {
@@ -109,8 +114,16 @@ class _TransactionTile extends StatelessWidget {
           ? (categoryName ?? (inflow ? t.income : t.expense))
           : txn.note!;
     }
-    final String subtitle =
-        (!transfer && categoryName != null) ? '$date · $categoryName' : date;
+    final List<String> subtitleParts = [date];
+    if (!transfer && categoryName != null) {
+      subtitleParts.add(categoryName);
+    }
+    if (showCreator &&
+        txn.createdBy != null &&
+        txn.createdBy!.displayName.isNotEmpty) {
+      subtitleParts.add(txn.createdBy!.displayName);
+    }
+    final String subtitle = subtitleParts.join(' · ');
 
     final String? emoji = transfer ? null : txn.category?.icon;
     final Widget leading = (emoji != null && emoji.isNotEmpty)
@@ -153,8 +166,8 @@ class _TransactionTile extends StatelessWidget {
             .titleMedium
             ?.copyWith(color: color, fontWeight: FontWeight.w600),
       ),
-      // Transfers are managed via wallets; only normal transactions are editable.
-      onTap: transfer
+      // Transfers are managed via wallets; only the creator can edit a txn.
+      onTap: (transfer || !txn.canEdit)
           ? null
           : () => context.push('/transactions/edit', extra: txn),
     );

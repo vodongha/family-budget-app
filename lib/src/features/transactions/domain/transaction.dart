@@ -39,6 +39,21 @@ enum TransactionType {
       this == TransactionType.income || this == TransactionType.transferIn;
 }
 
+/// Who recorded a transaction (shown in the family view).
+class TxnCreator {
+  const TxnCreator({required this.rid, required this.displayName});
+
+  final String rid;
+  final String displayName;
+
+  factory TxnCreator.fromJson(Map<String, dynamic> json) {
+    return TxnCreator(
+      rid: (json['rid'] ?? '') as String,
+      displayName: (json['display_name'] ?? '') as String,
+    );
+  }
+}
+
 class Transaction {
   const Transaction({
     required this.rid,
@@ -48,6 +63,8 @@ class Transaction {
     required this.occurredOn,
     this.note,
     this.category,
+    this.createdBy,
+    this.canEdit = true,
   });
 
   final String rid;
@@ -62,11 +79,18 @@ class Transaction {
   /// The category this transaction is filed under, or null (uncategorized).
   final Category? category;
 
+  /// Who recorded it (null only for legacy/unknown data).
+  final TxnCreator? createdBy;
+
+  /// Whether the current user may edit/delete it (true only for the creator).
+  final bool canEdit;
+
   /// Signed amount for display (inflow +, outflow −).
   int get signedAmount => type.isInflow ? amount : -amount;
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
     final dynamic cat = json['category'];
+    final dynamic by = json['created_by'];
     return Transaction(
       rid: json['rid'] as String,
       walletRid: (json['wallet_rid'] ?? '') as String,
@@ -76,6 +100,9 @@ class Transaction {
       note: json['note'] as String?,
       category:
           cat is Map ? Category.fromJson(cat.cast<String, dynamic>()) : null,
+      createdBy:
+          by is Map ? TxnCreator.fromJson(by.cast<String, dynamic>()) : null,
+      canEdit: (json['can_edit'] ?? true) as bool,
     );
   }
 }
