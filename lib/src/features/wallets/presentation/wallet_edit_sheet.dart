@@ -1,0 +1,234 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../l10n/app_localizations.dart';
+import '../application/wallets_controller.dart';
+import '../domain/wallet.dart';
+
+/// Preset wallet colours (hex). Kept short so the swatch row stays tidy.
+const List<String> kWalletColors = <String>[
+  '#5B5BF0',
+  '#06B6D4',
+  '#22C55E',
+  '#F59E0B',
+  '#EF4444',
+  '#EC4899',
+  '#A855F7',
+  '#64748B',
+];
+
+/// Create or edit a wallet (name, optional icon emoji, optional colour).
+/// When [existing] is null it creates (with a shared/private choice, defaulting
+/// to [initialPersonal]); otherwise it edits that wallet (visibility is fixed).
+Future<void> showWalletEditSheet(
+  BuildContext context,
+  WidgetRef ref, {
+  Wallet? existing,
+  bool initialPersonal = false,
+}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (_) =>
+        _WalletEditSheet(existing: existing, initialPersonal: initialPersonal),
+  );
+}
+
+class _WalletEditSheet extends ConsumerStatefulWidget {
+  const _WalletEditSheet({this.existing, this.initialPersonal = false});
+
+  final Wallet? existing;
+  final bool initialPersonal;
+
+  @override
+  ConsumerState<_WalletEditSheet> createState() => _WalletEditSheetState();
+}
+
+class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
+  late final TextEditingController _name =
+      TextEditingController(text: widget.existing?.name ?? '');
+  late final TextEditingController _icon =
+      TextEditingController(text: widget.existing?.icon ?? '');
+  late String? _color = widget.existing?.color;
+  late bool _personal = widget.existing?.isPersonal ?? widget.initialPersonal;
+  bool _saving = false;
+
+  bool get _isEdit => widget.existing != null;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _icon.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save(AppLocalizations t) async {
+    final String name = _name.text.trim();
+    if (name.isEmpty) {
+      return;
+    }
+    setState(() => _saving = true);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final String icon = _icon.text.trim();
+    try {
+      final notifier = ref.read(walletsControllerProvider.notifier);
+      if (_isEdit) {
+        await notifier.edit(
+          widget.existing!.rid,
+          name: name,
+          icon: icon, // empty string clears it
+          color: _color,
+        );
+      } else {
+        await notifier.create(
+          name,
+          visibility: _personal ? 'personal' : 'family',
+          icon: icon.isEmpty ? null : icon,
+          color: _color,
+        );
+      }
+      navigator.pop();
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) {
+        setState(() => _saving = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations t = AppLocalizations.of(context);
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        4,
+        20,
+        20 + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _isEdit ? t.editWallet : t.newWallet,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _name,
+            autofocus: !_isEdit,
+            decoration: InputDecoration(labelText: t.walletName),
+          ),
+          const SizedBox(height: 12),
+          if (!_isEdit)
+            SegmentedButton<bool>(
+              segments: [
+                ButtonSegment(
+                  value: false,
+                  label: Text(t.sharedWallet),
+                  icon: const Icon(Icons.people_outline),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text(t.privateWallet),
+                  icon: const Icon(Icons.lock_outline),
+                ),
+              ],
+              selected: {_personal},
+              showSelectedIcon: false,
+              onSelectionChanged: (s) => setState(() => _personal = s.first),
+            ),
+          if (!_isEdit) const SizedBox(height: 12),
+          TextField(
+            controller: _icon,
+            maxLength: 4,
+            decoration: InputDecoration(
+              labelText: t.iconOptional,
+              hintText: '💵',
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(t.colorOptional, style: TextStyle(color: cs.onSurfaceVariant)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              for (final hex in kWalletColors)
+                _ColorDot(
+                  hex: hex,
+                  selected: _color == hex,
+                  onTap: () => setState(
+                    () => _color = _color == hex ? null : hex,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton(
+                  onPressed: _saving ? null : () => _save(t),
+                  child: _saving
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(_isEdit ? t.save : t.create),
+                ),
+              ),
+              const SizedBox(width: 12),
+              TextButton(
+                onPressed: _saving ? null : () => Navigator.pop(context),
+                child: Text(t.cancel),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ColorDot extends StatelessWidget {
+  const _ColorDot({
+    required this.hex,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String hex;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final int value = int.parse('FF${hex.replaceAll('#', '')}', radix: 16);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 36,
+        width: 36,
+        decoration: BoxDecoration(
+          color: Color(value),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: selected ? cs.onSurface : Colors.transparent,
+            width: 3,
+          ),
+        ),
+        child: selected
+            ? const Icon(Icons.check, color: Colors.white, size: 18)
+            : null,
+      ),
+    );
+  }
+}

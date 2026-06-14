@@ -5,6 +5,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/money.dart';
+import '../../../core/responsive.dart';
 import '../../transactions/domain/transaction.dart';
 import '../../wallets/application/wallet_scope.dart';
 import '../../wallets/presentation/scope_toggle.dart';
@@ -72,111 +73,115 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(t.calendar)),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: const ScopeToggle(),
-          ),
-          TableCalendar<Transaction>(
-            firstDay: DateTime(2020),
-            lastDay: DateTime(2100),
-            focusedDay: _focused,
-            currentDay: DateTime.now(),
-            availableCalendarFormats: const {CalendarFormat.month: 'Month'},
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            selectedDayPredicate: (d) => isSameDay(_selected, d),
-            eventLoader: (day) => byDay[_dayOnly(day)] ?? const [],
-            onDaySelected: (selected, focused) => setState(() {
-              _selected = selected;
-              _focused = focused;
-            }),
-            onPageChanged: (focused) => setState(() => _focused = focused),
-            headerStyle: const HeaderStyle(
-              formatButtonVisible: false,
-              titleCentered: true,
+      body: ResponsiveCenter(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: const ScopeToggle(),
             ),
-            calendarStyle: CalendarStyle(
-              outsideDaysVisible: false,
-              todayDecoration: BoxDecoration(
-                color: cs.primary.withValues(alpha: 0.25),
-                shape: BoxShape.circle,
+            TableCalendar<Transaction>(
+              firstDay: DateTime(2020),
+              lastDay: DateTime(2100),
+              focusedDay: _focused,
+              currentDay: DateTime.now(),
+              availableCalendarFormats: const {CalendarFormat.month: 'Month'},
+              startingDayOfWeek: StartingDayOfWeek.monday,
+              selectedDayPredicate: (d) => isSameDay(_selected, d),
+              eventLoader: (day) => byDay[_dayOnly(day)] ?? const [],
+              onDaySelected: (selected, focused) => setState(() {
+                _selected = selected;
+                _focused = focused;
+              }),
+              onPageChanged: (focused) => setState(() => _focused = focused),
+              headerStyle: const HeaderStyle(
+                formatButtonVisible: false,
+                titleCentered: true,
               ),
-              selectedDecoration: BoxDecoration(
-                color: cs.primary,
-                shape: BoxShape.circle,
+              calendarStyle: CalendarStyle(
+                outsideDaysVisible: false,
+                todayDecoration: BoxDecoration(
+                  color: cs.primary.withValues(alpha: 0.25),
+                  shape: BoxShape.circle,
+                ),
+                selectedDecoration: BoxDecoration(
+                  color: cs.primary,
+                  shape: BoxShape.circle,
+                ),
               ),
-            ),
-            calendarBuilders: CalendarBuilders<Transaction>(
-              markerBuilder: (context, day, events) {
-                if (events.isEmpty) {
-                  return null;
-                }
-                int net = 0;
-                for (final e in events) {
-                  net += e.signedAmount;
-                }
-                final Color color = net >= 0 ? Colors.green : Colors.red;
-                final String label =
-                    '${net >= 0 ? '+' : '−'}${_compact(net.abs())}';
-                return Positioned(
-                  bottom: 1,
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const Divider(height: 1),
-          // Selected-day summary.
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${_selected.year}-${_selected.month.toString().padLeft(2, '0')}-${_selected.day.toString().padLeft(2, '0')}',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                Row(
-                  children: [
-                    Text('+${Money.format(dayIncome)}',
-                        style: const TextStyle(
-                            color: Colors.green, fontWeight: FontWeight.w600)),
-                    const SizedBox(width: 12),
-                    Text('−${Money.format(dayExpense)}',
-                        style: const TextStyle(
-                            color: Colors.red, fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: monthly.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('$e')),
-              data: (_) => dayTxns.isEmpty
-                  ? Center(
-                      child: Text(
-                        t.noTransactionsThisDay,
-                        style: TextStyle(color: cs.onSurfaceVariant),
+              calendarBuilders: CalendarBuilders<Transaction>(
+                markerBuilder: (context, day, events) {
+                  if (events.isEmpty) {
+                    return null;
+                  }
+                  int net = 0;
+                  for (final e in events) {
+                    net += e.signedAmount;
+                  }
+                  final Color color = net >= 0 ? Colors.green : Colors.red;
+                  final String label =
+                      '${net >= 0 ? '+' : '−'}${_compact(net.abs())}';
+                  return Positioned(
+                    bottom: 1,
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
                       ),
-                    )
-                  : ListView.separated(
-                      itemCount: dayTxns.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (context, i) => _DayTxnTile(txn: dayTxns[i]),
                     ),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+            const Divider(height: 1),
+            // Selected-day summary.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${_selected.year}-${_selected.month.toString().padLeft(2, '0')}-${_selected.day.toString().padLeft(2, '0')}',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  Row(
+                    children: [
+                      Text('+${Money.format(dayIncome)}',
+                          style: const TextStyle(
+                              color: Colors.green,
+                              fontWeight: FontWeight.w600)),
+                      const SizedBox(width: 12),
+                      Text('−${Money.format(dayExpense)}',
+                          style: const TextStyle(
+                              color: Colors.red, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: monthly.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(child: Text('$e')),
+                data: (_) => dayTxns.isEmpty
+                    ? Center(
+                        child: Text(
+                          t.noTransactionsThisDay,
+                          style: TextStyle(color: cs.onSurfaceVariant),
+                        ),
+                      )
+                    : ListView.separated(
+                        itemCount: dayTxns.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (context, i) =>
+                            _DayTxnTile(txn: dayTxns[i]),
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

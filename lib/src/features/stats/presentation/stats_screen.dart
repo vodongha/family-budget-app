@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/money.dart';
+import '../../../core/responsive.dart';
 import '../../dashboard/application/dashboard_controller.dart';
 import '../../dashboard/domain/dashboard_summary.dart';
 import '../../wallets/application/wallet_scope.dart';
@@ -33,62 +34,64 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(t.statistics)),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          const ScopeToggle(),
-          const SizedBox(height: 16),
-          Center(
-            child: SegmentedButton<int>(
-              segments: const [
-                ButtonSegment(value: 1, label: Text('1M')),
-                ButtonSegment(value: 3, label: Text('3M')),
-                ButtonSegment(value: 6, label: Text('6M')),
-                ButtonSegment(value: 12, label: Text('12M')),
-              ],
-              selected: {_months},
-              onSelectionChanged: (s) => setState(() => _months = s.first),
-            ),
-          ),
-          const SizedBox(height: 20),
-          _ChartCard(
-            title: t.monthlyTrend,
-            child: monthly.when(
-              loading: () => const _ChartLoading(),
-              error: (e, _) => _ChartMessage('$e'),
-              data: (points) => _MonthlyBars(points: points),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _ChartCard(
-            title: t.incomeVsExpense,
-            child: monthly.when(
-              loading: () => const _ChartLoading(),
-              error: (e, _) => _ChartMessage('$e'),
-              data: (points) => _IncomeExpenseDonut(
-                income: points.fold(0, (a, p) => a + p.income),
-                expense: points.fold(0, (a, p) => a + p.expense),
-                incomeLabel: t.income,
-                expenseLabel: t.expense,
-                emptyLabel: t.noData,
+      body: ResponsiveCenter(
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            const ScopeToggle(),
+            const SizedBox(height: 16),
+            Center(
+              child: SegmentedButton<int>(
+                segments: const [
+                  ButtonSegment(value: 1, label: Text('1M')),
+                  ButtonSegment(value: 3, label: Text('3M')),
+                  ButtonSegment(value: 6, label: Text('6M')),
+                  ButtonSegment(value: 12, label: Text('12M')),
+                ],
+                selected: {_months},
+                onSelectionChanged: (s) => setState(() => _months = s.first),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          _ChartCard(
-            title: t.balanceByWallet,
-            child: summary.when(
-              loading: () => const _ChartLoading(),
-              error: (e, _) => _ChartMessage('$e'),
-              data: (s) => _WalletBars(
-                wallets: s.wallets,
-                emptyLabel: t.noData,
+            const SizedBox(height: 20),
+            _ChartCard(
+              title: t.monthlyTrend,
+              child: monthly.when(
+                loading: () => const _ChartLoading(),
+                error: (e, _) => _ChartMessage('$e'),
+                data: (points) => _MonthlyBars(points: points),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          _ByCategoryCard(months: _months, scope: scope.api),
-        ],
+            const SizedBox(height: 16),
+            _ChartCard(
+              title: t.incomeVsExpense,
+              child: monthly.when(
+                loading: () => const _ChartLoading(),
+                error: (e, _) => _ChartMessage('$e'),
+                data: (points) => _IncomeExpenseDonut(
+                  income: points.fold(0, (a, p) => a + p.income),
+                  expense: points.fold(0, (a, p) => a + p.expense),
+                  incomeLabel: t.income,
+                  expenseLabel: t.expense,
+                  emptyLabel: t.noData,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _ChartCard(
+              title: t.balanceByWallet,
+              child: summary.when(
+                loading: () => const _ChartLoading(),
+                error: (e, _) => _ChartMessage('$e'),
+                data: (s) => _WalletBars(
+                  wallets: s.wallets,
+                  emptyLabel: t.noData,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _ByCategoryCard(months: _months, scope: scope.api),
+          ],
+        ),
       ),
     );
   }

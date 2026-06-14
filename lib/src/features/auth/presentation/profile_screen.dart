@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/phone_field.dart';
+import '../../../core/responsive.dart';
 import '../application/auth_controller.dart';
 import '../domain/auth_user.dart';
 import 'avatar.dart';
@@ -66,70 +67,72 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(t.editProfile)),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Center(
-            child: Column(
+      body: ResponsiveCenter(
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Center(
+              child: Column(
+                children: [
+                  UserAvatar(name: user.displayName, radius: 44),
+                  const SizedBox(height: 12),
+                  Text(
+                    user.email,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: cs.onSurfaceVariant),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
+            TextField(
+              controller: _name,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.badge_outlined),
+                labelText: t.displayName,
+              ),
+              onSubmitted: (_) => _save(t),
+            ),
+            const SizedBox(height: 16),
+            AppPhoneField(
+              initialE164: user.phone,
+              label: t.phoneOptional,
+              invalidMessage: t.invalidPhone,
+              onChanged: (e164) => _phone = e164,
+            ),
+            const SizedBox(height: 16),
+            _InfoCard(
               children: [
-                UserAvatar(name: user.displayName, radius: 44),
-                const SizedBox(height: 12),
-                Text(
-                  user.email,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: cs.onSurfaceVariant),
+                _InfoRow(
+                  icon: Icons.email_outlined,
+                  label: t.email,
+                  value: user.email,
+                ),
+                const Divider(height: 1),
+                _InfoRow(
+                  icon: Icons.shield_outlined,
+                  label: t.role,
+                  value: user.isOwner ? t.roleOwner : t.roleMember,
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 28),
-          TextField(
-            controller: _name,
-            textInputAction: TextInputAction.done,
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.badge_outlined),
-              labelText: t.displayName,
+            const SizedBox(height: 28),
+            FilledButton.icon(
+              onPressed: _saving ? null : () => _save(t),
+              icon: _saving
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.check),
+              label: Text(t.save),
             ),
-            onSubmitted: (_) => _save(t),
-          ),
-          const SizedBox(height: 16),
-          AppPhoneField(
-            initialE164: user.phone,
-            label: t.phoneOptional,
-            invalidMessage: t.invalidPhone,
-            onChanged: (e164) => _phone = e164,
-          ),
-          const SizedBox(height: 16),
-          _InfoCard(
-            children: [
-              _InfoRow(
-                icon: Icons.email_outlined,
-                label: t.email,
-                value: user.email,
-              ),
-              const Divider(height: 1),
-              _InfoRow(
-                icon: Icons.shield_outlined,
-                label: t.role,
-                value: user.isOwner ? t.roleOwner : t.roleMember,
-              ),
-            ],
-          ),
-          const SizedBox(height: 28),
-          FilledButton.icon(
-            onPressed: _saving ? null : () => _save(t),
-            icon: _saving
-                ? const SizedBox(
-                    height: 18,
-                    width: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.check),
-            label: Text(t.save),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

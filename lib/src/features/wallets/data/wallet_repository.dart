@@ -26,11 +26,44 @@ class WalletRepository {
   }
 
   /// Create a wallet. [visibility] is `family` (shared) or `personal` (private).
-  Future<Wallet> create(String name, {String visibility = 'family'}) async {
+  Future<Wallet> create(
+    String name, {
+    String visibility = 'family',
+    String? icon,
+    String? color,
+  }) async {
     try {
       final Response<dynamic> res = await _dio.post(
         '/wallets',
-        data: {'name': name, 'visibility': visibility},
+        data: {
+          'name': name,
+          'visibility': visibility,
+          if (icon != null) 'icon': icon,
+          if (color != null) 'color': color,
+        },
+      );
+      return Wallet.fromJson((res.data as Map).cast<String, dynamic>());
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Edit a wallet's name/icon/colour (only the provided fields change).
+  /// Family wallet → family owner; personal wallet → its owner.
+  Future<Wallet> update(
+    String rid, {
+    String? name,
+    String? icon,
+    String? color,
+  }) async {
+    try {
+      final Response<dynamic> res = await _dio.patch(
+        '/wallets/$rid',
+        data: {
+          if (name != null) 'name': name,
+          if (icon != null) 'icon': icon,
+          if (color != null) 'color': color,
+        },
       );
       return Wallet.fromJson((res.data as Map).cast<String, dynamic>());
     } catch (e) {

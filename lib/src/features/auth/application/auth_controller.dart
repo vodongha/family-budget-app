@@ -39,7 +39,6 @@ class AuthController extends AsyncNotifier<AuthUser?> {
     required String email,
     required String password,
     required String displayName,
-    required String familyName,
     String? phone,
   }) async {
     state = const AsyncValue<AuthUser?>.loading().copyWithPrevious(state);
@@ -48,9 +47,19 @@ class AuthController extends AsyncNotifier<AuthUser?> {
         email: email,
         password: password,
         displayName: displayName,
-        familyName: familyName,
         phone: phone,
       );
+      return _repo.me();
+    });
+  }
+
+  /// Create the signed-in account's family (onboarding) and refresh the session
+  /// with the new family scope. Throws [ApiException] on failure (e.g. 409 if a
+  /// family already exists) — the caller shows it.
+  Future<void> createFamily(String name) async {
+    state = const AsyncValue<AuthUser?>.loading().copyWithPrevious(state);
+    state = await AsyncValue.guard(() async {
+      await _repo.createFamily(name);
       return _repo.me();
     });
   }
@@ -78,6 +87,20 @@ class AuthController extends AsyncNotifier<AuthUser?> {
   /// stored token). Keeps the session but refreshes role/family scope.
   Future<void> refreshUser() async {
     state = await AsyncValue.guard(() => _repo.me());
+  }
+
+  /// Change or set the account password. Refreshes the user afterwards so
+  /// `hasPassword` flips true for a Google-only account that just set one.
+  /// Throws [ApiException] on failure (e.g. 400 wrong current password).
+  Future<void> changePassword({
+    String? currentPassword,
+    required String newPassword,
+  }) async {
+    await _repo.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+    await refreshUser();
   }
 
   /// Delete the account, then drop the session. Throws [ApiException] on failure

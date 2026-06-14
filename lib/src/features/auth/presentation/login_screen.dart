@@ -142,7 +142,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: busy ? null : () => context.push('/register'),
-                    child: Text(t.createNewFamily),
+                    child: Text(t.createAccount),
                   ),
                 ],
               ),

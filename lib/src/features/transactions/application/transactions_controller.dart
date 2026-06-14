@@ -11,12 +11,13 @@ import '../domain/transaction.dart';
 typedef TxnFilter = ({
   TransactionType? type,
   String? categoryRid,
+  String? walletRid,
   DateTime? from,
   DateTime? to,
 });
 
 const TxnFilter emptyTxnFilter =
-    (type: null, categoryRid: null, from: null, to: null);
+    (type: null, categoryRid: null, walletRid: null, from: null, to: null);
 
 final txnFilterProvider = StateProvider<TxnFilter>((ref) => emptyTxnFilter);
 
@@ -29,6 +30,7 @@ class TransactionsController extends AsyncNotifier<List<Transaction>> {
     final TxnFilter f = ref.watch(txnFilterProvider);
     return ref.read(transactionRepositoryProvider).list(
           scope: scope.api,
+          walletRid: f.walletRid,
           type: f.type,
           categoryRid: f.categoryRid,
           dateFrom: f.from,

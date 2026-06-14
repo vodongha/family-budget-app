@@ -6,8 +6,10 @@ import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
 import '../../categories/application/categories_controller.dart';
 import '../../categories/domain/category.dart';
+import '../../wallets/application/wallet_scope.dart';
 import '../../wallets/application/wallets_controller.dart';
 import '../../wallets/domain/wallet.dart';
+import '../../wallets/presentation/wallet_edit_sheet.dart';
 import '../application/transactions_controller.dart';
 import '../domain/transaction.dart';
 
@@ -69,67 +71,15 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     }
   }
 
-  Future<void> _createWallet(AppLocalizations t) async {
-    final TextEditingController name = TextEditingController();
-    bool personal = false;
-    final ({String name, bool personal})? result =
-        await showDialog<({String name, bool personal})>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setLocal) => AlertDialog(
-          actionsOverflowButtonSpacing: 8,
-          title: Text(t.newWallet),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: name,
-                autofocus: true,
-                decoration: InputDecoration(labelText: t.walletName),
-              ),
-              const SizedBox(height: 12),
-              // Shared (family) vs private (only me).
-              SegmentedButton<bool>(
-                segments: [
-                  ButtonSegment(
-                    value: false,
-                    label: Text(t.sharedWallet),
-                    icon: const Icon(Icons.people_outline),
-                  ),
-                  ButtonSegment(
-                    value: true,
-                    label: Text(t.privateWallet),
-                    icon: const Icon(Icons.lock_outline),
-                  ),
-                ],
-                selected: {personal},
-                showSelectedIcon: false,
-                onSelectionChanged: (s) => setLocal(() => personal = s.first),
-              ),
-            ],
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.pop(
-                ctx,
-                (name: name.text.trim(), personal: personal),
-              ),
-              child: Text(t.create),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(t.cancel),
-            ),
-          ],
-        ),
-      ),
+  void _createWallet() {
+    // Default the new wallet to the slice you're currently adding to, so a
+    // wallet created from the family tab is shared and one from the personal
+    // tab is private.
+    showWalletEditSheet(
+      context,
+      ref,
+      initialPersonal: ref.read(walletScopeProvider) == WalletScope.personal,
     );
-    if (result != null && result.name.isNotEmpty) {
-      await ref.read(walletsControllerProvider.notifier).create(
-            result.name,
-            visibility: result.personal ? 'personal' : 'family',
-          );
-    }
   }
 
   Future<void> _submit(AppLocalizations t) async {
@@ -296,8 +246,29 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             wallets.when(
               loading: () => const LinearProgressIndicator(),
               error: (e, _) => Text('$e'),
-              data: (list) {
-                _walletRid ??= list.isNotEmpty ? list.first.rid : null;
+              data: (allWallets) {
+                // Only offer wallets that belong to the slice being added to:
+                // family (shared) on the family tab, personal (private) on the
+                // personal tab — so a transaction can't land in the wrong scope.
+                final WalletScope scope = ref.watch(walletScopeProvider);
+                final List<Wallet> list = allWallets
+                    .where((w) => scope == WalletScope.personal
+                        ? w.isPersonal
+                        : !w.isPersonal)
+                    .toList();
+                // When editing, keep the transaction's own wallet selectable
+                // even if it belongs to the other scope.
+                if (_isEdit &&
+                    _walletRid != null &&
+                    !list.any((w) => w.rid == _walletRid)) {
+                  list.addAll(allWallets.where((w) => w.rid == _walletRid));
+                }
+                // Default to the first in-scope wallet; re-default if the prior
+                // choice is no longer valid for this scope.
+                if (_walletRid == null ||
+                    !list.any((w) => w.rid == _walletRid)) {
+                  _walletRid = list.isNotEmpty ? list.first.rid : null;
+                }
                 return Row(
                   children: [
                     Expanded(
@@ -318,7 +289,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     IconButton(
                       tooltip: t.newWallet,
                       icon: const Icon(Icons.add_circle_outline),
-                      onPressed: () => _createWallet(t),
+                      onPressed: _createWallet,
                     ),
                   ],
                 );

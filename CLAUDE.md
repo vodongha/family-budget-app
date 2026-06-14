@@ -63,11 +63,19 @@ Rules:
 Base URL via `--dart-define=API_BASE_URL=...` (default `http://10.0.2.2:8000`, the Android
 emulator's route to host localhost).
 
-- `POST /auth/register` `{email, password, display_name, family_name, phone?}` — creates
-  family + owner (no auto-login; app logs in after). `phone` optional, E.164.
+- `POST /auth/register` `{email, password, display_name, family_name?, phone?}` — creates an
+  **account** (no auto-login; app logs in after). `family_name` is **optional**: the app omits it,
+  so the new account has **no family** and is sent to onboarding to create/join one. `phone`
+  optional, E.164.
+- `POST /families {name}` → `{access_token}` — create a family for a family-less account (owner +
+  seeded categories). The app stores the **new token** (it carries the family scope) and refreshes.
 - `POST /auth/login` — **form-encoded** `username` + `password` → `{access_token}`.
-- `GET /auth/me` → user incl. `role` (`owner`/`member`) and `phone` (nullable).
-- `POST /auth/google {id_token}` → `{access_token}` (Sign in with Google).
+- `GET /auth/me` → user incl. `role` (`owner`/`member`), `phone` (nullable), `has_family`
+  (false → onboarding) and `has_password` (false → "set password" instead of "change").
+- `POST /auth/google {id_token}` → `{access_token}` (Sign in with Google). Links to an existing
+  account by email (**case-insensitive**); a brand-new Google account has no family yet.
+- `POST /auth/change-password {current_password?, new_password}` → `204`. Omit `current_password`
+  to set the first password on a Google-only account; `400` if the current password is wrong.
 - `PATCH /auth/me {display_name, phone}` → updated user. `phone` is always sent (blank
   clears it); `422` invalid number, `409` duplicate. `DELETE /auth/me` → `204` self-service
   account deletion (soft-delete; backend purges after 30 days). `409` when an owner must
@@ -75,10 +83,11 @@ emulator's route to host localhost).
 - `GET /members` → active family members `[{rid, display_name, email, phone?, role}]`.
 - `POST /families/transfer-ownership {target_rid}` (owner-only) → new owner; the caller
   becomes a member (single-owner model).
-- `GET /wallets?scope=all|family|personal`, `POST /wallets {name, visibility}` —
+- `GET /wallets?scope=all|family|personal`, `POST /wallets {name, visibility, icon?, color?}` —
   `visibility` is `family` (shared) or `personal` (private to creator); each wallet
-  carries `visibility`. `DELETE /wallets/{rid}` (owner for shared, owner-of-wallet
-  for personal). Balances are derived.
+  carries `visibility`, `icon` (emoji) and `color` (hex). `PATCH /wallets/{rid} {name?, icon?,
+  color?}` edits it (owner for shared, owner-of-wallet for personal; visibility immutable).
+  `DELETE /wallets/{rid}` (same permission). Balances are derived.
 - `GET /transactions?wallet_rid&scope&limit&type&category_rid&date_from&date_to`,
   `POST /transactions {wallet_rid, type, amount, note?, category_rid?, occurred_on?}`,
   `PATCH /transactions/{rid}` (same body — full update), `DELETE /transactions/{rid}` (`204`).
@@ -93,8 +102,8 @@ emulator's route to host localhost).
 - `GET /stats/by-category?kind=expense|income&months=N` →
   `[{category_rid?, name?, icon?, color?, default_key?, amount}]` sorted by amount desc;
   the uncategorized bucket has `category_rid` null + `default_key` `"uncategorized"`.
-- `POST /invitations {email?|phone?}` (owner) → invite incl. `in_app` (true when the contact
-  matched an existing account). `GET /invitations/{token}` (public) → `{family_name, role,
+- `POST /invitations {email?|phone?}` (**any member**) → invite incl. `in_app` (true when the
+  contact matched an existing account); the invitee always joins as `member`. `GET /invitations/{token}` (public) → `{family_name, role,
   status, email?}`; `POST /invitations/accept {token, password, display_name, email?}` (public)
   → `{access_token}` (auto-login).
 - **In-app invites** (existing accounts): `GET /invitations/inbox` (auth) → pending invites
@@ -117,11 +126,33 @@ Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner
   (`${AppConfig.apiBaseUrl}/privacy?lang=<locale>`). `privacy_web_view.dart` is a conditional
   export — `webview_flutter` on Android/iOS, an `<iframe>` (`package:web` + `dart:ui_web`) on
   web. The backend is the single source of truth; the app just embeds it.
+- **Onboarding** (`features/auth/presentation/onboarding_screen.dart`, `/onboarding`): a signed-in
+  account with **no family** (`AuthUser.hasFamily` false) is forced here by the router — create a
+  family (`POST /families`) or open Invitations to join one. Registration creates an account only;
+  the family comes after.
+- **Change/set password** (`features/auth/presentation/change_password_screen.dart`,
+  `/change-password`, from Settings): `POST /auth/change-password`; for a Google-only account
+  (`hasPassword` false) it's "set password" with no current-password field.
+- **Add transaction is scope-aware** (`add_transaction_screen.dart`): the wallet picker lists only
+  wallets of the current `walletScopeProvider` (family→shared, personal→private) and defaults to
+  one in that scope, so an entry can't land in the wrong scope. The inline "new wallet" defaults to
+  the current scope. Edit keeps the transaction's own wallet selectable.
 - **Transaction edit/filter** (`features/transactions/`): tap a row → `AddTransactionScreen`
-  in edit mode (delete from its app bar). `txnFilterProvider` (type/category/date) feeds the
-  list controller; the filter sheet lives in `transactions_screen.dart`. In **family scope**
-  each row shows its creator (`Transaction.createdBy` → avatar + name); edit/delete are gated
-  by `Transaction.canEdit` so only the creator can change their own entries (others get 403).
+  in edit mode (delete from its app bar). `txnFilterProvider` (type/category/**walletRid**/date)
+  feeds the list controller; the filter sheet lives in `transactions_screen.dart`. The dashboard
+  drills in here: tapping the hero **Income/Expense** sets the `type` filter, tapping a **wallet
+  tile** sets the `walletRid` filter, then pushes `/transactions`. In **family scope** each row
+  shows its creator; edit/delete are gated by `Transaction.canEdit` so only the creator can change
+  their own entries (others get 403).
+- **Wallet create/edit** (`features/wallets/presentation/wallet_edit_sheet.dart`,
+  `showWalletEditSheet`): one bottom sheet for both — name, shared/private (create only), emoji
+  **icon** and a **colour** swatch. Reached from the dashboard wallet tile's ⋮ menu (Edit) and the
+  add-transaction "+" / empty-state. `WalletsController.edit` (not `update` — that name collides
+  with `AsyncNotifier.update`).
+- **Responsive** (`core/responsive.dart`, `ResponsiveCenter`): wraps the body of the main screens
+  (dashboard, transactions, stats, settings, members, budgets, calendar, profile) to cap width
+  (~720) and centre on wide screens. It keeps height tight (LayoutBuilder + SizedBox) so inner
+  `ListView`/`Expanded` still get bounded height — don't replace it with a bare `Center`/`Align`.
 - **Budgets** (`features/budgets/`): `/budgets` lists per-category monthly limits with a
   progress bar + over-budget warning; add/edit/delete.
 - **Transfers** (`features/wallets/presentation/transfer_screen.dart`): `/transfers/new` moves
@@ -134,10 +165,12 @@ Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner
 - **Members** (`features/members/`): the `/members` screen (hub) lists active
   members with their role; an owner sees a transfer-ownership action per member that calls
   `POST /families/transfer-ownership` (the caller is demoted to member). `MembersController`
-  refreshes the list and the auth user (role changed) after a transfer. An owner also gets an
+  refreshes the list and the auth user (role changed) after a transfer. **Every member** gets an
   **Add member** FAB here (→ `/members/add`) — this replaced the old hub shortcut.
-- **Invites** (`features/invitations/`): owner-only Add-member screen (`/members/add`) creates
-  an invitation by email or phone. If the contact matches an **existing account** the response
+- **Invites** (`features/invitations/`): the Add-member screen (`/members/add`, open to any
+  member) creates an invitation by email or phone (the invitee joins as `member`).
+  The invite link is built from `AppConfig.apiBaseUrl` (the web app is served same-origin), not
+  `Uri.base` — on mobile `Uri.base` is `file://`. If the contact matches an **existing account** the response
   is `in_app` and the screen shows an "invitation sent" card (no link); otherwise it shows a
   shareable link `<origin>/#/invite/<token>`. The **public** `/invite/:token` landing (router
   whitelists it when signed-out) registers a brand-new invitee. **In-app invites** land in the
@@ -185,11 +218,17 @@ English + Vietnamese via the official `flutter_localizations` + ARB pipeline.
   **ID token** and calls `POST /auth/google`. On **web**, Google Identity Services only returns
   an ID token via its own rendered button (`google_render_button*.dart`, conditional import); on
   mobile it's a normal button calling `signIn()`.
+- **Client ID roles:** the same **web** client ID (`AppConfig.googleClientId`, defaulted to the
+  public production web client) is passed as `clientId` on web, but as **`serverClientId`** on
+  mobile — that makes the returned ID token's audience one the backend accepts. Passing it as
+  `clientId` on Android leaves `idToken` null (a past bug). The native Android OAuth client is
+  matched separately by package name + SHA-1 (must match the running build's signing cert).
 - **Web config:** add the client ID as a meta tag in `web/index.html`:
   `<meta name="google-signin-client_id" content="...apps.googleusercontent.com">`. (`web/` is a
   generated, uncommitted platform folder — re-add the tag after `flutter create .`.) The authorized
   JavaScript origin in Google Cloud must match the run origin (we use `--web-port=8080`).
-- **Backend** needs `GOOGLE_CLIENT_ID` set to the same client ID (its token audience check).
+- **Backend** needs `GOOGLE_CLIENT_ID` set to the same client ID (its token audience check); it
+  links Google to an existing account by email **case-insensitively**.
 
 ## Theming & settings
 

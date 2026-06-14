@@ -28,8 +28,10 @@ class CategoriesController extends AsyncNotifier<List<Category>> {
     await _reload();
   }
 
-  Future<void> rename(String rid, String name) async {
-    await ref.read(categoryRepositoryProvider).update(rid, name: name);
+  Future<void> edit(String rid, {required String name, String? icon}) async {
+    await ref
+        .read(categoryRepositoryProvider)
+        .update(rid, name: name, icon: icon);
     await _reload();
   }
 

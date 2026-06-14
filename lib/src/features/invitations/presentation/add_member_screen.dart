@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/config.dart';
 import '../../../core/phone_field.dart';
 import '../data/invitation_repository.dart';
 import '../domain/invitation.dart';
@@ -30,10 +31,13 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
   }
 
   String _inviteLink(String token) {
-    // Hash-based web route (the app uses the default URL strategy).
-    final Uri base = Uri.base;
-    return '${base.scheme}://${base.host}'
-        '${base.hasPort ? ':${base.port}' : ''}/#/invite/$token';
+    // The invite landing is the web app, served same-origin as the API at
+    // AppConfig.apiBaseUrl. We must build from that fixed origin, not from
+    // Uri.base — on mobile Uri.base is `file:///`, which would produce a
+    // useless `file:///#/invite/...` link. The route is hash-based (default
+    // URL strategy).
+    final String origin = AppConfig.apiBaseUrl.replaceAll(RegExp(r'/+$'), '');
+    return '$origin/#/invite/$token';
   }
 
   Future<void> _create(AppLocalizations t) async {

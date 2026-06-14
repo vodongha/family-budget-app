@@ -4,14 +4,36 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/money.dart';
+import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/presentation/account_menu.dart';
 import '../../auth/presentation/avatar.dart';
+import '../../transactions/application/transactions_controller.dart';
+import '../../transactions/domain/transaction.dart';
 import '../../wallets/application/wallets_controller.dart';
 import '../../wallets/presentation/scope_toggle.dart';
+import '../../wallets/presentation/wallet_edit_sheet.dart';
 import '../../wallets/domain/wallet.dart';
 import '../application/dashboard_controller.dart';
 import '../domain/dashboard_summary.dart';
+
+/// Sets the transaction filter and opens the Transactions screen — used by the
+/// dashboard's income/expense pills and wallet tiles for contextual drill-down.
+void _openFilteredTransactions(
+  BuildContext context,
+  WidgetRef ref, {
+  TransactionType? type,
+  String? walletRid,
+}) {
+  ref.read(txnFilterProvider.notifier).state = (
+    type: type,
+    categoryRid: null,
+    walletRid: walletRid,
+    from: null,
+    to: null,
+  );
+  context.push('/transactions');
+}
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -49,137 +71,82 @@ class DashboardScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: Text(t.add),
       ),
-      body: summary.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _ErrorView(
-          message: '$e',
-          retryLabel: t.retry,
-          onRetry: () =>
-              ref.read(dashboardControllerProvider.notifier).refresh(),
-        ),
-        data: (s) => RefreshIndicator(
-          onRefresh: () =>
-              ref.read(dashboardControllerProvider.notifier).refresh(),
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
-            children: [
-              const ScopeToggle(),
-              const SizedBox(height: 20),
-              _BalanceHero(
-                netLabel: t.netBalance,
-                net: s.netBalance,
-                incomeLabel: t.income,
-                income: s.totalIncome,
-                expenseLabel: t.expense,
-                expense: s.totalExpense,
-              ),
-              const SizedBox(height: 28),
-              Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      t.walletsWithCount(s.walletCount),
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                    IconButton(
-                      tooltip: t.transactions,
-                      icon: const Icon(Icons.receipt_long_outlined),
-                      onPressed: () => context.push('/transactions'),
-                    ),
-                  ],
+      body: ResponsiveCenter(
+        child: summary.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => _ErrorView(
+            message: '$e',
+            retryLabel: t.retry,
+            onRetry: () =>
+                ref.read(dashboardControllerProvider.notifier).refresh(),
+          ),
+          data: (s) => RefreshIndicator(
+            onRefresh: () =>
+                ref.read(dashboardControllerProvider.notifier).refresh(),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
+              children: [
+                const ScopeToggle(),
+                const SizedBox(height: 20),
+                _BalanceHero(
+                  netLabel: t.netBalance,
+                  net: s.netBalance,
+                  incomeLabel: t.income,
+                  income: s.totalIncome,
+                  expenseLabel: t.expense,
+                  expense: s.totalExpense,
+                  onIncomeTap: () => _openFilteredTransactions(
+                    context,
+                    ref,
+                    type: TransactionType.income,
+                  ),
+                  onExpenseTap: () => _openFilteredTransactions(
+                    context,
+                    ref,
+                    type: TransactionType.expense,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              if (s.wallets.isEmpty)
-                _EmptyWallets(
-                  label: t.noWalletsYet,
-                  addLabel: t.newWallet,
-                  onAdd: () => _createWalletDialog(context, ref, t),
-                )
-              else
-                ...s.wallets.map((w) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _WalletTile(wallet: w),
-                    )),
-              const SizedBox(height: 16),
-              const _HubPager(),
-            ],
+                const SizedBox(height: 28),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        t.walletsWithCount(s.walletCount),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      IconButton(
+                        tooltip: t.transactions,
+                        icon: const Icon(Icons.receipt_long_outlined),
+                        onPressed: () => context.push('/transactions'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                if (s.wallets.isEmpty)
+                  _EmptyWallets(
+                    label: t.noWalletsYet,
+                    addLabel: t.newWallet,
+                    onAdd: () => showWalletEditSheet(context, ref),
+                  )
+                else
+                  ...s.wallets.map((w) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _WalletTile(wallet: w),
+                      )),
+                const SizedBox(height: 16),
+                const _HubPager(),
+              ],
+            ),
           ),
         ),
       ),
     );
-  }
-}
-
-/// Create-wallet dialog, shared by the empty-state button.
-Future<void> _createWalletDialog(
-  BuildContext context,
-  WidgetRef ref,
-  AppLocalizations t,
-) async {
-  final TextEditingController name = TextEditingController();
-  bool personal = false;
-  final ({String name, bool personal})? result =
-      await showDialog<({String name, bool personal})>(
-    context: context,
-    builder: (ctx) => StatefulBuilder(
-      builder: (ctx, setLocal) => AlertDialog(
-        actionsOverflowButtonSpacing: 8,
-        title: Text(t.newWallet),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: name,
-              autofocus: true,
-              decoration: InputDecoration(labelText: t.walletName),
-            ),
-            const SizedBox(height: 12),
-            SegmentedButton<bool>(
-              segments: [
-                ButtonSegment(
-                  value: false,
-                  label: Text(t.sharedWallet),
-                  icon: const Icon(Icons.people_outline),
-                ),
-                ButtonSegment(
-                  value: true,
-                  label: Text(t.privateWallet),
-                  icon: const Icon(Icons.lock_outline),
-                ),
-              ],
-              selected: {personal},
-              showSelectedIcon: false,
-              onSelectionChanged: (s) => setLocal(() => personal = s.first),
-            ),
-          ],
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(
-              ctx,
-              (name: name.text.trim(), personal: personal),
-            ),
-            child: Text(t.create),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(t.cancel),
-          ),
-        ],
-      ),
-    ),
-  );
-  if (result != null && result.name.isNotEmpty) {
-    await ref.read(walletsControllerProvider.notifier).create(
-          result.name,
-          visibility: result.personal ? 'personal' : 'family',
-        );
   }
 }
 
@@ -335,6 +302,8 @@ class _BalanceHero extends StatelessWidget {
     required this.income,
     required this.expenseLabel,
     required this.expense,
+    this.onIncomeTap,
+    this.onExpenseTap,
   });
 
   final String netLabel;
@@ -343,6 +312,8 @@ class _BalanceHero extends StatelessWidget {
   final int income;
   final String expenseLabel;
   final int expense;
+  final VoidCallback? onIncomeTap;
+  final VoidCallback? onExpenseTap;
 
   @override
   Widget build(BuildContext context) {
@@ -389,6 +360,7 @@ class _BalanceHero extends StatelessWidget {
                   icon: Icons.arrow_downward_rounded,
                   label: incomeLabel,
                   amount: income,
+                  onTap: onIncomeTap,
                 ),
               ),
               const SizedBox(width: 12),
@@ -397,6 +369,7 @@ class _BalanceHero extends StatelessWidget {
                   icon: Icons.arrow_upward_rounded,
                   label: expenseLabel,
                   amount: expense,
+                  onTap: onExpenseTap,
                 ),
               ),
             ],
@@ -412,48 +385,55 @@ class _HeroStat extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.amount,
+    this.onTap,
   });
 
   final IconData icon;
   final String label;
   final int amount;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: cs.onPrimary.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: cs.onPrimary, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: cs.onPrimary.withValues(alpha: 0.85),
-                    fontSize: 12,
-                  ),
+    final BorderRadius radius = BorderRadius.circular(16);
+    return Material(
+      color: cs.onPrimary.withValues(alpha: 0.15),
+      borderRadius: radius,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: radius,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Icon(icon, color: cs.onPrimary, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: cs.onPrimary.withValues(alpha: 0.85),
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      Money.format(amount),
+                      style: TextStyle(
+                        color: cs.onPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-                Text(
-                  Money.format(amount),
-                  style: TextStyle(
-                    color: cs.onPrimary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -470,58 +450,91 @@ class _WalletTile extends ConsumerWidget {
     final bool isOwner =
         ref.watch(authControllerProvider).valueOrNull?.isOwner ?? false;
     // A personal wallet is private to its owner (who is the only one seeing it),
-    // so they may delete it; a shared family wallet only by the family owner.
-    final bool canDelete = isOwner || wallet.isPersonal;
+    // so they may edit/delete it; a shared family wallet only by the family owner.
+    final bool canManage = isOwner || wallet.isPersonal;
+    final Color accent = wallet.colorOr(cs.primaryContainer);
+    final bool hasColor = wallet.color != null && wallet.color!.isNotEmpty;
+    final bool hasIcon = wallet.icon != null && wallet.icon!.isNotEmpty;
     return Card(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 14, canDelete ? 4 : 16, 14),
-        child: Row(
-          children: [
-            Container(
-              height: 44,
-              width: 44,
-              decoration: BoxDecoration(
-                color: cs.primaryContainer,
-                borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () =>
+            _openFilteredTransactions(context, ref, walletRid: wallet.rid),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, 14, canManage ? 4 : 16, 14),
+          child: Row(
+            children: [
+              Container(
+                height: 44,
+                width: 44,
+                decoration: BoxDecoration(
+                  color: hasColor
+                      ? accent.withValues(alpha: 0.16)
+                      : cs.primaryContainer,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Center(
+                  child: hasIcon
+                      ? Text(wallet.icon!, style: const TextStyle(fontSize: 20))
+                      : Icon(
+                          wallet.isPersonal
+                              ? Icons.lock_outline
+                              : Icons.account_balance_wallet_outlined,
+                          color: hasColor ? accent : cs.onPrimaryContainer,
+                        ),
+                ),
               ),
-              child: Icon(
-                wallet.isPersonal
-                    ? Icons.lock_outline
-                    : Icons.account_balance_wallet_outlined,
-                color: cs.onPrimaryContainer,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  wallet.name,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 16),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                wallet.name,
+              Text(
+                Money.format(wallet.balance),
                 style:
-                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                overflow: TextOverflow.ellipsis,
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
               ),
-            ),
-            Text(
-              Money.format(wallet.balance),
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-            ),
-            if (canDelete)
-              PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert, color: cs.onSurfaceVariant),
-                onSelected: (_) => _confirmDelete(context, ref, t),
-                itemBuilder: (_) => [
-                  PopupMenuItem<String>(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(Icons.delete_outline, color: cs.error, size: 20),
-                        const SizedBox(width: 10),
-                        Text(t.deleteWallet, style: TextStyle(color: cs.error)),
-                      ],
+              if (canManage)
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert, color: cs.onSurfaceVariant),
+                  onSelected: (v) {
+                    if (v == 'edit') {
+                      showWalletEditSheet(context, ref, existing: wallet);
+                    } else if (v == 'delete') {
+                      _confirmDelete(context, ref, t);
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_outlined,
+                              color: cs.onSurfaceVariant, size: 20),
+                          const SizedBox(width: 10),
+                          Text(t.editWallet),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-          ],
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline, color: cs.error, size: 20),
+                          const SizedBox(width: 10),
+                          Text(t.deleteWallet,
+                              style: TextStyle(color: cs.error)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );

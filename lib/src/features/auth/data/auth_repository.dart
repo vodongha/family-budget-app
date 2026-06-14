@@ -27,13 +27,13 @@ class AuthRepository {
     }
   }
 
-  /// Registers a brand-new family; the registrant becomes its **owner**.
-  /// The backend does not auto-login on register, so we log in afterwards.
+  /// Registers a brand-new account (no family yet — the user creates or joins one
+  /// after signing in). The backend does not auto-login on register, so we log in
+  /// afterwards.
   Future<void> register({
     required String email,
     required String password,
     required String displayName,
-    required String familyName,
     String? phone,
   }) async {
     try {
@@ -41,13 +41,25 @@ class AuthRepository {
         'email': email,
         'password': password,
         'display_name': displayName,
-        'family_name': familyName,
         if (phone != null && phone.isNotEmpty) 'phone': phone,
       });
     } catch (e) {
       throw toApiException(e);
     }
     await login(email, password);
+  }
+
+  /// Creates a family for the signed-in account (making it the owner) and stores
+  /// the fresh JWT the backend returns — it carries the new family scope, so
+  /// subsequent requests (and a follow-up `me()`) see the family.
+  Future<void> createFamily(String name) async {
+    try {
+      final Response<dynamic> res =
+          await _dio.post('/families', data: {'name': name});
+      await _storage.write((res.data as Map)['access_token'] as String);
+    } catch (e) {
+      throw toApiException(e);
+    }
   }
 
   /// Exchanges a Google ID token (obtained on the client) for our JWT.
@@ -82,6 +94,23 @@ class AuthRepository {
         data: {'display_name': displayName, 'phone': phone ?? ''},
       );
       return AuthUser.fromJson((res.data as Map).cast<String, dynamic>());
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Change the password (send `currentPassword`), or set the first password for
+  /// a Google-only account (omit `currentPassword`).
+  Future<void> changePassword({
+    String? currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await _dio.post('/auth/change-password', data: {
+        if (currentPassword != null && currentPassword.isNotEmpty)
+          'current_password': currentPassword,
+        'new_password': newPassword,
+      });
     } catch (e) {
       throw toApiException(e);
     }
