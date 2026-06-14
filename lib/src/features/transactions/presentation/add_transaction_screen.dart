@@ -44,7 +44,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     if (e != null) {
       _type =
           e.type.isIncome ? TransactionType.income : TransactionType.expense;
-      _amount.text = e.amount.toString();
+      _amount.text = Money.group(e.amount);
       _note.text = e.note ?? '';
       _walletRid = e.walletRid;
       _categoryRid = e.category?.rid;
@@ -233,6 +233,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             TextFormField(
               controller: _amount,
               keyboardType: TextInputType.number,
+              inputFormatters: [ThousandsSeparatorInputFormatter()],
               decoration: InputDecoration(
                 labelText: t.amountLabel,
                 hintText: t.amountHint,

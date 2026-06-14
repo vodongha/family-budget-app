@@ -25,4 +25,30 @@ void main() {
       expect(out.contains(','), isFalse, reason: 'no decimal part for đồng');
     });
   });
+
+  group('Money.group', () {
+    test('groups thousands with dots (vi_VN), no symbol', () {
+      expect(Money.group(50000), '50.000');
+      expect(Money.group(44444444444), '44.444.444.444');
+      expect(Money.group(0), '0');
+    });
+  });
+
+  group('ThousandsSeparatorInputFormatter', () {
+    TextEditingValue fmt(String text) => ThousandsSeparatorInputFormatter()
+        .formatEditUpdate(TextEditingValue.empty, TextEditingValue(text: text));
+
+    test('regroups digits and round-trips through Money.parse', () {
+      expect(fmt('50000').text, '50.000');
+      expect(fmt('44444444444').text, '44.444.444.444');
+      expect(Money.parse(fmt('1234567').text), 1234567);
+    });
+
+    test('keeps the caret at the end and empties on no digits', () {
+      final TextEditingValue v = fmt('1000');
+      expect(v.selection.baseOffset, v.text.length);
+      expect(fmt('').text, '');
+      expect(fmt('abc').text, '');
+    });
+  });
 }

@@ -123,6 +123,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
               TextField(
                 controller: _amount,
                 keyboardType: TextInputType.number,
+                inputFormatters: [ThousandsSeparatorInputFormatter()],
                 decoration: InputDecoration(
                   labelText: t.amountLabel,
                   hintText: t.amountHint,
