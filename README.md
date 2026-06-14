@@ -17,14 +17,14 @@ transactions.
 |---|---|
 | **Auth** | Sign in (OAuth2 password → JWT) or **Sign in with Google**, or register a new family (you become its **owner**). Optional **phone number** with a country-code picker on sign-up. Token stored in the OS secure store, auto-resumed on launch. |
 | **Dashboard** | Net balance, total income/expense, per-wallet derived balances, and a swipeable **hub** of feature shortcuts (paged, with page dots). Pull to refresh. |
-| **Add / edit / delete transaction** | Expense/income toggle, amount in đồng, wallet picker (create a wallet inline), category, note, date. Tap a transaction to edit or delete it. |
-| **Transactions** | Recent list, newest first, signed amounts (income +, expense −). A **filter** sheet narrows by type, category and date range. |
+| **Add / edit / delete transaction** | Expense/income toggle, amount in đồng, wallet picker (create a wallet inline), category, note, date. Tap a transaction to edit or delete it — in a family, only the **creator** can edit/delete their own entries. |
+| **Transactions** | Recent list, newest first, signed amounts (income +, expense −). A **filter** sheet narrows by type, category and date range. In family scope each row shows **which member created it** (avatar + name). |
 | **Categories** | Family-scoped income/expense categories (emoji + colour) for tagging transactions. |
 | **Budgets** | Per-category **monthly limit** with a progress bar and over-budget warning. |
 | **Transfer** | Move money between two wallets (recorded as linked transfer legs; excluded from income/expense totals). |
 | **Calendar** | Month grid showing each day's net amount; tap a day for its income/expense totals and transactions. |
 | **Personal vs family** | A scope toggle (**Personal** on the left, **Family** on the right) switches the dashboard, transactions, statistics and calendar between the user's private wallets and the shared family wallets. |
-| **Statistics** | Charts (`fl_chart`): monthly income/expense bars (3M/6M/12M), income-vs-expense donut, balance-by-wallet bars, and a by-category donut. A scope toggle shows **personal** and **family** statistics separately. |
+| **Statistics** | Charts (`fl_chart`): monthly income/expense bars (1M/3M/6M/12M, **default 1 month**), income-vs-expense donut, balance-by-wallet bars, and a by-category donut. A scope toggle shows **personal** and **family** statistics separately. |
 | **Members & invites** | A **Members** screen lists the family; an owner can **transfer ownership** to another member. Owners invite by email or phone: if the contact already has an account the invite arrives **in-app** (an **Invitations** inbox to accept/decline — no link); otherwise a shareable registration link is shown. |
 | **Account menu** | Tap the avatar → a focused sheet: edit profile (incl. phone), settings, sign out, **delete account** (Google Play policy — soft-delete + 30-day purge on the backend). Feature navigation lives in the dashboard hub. |
 | **Settings** | **Light / dark / system** theme and language, both persisted. Default follows the system. |

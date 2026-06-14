@@ -73,7 +73,7 @@ class BudgetsScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
-          actionsOverflowDirection: VerticalDirection.up,
+          actionsOverflowButtonSpacing: 8,
           title: Text(t.addBudget),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -97,11 +97,11 @@ class BudgetsScreen extends ConsumerWidget {
             ],
           ),
           actions: [
+            FilledButton(
+                onPressed: () => Navigator.pop(ctx, true), child: Text(t.save)),
             TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
                 child: Text(t.cancel)),
-            FilledButton(
-                onPressed: () => Navigator.pop(ctx, true), child: Text(t.save)),
           ],
         ),
       ),
@@ -130,7 +130,7 @@ class BudgetsScreen extends ConsumerWidget {
     final bool? ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        actionsOverflowDirection: VerticalDirection.up,
+        actionsOverflowButtonSpacing: 8,
         title: Text(b.category.label(t)),
         content: TextField(
           controller: amount,
