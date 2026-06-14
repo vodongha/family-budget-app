@@ -149,11 +149,11 @@ class BudgetsScreen extends ConsumerWidget {
           decoration: InputDecoration(labelText: t.monthlyLimit),
         ),
         actions: [
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true), child: Text(t.save)),
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
               child: Text(t.cancel)),
-          FilledButton(
-              onPressed: () => Navigator.pop(ctx, true), child: Text(t.save)),
         ],
       ),
     );
