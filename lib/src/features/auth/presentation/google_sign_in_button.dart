@@ -30,9 +30,15 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
   @override
   void initState() {
     super.initState();
+    // The same web client ID is used on every platform, but in different roles:
+    // on web it configures GIS directly (`clientId`); on mobile the native
+    // OAuth client is matched by package name + SHA-1, and we pass the web ID as
+    // `serverClientId` so the returned ID token's audience is one the backend
+    // accepts. Passing `clientId` on Android instead leaves `idToken` null.
+    final String webClientId = AppConfig.googleClientId;
     _gsi = GoogleSignIn(
-      clientId:
-          AppConfig.googleClientId.isEmpty ? null : AppConfig.googleClientId,
+      clientId: kIsWeb && webClientId.isNotEmpty ? webClientId : null,
+      serverClientId: !kIsWeb && webClientId.isNotEmpty ? webClientId : null,
       scopes: const ['email', 'profile', 'openid'],
     );
     _sub = _gsi.onCurrentUserChanged.listen(_onAccount);

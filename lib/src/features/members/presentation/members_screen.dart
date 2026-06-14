@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/presentation/avatar.dart';
 import '../application/members_controller.dart';
@@ -21,30 +22,30 @@ class MembersScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(t.members)),
-      // Only the owner can invite; the button replaces the old hub shortcut.
-      floatingActionButton: amOwner
-          ? FloatingActionButton.extended(
-              onPressed: () => context.push('/members/add'),
-              icon: const Icon(Icons.group_add_outlined),
-              label: Text(t.addMember),
-            )
-          : null,
-      body: members.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _ErrorView(
-          message: '$e',
-          onRetry: () => ref.invalidate(membersControllerProvider),
-        ),
-        data: (list) => RefreshIndicator(
-          onRefresh: () async => ref.invalidate(membersControllerProvider),
-          child: ListView.separated(
-            padding: const EdgeInsets.all(12),
-            itemCount: list.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 4),
-            itemBuilder: (context, i) => _MemberTile(
-              member: list[i],
-              canTransfer: amOwner && !list[i].isOwner,
-              onTransfer: () => _confirmTransfer(context, ref, t, list[i]),
+      // Any family member can invite others (the invitee joins as a member).
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/members/add'),
+        icon: const Icon(Icons.group_add_outlined),
+        label: Text(t.addMember),
+      ),
+      body: ResponsiveCenter(
+        child: members.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => _ErrorView(
+            message: '$e',
+            onRetry: () => ref.invalidate(membersControllerProvider),
+          ),
+          data: (list) => RefreshIndicator(
+            onRefresh: () async => ref.invalidate(membersControllerProvider),
+            child: ListView.separated(
+              padding: const EdgeInsets.all(12),
+              itemCount: list.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 4),
+              itemBuilder: (context, i) => _MemberTile(
+                member: list[i],
+                canTransfer: amOwner && !list[i].isOwner,
+                onTransfer: () => _confirmTransfer(context, ref, t, list[i]),
+              ),
             ),
           ),
         ),

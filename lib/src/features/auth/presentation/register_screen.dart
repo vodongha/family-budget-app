@@ -14,7 +14,6 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _familyName = TextEditingController();
   final _displayName = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
@@ -22,7 +21,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   void dispose() {
-    _familyName.dispose();
     _displayName.dispose();
     _email.dispose();
     _password.dispose();
@@ -33,11 +31,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    // No family is created here — after signing in, a brand-new account is sent
+    // to onboarding to create or join one (see the router redirect).
     await ref.read(authControllerProvider.notifier).register(
           email: _email.text.trim(),
           password: _password.text,
           displayName: _displayName.text.trim(),
-          familyName: _familyName.text.trim(),
           phone: _phone,
         );
   }
@@ -56,7 +55,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: Text(t.createFamilyTitle)),
+      appBar: AppBar(title: Text(t.createAccount)),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -68,14 +67,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TextFormField(
-                    controller: _familyName,
-                    decoration: InputDecoration(labelText: t.familyName),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? t.fieldRequired
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _displayName,
                     decoration: InputDecoration(labelText: t.yourName),
@@ -116,7 +107,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Text(t.createFamilyAndSignIn),
+                        : Text(t.createAccount),
                   ),
                 ],
               ),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
+import '../../../core/responsive.dart';
 import '../../categories/application/categories_controller.dart';
 import '../../categories/domain/category.dart';
 import '../application/budgets_controller.dart';
@@ -24,29 +25,31 @@ class BudgetsScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: Text(t.addBudget),
       ),
-      body: budgets.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
-        data: (list) {
-          if (list.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(t.noBudgetsYet, textAlign: TextAlign.center),
+      body: ResponsiveCenter(
+        child: budgets.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('$e')),
+          data: (list) {
+            if (list.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(t.noBudgetsYet, textAlign: TextAlign.center),
+                ),
+              );
+            }
+            return ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+              itemCount: list.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, i) => _BudgetCard(
+                budget: list[i],
+                onEdit: () => _editBudget(context, ref, t, list[i]),
+                onDelete: () => _deleteBudget(context, ref, t, list[i]),
               ),
             );
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-            itemCount: list.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, i) => _BudgetCard(
-              budget: list[i],
-              onEdit: () => _editBudget(context, ref, t, list[i]),
-              onDelete: () => _deleteBudget(context, ref, t, list[i]),
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }

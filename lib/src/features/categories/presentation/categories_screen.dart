@@ -157,14 +157,14 @@ class _CategoryTile extends ConsumerWidget {
       trailing: PopupMenuButton<String>(
         icon: Icon(Icons.more_vert, color: cs.onSurfaceVariant),
         onSelected: (v) {
-          if (v == 'rename') {
-            _renameDialog(context, ref, t);
+          if (v == 'edit') {
+            _editDialog(context, ref, t);
           } else if (v == 'delete') {
             _deleteDialog(context, ref, t);
           }
         },
         itemBuilder: (_) => [
-          PopupMenuItem(value: 'rename', child: Text(t.rename)),
+          PopupMenuItem(value: 'edit', child: Text(t.editCategory)),
           PopupMenuItem(
             value: 'delete',
             child: Text(t.delete, style: TextStyle(color: cs.error)),
@@ -174,42 +174,59 @@ class _CategoryTile extends ConsumerWidget {
     );
   }
 
-  Future<void> _renameDialog(
+  Future<void> _editDialog(
     BuildContext context,
     WidgetRef ref,
     AppLocalizations t,
   ) async {
-    final controller = TextEditingController(text: category.label(t));
+    final name = TextEditingController(text: category.label(t));
+    final icon = TextEditingController(text: category.icon ?? '');
     final messenger = ScaffoldMessenger.of(context);
-    final String? name = await showDialog<String>(
+    final bool? ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         actionsOverflowButtonSpacing: 8,
-        title: Text(t.rename),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(labelText: t.categoryName),
+        title: Text(t.editCategory),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: name,
+              autofocus: true,
+              decoration: InputDecoration(labelText: t.categoryName),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: icon,
+              maxLength: 4,
+              decoration: InputDecoration(
+                labelText: t.iconOptional,
+                hintText: '🍜',
+              ),
+            ),
+          ],
         ),
         actions: [
           FilledButton(
-            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            onPressed: () => Navigator.pop(ctx, true),
             child: Text(t.save),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
+            onPressed: () => Navigator.pop(ctx, false),
             child: Text(t.cancel),
           ),
         ],
       ),
     );
-    if (name == null || name.isEmpty) {
+    if (ok != true || name.text.trim().isEmpty) {
       return;
     }
     try {
-      await ref
-          .read(categoriesControllerProvider.notifier)
-          .rename(category.rid, name);
+      await ref.read(categoriesControllerProvider.notifier).edit(
+            category.rid,
+            name: name.text.trim(),
+            icon: icon.text.trim().isEmpty ? null : icon.text.trim(),
+          );
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('$e')));
     }

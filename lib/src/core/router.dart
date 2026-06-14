@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../features/auth/application/auth_controller.dart';
 import '../features/auth/domain/auth_user.dart';
+import '../features/auth/presentation/change_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
+import '../features/auth/presentation/onboarding_screen.dart';
 import '../features/auth/presentation/profile_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/budgets/presentation/budgets_screen.dart';
@@ -50,7 +52,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         return at == '/splash' ? null : '/splash';
       }
 
-      final bool signedIn = auth.valueOrNull != null;
+      final AuthUser? user = auth.valueOrNull;
+      final bool signedIn = user != null;
       // The invite landing page is public (the invitee registers there).
       final bool onInvite = at.startsWith('/invite');
       final bool onAuthPage = at == '/login' || at == '/register' || onInvite;
@@ -58,8 +61,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (!signedIn) {
         return onAuthPage ? null : '/login';
       }
-      // Signed-in users can't join a second family — send them home.
-      if (onAuthPage || at == '/splash') {
+
+      // A brand-new account has no family yet: keep it in family setup until it
+      // creates one or joins via an invitation.
+      if (!user.hasFamily) {
+        final bool inFamilySetup =
+            at == '/onboarding' || at == '/invitations' || onInvite;
+        return inFamilySetup ? null : '/onboarding';
+      }
+
+      // Signed in with a family — keep them out of the auth/splash/onboarding
+      // pages (they can't join a second family from there).
+      if (onAuthPage || at == '/splash' || at == '/onboarding') {
         return '/';
       }
       return null;
@@ -76,6 +89,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         builder: (_, __) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (_, __) => const OnboardingScreen(),
       ),
       GoRoute(
         path: '/invite/:token',
@@ -130,6 +147,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'settings',
             builder: (_, __) => const SettingsScreen(),
+          ),
+          GoRoute(
+            path: 'change-password',
+            builder: (_, __) => const ChangePasswordScreen(),
           ),
           GoRoute(
             path: 'privacy',

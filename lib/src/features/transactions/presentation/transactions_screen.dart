@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
+import '../../../core/responsive.dart';
 import '../../categories/application/categories_controller.dart';
 import '../../categories/domain/category.dart';
 import '../../wallets/application/wallet_scope.dart';
@@ -44,44 +45,46 @@ class TransactionsScreen extends ConsumerWidget {
         onPressed: () => context.push('/transactions/new'),
         child: const Icon(Icons.add),
       ),
-      body: txns.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('$e', textAlign: TextAlign.center),
-                const SizedBox(height: 16),
-                FilledButton.tonal(
-                  onPressed: () =>
-                      ref.invalidate(transactionsControllerProvider),
-                  child: Text(t.retry),
-                ),
-              ],
+      body: ResponsiveCenter(
+        child: txns.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('$e', textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  FilledButton.tonal(
+                    onPressed: () =>
+                        ref.invalidate(transactionsControllerProvider),
+                    child: Text(t.retry),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        data: (list) {
-          if (list.isEmpty) {
-            return Center(
-              child: Text(filterActive ? t.noMatches : t.noTransactionsYet),
+          data: (list) {
+            if (list.isEmpty) {
+              return Center(
+                child: Text(filterActive ? t.noMatches : t.noTransactionsYet),
+              );
+            }
+            return RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(transactionsControllerProvider);
+                await ref.read(transactionsControllerProvider.future);
+              },
+              child: ListView.separated(
+                itemCount: list.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, i) =>
+                    _TransactionTile(txn: list[i], showCreator: showCreator),
+              ),
             );
-          }
-          return RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(transactionsControllerProvider);
-              await ref.read(transactionsControllerProvider.future);
-            },
-            child: ListView.separated(
-              itemCount: list.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (context, i) =>
-                  _TransactionTile(txn: list[i], showCreator: showCreator),
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -302,6 +305,8 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                       ref.read(txnFilterProvider.notifier).state = (
                         type: _type,
                         categoryRid: _categoryRid,
+                        // Preserve a wallet filter set by tapping a wallet tile.
+                        walletRid: ref.read(txnFilterProvider).walletRid,
                         from: _from,
                         to: _to,
                       );

@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/app_info.dart';
 import '../../../core/prefs.dart';
+import '../../../core/responsive.dart';
+import '../../auth/application/auth_controller.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -19,92 +21,109 @@ class SettingsScreen extends ConsumerWidget {
           orElse: () => '',
         );
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final bool hasPassword =
+        ref.watch(authControllerProvider).valueOrNull?.hasPassword ?? true;
 
     return Scaffold(
       appBar: AppBar(title: Text(t.settings)),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          _SectionHeader(t.appearance),
-          _OptionCard(
-            children: [
-              _ChoiceTile(
-                icon: Icons.brightness_auto_outlined,
-                label: t.systemDefault,
-                selected: mode == ThemeMode.system,
-                onTap: () => ref
-                    .read(themeControllerProvider.notifier)
-                    .setMode(ThemeMode.system),
-              ),
-              _ChoiceTile(
-                icon: Icons.light_mode_outlined,
-                label: t.light,
-                selected: mode == ThemeMode.light,
-                onTap: () => ref
-                    .read(themeControllerProvider.notifier)
-                    .setMode(ThemeMode.light),
-              ),
-              _ChoiceTile(
-                icon: Icons.dark_mode_outlined,
-                label: t.dark,
-                selected: mode == ThemeMode.dark,
-                onTap: () => ref
-                    .read(themeControllerProvider.notifier)
-                    .setMode(ThemeMode.dark),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _SectionHeader(t.language),
-          _OptionCard(
-            children: [
-              _ChoiceTile(
-                icon: Icons.translate_outlined,
-                label: t.systemDefault,
-                selected: locale == null,
-                onTap: () =>
-                    ref.read(localeControllerProvider.notifier).setLocale(null),
-              ),
-              _ChoiceTile(
-                icon: Icons.language,
-                label: t.english,
-                selected: locale?.languageCode == 'en',
-                onTap: () => ref
-                    .read(localeControllerProvider.notifier)
-                    .setLocale(const Locale('en')),
-              ),
-              _ChoiceTile(
-                icon: Icons.language,
-                label: t.vietnamese,
-                selected: locale?.languageCode == 'vi',
-                onTap: () => ref
-                    .read(localeControllerProvider.notifier)
-                    .setLocale(const Locale('vi')),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _SectionHeader(t.about),
-          _OptionCard(
-            children: [
-              ListTile(
-                leading: Icon(Icons.info_outline, color: cs.primary),
-                title: Text(t.about),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push('/about'),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: Icon(Icons.tag, color: cs.primary),
-                title: Text(t.version),
-                trailing: Text(
-                  version,
-                  style: TextStyle(color: cs.onSurfaceVariant),
+      body: ResponsiveCenter(
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            _SectionHeader(t.appearance),
+            _OptionCard(
+              children: [
+                _ChoiceTile(
+                  icon: Icons.brightness_auto_outlined,
+                  label: t.systemDefault,
+                  selected: mode == ThemeMode.system,
+                  onTap: () => ref
+                      .read(themeControllerProvider.notifier)
+                      .setMode(ThemeMode.system),
                 ),
-              ),
-            ],
-          ),
-        ],
+                _ChoiceTile(
+                  icon: Icons.light_mode_outlined,
+                  label: t.light,
+                  selected: mode == ThemeMode.light,
+                  onTap: () => ref
+                      .read(themeControllerProvider.notifier)
+                      .setMode(ThemeMode.light),
+                ),
+                _ChoiceTile(
+                  icon: Icons.dark_mode_outlined,
+                  label: t.dark,
+                  selected: mode == ThemeMode.dark,
+                  onTap: () => ref
+                      .read(themeControllerProvider.notifier)
+                      .setMode(ThemeMode.dark),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _SectionHeader(t.language),
+            _OptionCard(
+              children: [
+                _ChoiceTile(
+                  icon: Icons.translate_outlined,
+                  label: t.systemDefault,
+                  selected: locale == null,
+                  onTap: () => ref
+                      .read(localeControllerProvider.notifier)
+                      .setLocale(null),
+                ),
+                _ChoiceTile(
+                  icon: Icons.language,
+                  label: t.english,
+                  selected: locale?.languageCode == 'en',
+                  onTap: () => ref
+                      .read(localeControllerProvider.notifier)
+                      .setLocale(const Locale('en')),
+                ),
+                _ChoiceTile(
+                  icon: Icons.language,
+                  label: t.vietnamese,
+                  selected: locale?.languageCode == 'vi',
+                  onTap: () => ref
+                      .read(localeControllerProvider.notifier)
+                      .setLocale(const Locale('vi')),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _SectionHeader(t.account),
+            _OptionCard(
+              children: [
+                ListTile(
+                  leading: Icon(Icons.lock_outline, color: cs.primary),
+                  title: Text(hasPassword ? t.changePassword : t.setPassword),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/change-password'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _SectionHeader(t.about),
+            _OptionCard(
+              children: [
+                ListTile(
+                  leading: Icon(Icons.info_outline, color: cs.primary),
+                  title: Text(t.about),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/about'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: Icon(Icons.tag, color: cs.primary),
+                  title: Text(t.version),
+                  trailing: Text(
+                    version,
+                    style: TextStyle(color: cs.onSurfaceVariant),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

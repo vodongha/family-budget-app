@@ -15,21 +15,22 @@ transactions.
 
 | Area | What it does |
 |---|---|
-| **Auth** | Sign in (OAuth2 password → JWT) or **Sign in with Google**, or register a new family (you become its **owner**). Optional **phone number** with a country-code picker on sign-up. Token stored in the OS secure store, auto-resumed on launch. |
-| **Dashboard** | Net balance, total income/expense, per-wallet derived balances, and a swipeable **hub** of feature shortcuts (paged, with page dots). Pull to refresh. |
-| **Add / edit / delete transaction** | Expense/income toggle, amount in đồng, wallet picker (create a wallet inline), category, note, date. Tap a transaction to edit or delete it — in a family, only the **creator** can edit/delete their own entries. |
+| **Auth** | Register an **account** (then an onboarding step **creates or joins** a family), or sign in (OAuth2 password → JWT) / **Sign in with Google** (links to your existing account by email). **Set or change password** in Settings (a Google-only account can set its first password). Optional **phone number** with a country-code picker. Token stored in the OS secure store, auto-resumed on launch. |
+| **Dashboard** | Net balance, total income/expense (tap **Income**/**Expense** to open the filtered transaction list), per-wallet derived balances (tap a wallet → its transactions), and a swipeable **hub** of feature shortcuts. Pull to refresh. |
+| **Add / edit / delete transaction** | Expense/income toggle, amount in đồng, **scope-aware** wallet picker (only the wallets of the tab you're on — family or personal; create one inline), category, note, date. Tap a transaction to edit or delete it — in a family, only the **creator** can edit/delete their own entries. |
 | **Transactions** | Recent list, newest first, signed amounts (income +, expense −). A **filter** sheet narrows by type, category and date range. In family scope each row shows **which member created it** (avatar + name). |
-| **Categories** | Family-scoped income/expense categories (emoji + colour) for tagging transactions. |
+| **Wallets** | **Family** (shared) or **personal** (private) wallets, each with an optional **icon + colour**; create and **edit** (rename / icon / colour) from the dashboard. |
+| **Categories** | Family-scoped income/expense categories (emoji + colour) for tagging transactions; **edit** name and icon. |
 | **Budgets** | Per-category **monthly limit** with a progress bar and over-budget warning. |
 | **Transfer** | Move money between two wallets (recorded as linked transfer legs; excluded from income/expense totals). |
 | **Calendar** | Month grid showing each day's net amount; tap a day for its income/expense totals and transactions. |
 | **Personal vs family** | A scope toggle (**Personal** on the left, **Family** on the right) switches the dashboard, transactions, statistics and calendar between the user's private wallets and the shared family wallets. |
 | **Statistics** | Charts (`fl_chart`): monthly income/expense bars (1M/3M/6M/12M, **default 1 month**), income-vs-expense donut, balance-by-wallet bars, and a by-category donut. A scope toggle shows **personal** and **family** statistics separately. |
-| **Members & invites** | A **Members** screen lists the family; an owner can **transfer ownership** to another member and **add a member** from a button on that screen. Owners invite by email or phone: if the contact already has an account the invite arrives **in-app** (an **Invitations** inbox to accept/decline — no link); otherwise a shareable registration link is shown. |
+| **Members & invites** | A **Members** screen lists the family; **any member can add a member** from a button there (the owner can also **transfer ownership**). Invite by email or phone: if the contact already has an account the invite arrives **in-app** (an **Invitations** inbox to accept/decline — no link); otherwise a shareable registration link is shown. |
 | **Account menu** | Tap the avatar → a focused sheet: edit profile (incl. phone), settings, **privacy policy** (shown in-app via a WebView), sign out, **delete account** (Google Play policy — soft-delete + 30-day purge on the backend). Feature navigation lives in the dashboard hub. |
 | **Settings** | **Light / dark / system** theme and language, both persisted. Default follows the system. |
 | **Localization** | English & Tiếng Việt. Follows the device language by default; selectable in Settings and persisted. |
-| **Modern UI** | Material 3 with a tonal indigo palette, gradient balance hero, rounded cards, filled inputs — light & dark. |
+| **Modern UI** | Material 3 with a tonal indigo palette, gradient balance hero, rounded cards, filled inputs — light & dark. **Responsive**: on wide screens (web / tablet) content is width-capped and centred instead of stretching edge-to-edge. |
 
 ## Money rule
 
