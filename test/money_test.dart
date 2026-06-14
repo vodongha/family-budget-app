@@ -1,4 +1,5 @@
 import 'package:family_budget_app/src/core/money.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -49,6 +50,18 @@ void main() {
       expect(v.selection.baseOffset, v.text.length);
       expect(fmt('').text, '');
       expect(fmt('abc').text, '');
+    });
+
+    test('leaves the value untouched while an IME is composing', () {
+      // Reformatting mid-composition (e.g. Vietnamese keyboard on web) would
+      // duplicate characters, so the value must pass through unchanged.
+      const composing = TextEditingValue(
+        text: '50000',
+        composing: TextRange(start: 0, end: 5),
+      );
+      final out = ThousandsSeparatorInputFormatter()
+          .formatEditUpdate(TextEditingValue.empty, composing);
+      expect(out.text, '50000');
     });
   });
 }
