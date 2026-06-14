@@ -43,6 +43,12 @@ class ThousandsSeparatorInputFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
+    // While an IME composition is active (e.g. a Vietnamese keyboard on web),
+    // rewriting the text desyncs the composing region and duplicates characters
+    // (typing 50000 produced 550.000). Leave it alone until composing settles.
+    if (newValue.composing.isValid) {
+      return newValue;
+    }
     final String digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (digits.isEmpty) {
       return const TextEditingValue(text: '');
