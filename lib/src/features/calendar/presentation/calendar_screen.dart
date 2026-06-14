@@ -205,7 +205,7 @@ class _DayTxnTile extends StatelessWidget {
         '${income ? '+' : '−'}${Money.format(txn.amount)}',
         style: TextStyle(color: color, fontWeight: FontWeight.w600),
       ),
-      onTap: txn.type.isTransfer
+      onTap: (txn.type.isTransfer || !txn.canEdit)
           ? null
           : () => context.push('/transactions/edit', extra: txn),
     );
