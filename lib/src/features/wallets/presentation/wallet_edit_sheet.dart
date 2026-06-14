@@ -119,7 +119,9 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
             constraints: const BoxConstraints(maxWidth: 520),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              // stretch → children (incl. the action Row) get a tight full width,
+              // so the Expanded "Save" button fills instead of collapsing.
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
                   _isEdit ? t.editWallet : t.newWallet,
