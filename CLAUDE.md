@@ -89,8 +89,9 @@ emulator's route to host localhost).
   becomes a member (single-owner model).
 - `GET /wallets?scope=all|family|personal`, `POST /wallets {name, visibility, icon?, color?}` —
   `visibility` is `family` (shared) or `personal` (private to creator); each wallet
-  carries `visibility`, `icon` (emoji) and `color` (hex). `PATCH /wallets/{rid} {name?, icon?,
-  color?}` edits it (owner for shared, owner-of-wallet for personal; visibility immutable).
+  carries `visibility`, `icon` (emoji), `color` (hex) and `created_by_me` (true when you
+  created it). `PATCH /wallets/{rid} {name?, icon?, color?}` edits it (a shared wallet by the
+  family **owner or its creator**, a personal wallet by its owner; visibility immutable).
   `DELETE /wallets/{rid}` (same permission). Balances are derived. **Personal wallets work without
   a family**; creating a `family` wallet without one is `400`. Wallets/transactions/dashboard/stats
   all accept an optional family, so the **personal** tab works for a family-less account.
@@ -161,7 +162,9 @@ Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner
 - **Wallet create/edit** (`features/wallets/presentation/wallet_edit_sheet.dart`,
   `showWalletEditSheet`): one bottom sheet for both — name, shared/private (create only), emoji
   **icon** and a **colour** swatch. Reached from the dashboard wallet tile's ⋮ menu (Edit) and the
-  add-transaction "+" / empty-state. `WalletsController.edit` (not `update` — that name collides
+  add-transaction "+" / empty-state. The ⋮ menu shows for a wallet the user can manage —
+  `isOwner || wallet.isPersonal || wallet.createdByMe` (the family owner, a personal wallet's owner,
+  or a shared wallet's creator). `WalletsController.edit` (not `update` — that name collides
   with `AsyncNotifier.update`).
 - **Responsive** (`core/responsive.dart`, `ResponsiveCenter`): wraps the body of the main screens
   (dashboard, transactions, stats, settings, members, budgets, calendar, profile) to cap width

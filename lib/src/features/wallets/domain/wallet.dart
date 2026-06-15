@@ -12,6 +12,7 @@ class Wallet {
     this.icon,
     this.color,
     this.txnCount = 0,
+    this.createdByMe = false,
   });
 
   final String rid;
@@ -31,6 +32,10 @@ class Wallet {
 
   /// Number of transactions in this wallet (shown before deleting).
   final int txnCount;
+
+  /// True when the signed-in user created this wallet — lets the creator of a
+  /// shared wallet edit/delete it, not only the family owner.
+  final bool createdByMe;
 
   /// A private wallet only its owner can see.
   bool get isPersonal => visibility == 'personal';
@@ -58,6 +63,7 @@ class Wallet {
       color: json['color'] as String?,
       balance: (json['balance'] ?? 0) as int,
       txnCount: (json['txn_count'] ?? 0) as int,
+      createdByMe: (json['created_by_me'] ?? false) as bool,
     );
   }
 }
