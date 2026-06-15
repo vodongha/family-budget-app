@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_error_view.dart';
+import '../../../core/responsive.dart';
+import '../../wallets/presentation/scope_toggle.dart';
 import '../application/categories_controller.dart';
 import '../domain/category.dart';
 
-/// Manage the family's categories: list (grouped by kind), add, rename, delete.
+/// Manage categories (personal / family): list (grouped by kind), add, edit,
+/// delete. Follows the personal/family scope toggle.
 class CategoriesScreen extends ConsumerWidget {
   const CategoriesScreen({super.key});
 
@@ -21,23 +25,38 @@ class CategoriesScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: Text(t.addCategory),
       ),
-      body: cats.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
-        data: (list) {
-          final expense = list.where((c) => c.isExpense).toList();
-          final income = list.where((c) => !c.isExpense).toList();
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 96),
-            children: [
-              _SectionHeader(label: t.expense),
-              ...expense.map((c) => _CategoryTile(category: c)),
-              const SizedBox(height: 12),
-              _SectionHeader(label: t.income),
-              ...income.map((c) => _CategoryTile(category: c)),
-            ],
-          );
-        },
+      body: ResponsiveCenter(
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: ScopeToggle(),
+            ),
+            Expanded(
+              child: cats.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => AppErrorView(
+                  error: e,
+                  onRetry: () => ref.invalidate(categoriesControllerProvider),
+                ),
+                data: (list) {
+                  final expense = list.where((c) => c.isExpense).toList();
+                  final income = list.where((c) => !c.isExpense).toList();
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 96),
+                    children: [
+                      _SectionHeader(label: t.expense),
+                      ...expense.map((c) => _CategoryTile(category: c)),
+                      const SizedBox(height: 12),
+                      _SectionHeader(label: t.income),
+                      ...income.map((c) => _CategoryTile(category: c)),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

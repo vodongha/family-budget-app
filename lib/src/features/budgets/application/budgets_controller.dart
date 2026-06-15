@@ -1,20 +1,26 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../wallets/application/wallet_scope.dart';
 import '../data/budget_repository.dart';
 import '../domain/budget.dart';
 
-/// Family-level monthly category budgets with current-month spend.
+/// Monthly category budgets (personal / family) with current-month spend.
+/// Follows [walletScopeProvider].
 class BudgetsController extends AsyncNotifier<List<Budget>> {
   @override
   Future<List<Budget>> build() {
-    return ref.read(budgetRepositoryProvider).list();
+    final WalletScope scope = ref.watch(walletScopeProvider);
+    return ref.read(budgetRepositoryProvider).list(scope: scope.api);
   }
 
   Future<void> create(
       {required String categoryRid, required int amount}) async {
-    await ref
-        .read(budgetRepositoryProvider)
-        .create(categoryRid: categoryRid, amount: amount);
+    final WalletScope scope = ref.read(walletScopeProvider);
+    await ref.read(budgetRepositoryProvider).create(
+          categoryRid: categoryRid,
+          amount: amount,
+          scope: scope.api,
+        );
     ref.invalidateSelf();
     await future;
   }

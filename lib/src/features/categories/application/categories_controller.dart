@@ -1,18 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../wallets/application/wallet_scope.dart';
 import '../data/category_repository.dart';
 import '../domain/category.dart';
 
-/// Loads the family's categories (active only). Mutations reload the list.
+/// Loads the categories of the current scope (personal / family), active only.
+/// Mutations reload the list. Follows [walletScopeProvider].
 class CategoriesController extends AsyncNotifier<List<Category>> {
   @override
   Future<List<Category>> build() {
-    return ref.read(categoryRepositoryProvider).list();
+    final WalletScope scope = ref.watch(walletScopeProvider);
+    return ref.read(categoryRepositoryProvider).list(scope: scope.api);
   }
 
   Future<void> _reload() async {
+    final WalletScope scope = ref.read(walletScopeProvider);
     state = await AsyncValue.guard(
-      () => ref.read(categoryRepositoryProvider).list(),
+      () => ref.read(categoryRepositoryProvider).list(scope: scope.api),
     );
   }
 
@@ -22,9 +26,14 @@ class CategoriesController extends AsyncNotifier<List<Category>> {
     String? icon,
     String? color,
   }) async {
-    await ref
-        .read(categoryRepositoryProvider)
-        .create(name: name, kind: kind, icon: icon, color: color);
+    final WalletScope scope = ref.read(walletScopeProvider);
+    await ref.read(categoryRepositoryProvider).create(
+          name: name,
+          kind: kind,
+          scope: scope.api,
+          icon: icon,
+          color: color,
+        );
     await _reload();
   }
 

@@ -7,10 +7,14 @@ import 'token_storage.dart';
 /// Thrown by repositories for any non-2xx response, carrying a user-facing
 /// message extracted from the FastAPI error body (`detail`).
 class ApiException implements Exception {
-  ApiException(this.message, {this.statusCode});
+  ApiException(this.message, {this.statusCode, this.isConnection = false});
 
   final String message;
   final int? statusCode;
+
+  /// True when the request never reached the server (offline / timeout / DNS),
+  /// so the UI can show a friendly "can't reach the server" screen.
+  final bool isConnection;
 
   @override
   String toString() => message;
@@ -25,8 +29,13 @@ ApiException toApiException(Object error) {
           statusCode: error.response?.statusCode);
     }
     if (error.type == DioExceptionType.connectionError ||
-        error.type == DioExceptionType.connectionTimeout) {
-      return ApiException('Cannot reach the server. Is the backend running?');
+        error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.sendTimeout) {
+      return ApiException(
+        'Cannot reach the server. Is the backend running?',
+        isConnection: true,
+      );
     }
     return ApiException(
       error.message ?? 'Request failed',

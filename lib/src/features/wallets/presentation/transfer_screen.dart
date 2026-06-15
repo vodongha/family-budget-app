@@ -124,9 +124,14 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                 controller: _amount,
                 keyboardType: TextInputType.number,
                 inputFormatters: [ThousandsSeparatorInputFormatter()],
+                onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   labelText: t.amountLabel,
                   hintText: t.amountHint,
+                  helperText: () {
+                    final int? a = Money.parse(_amount.text);
+                    return (a == null || a == 0) ? null : Money.format(a);
+                  }(),
                 ),
               ),
               const SizedBox(height: 16),

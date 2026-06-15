@@ -59,6 +59,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     super.dispose();
   }
 
+  /// The amount formatted with separators (e.g. `50.000 ₫`) for the live preview
+  /// shown under the field; null while empty/zero.
+  String? _amountPreview() {
+    final int? a = Money.parse(_amount.text);
+    return (a == null || a == 0) ? null : Money.format(a);
+  }
+
   Future<void> _pickDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -234,9 +241,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               controller: _amount,
               keyboardType: TextInputType.number,
               inputFormatters: [ThousandsSeparatorInputFormatter()],
+              // Live grouped preview below the field — reliable on every platform
+              // (the in-field formatter is skipped on web while an IME composes).
+              onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 labelText: t.amountLabel,
                 hintText: t.amountHint,
+                helperText: _amountPreview(),
               ),
               validator: (v) {
                 final int? a = Money.parse(v ?? '');
