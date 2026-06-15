@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_error_view.dart';
 import '../../../core/money.dart';
 import '../../../core/responsive.dart';
 import '../../transactions/domain/transaction.dart';
@@ -164,7 +165,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             Expanded(
               child: monthly.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('$e')),
+                error: (e, _) => AppErrorView(
+                  error: e,
+                  onRetry: () => ref.invalidate(monthTransactionsProvider),
+                ),
                 data: (_) => dayTxns.isEmpty
                     ? Center(
                         child: Text(

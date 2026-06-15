@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_error_view.dart';
 import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/presentation/avatar.dart';
@@ -41,8 +42,8 @@ class MembersScreen extends ConsumerWidget {
       body: ResponsiveCenter(
         child: members.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => _ErrorView(
-            message: '$e',
+          error: (e, _) => AppErrorView(
+            error: e,
             onRetry: () => ref.invalidate(membersControllerProvider),
           ),
           data: (list) => RefreshIndicator(
@@ -269,27 +270,6 @@ class _RolePill extends StatelessWidget {
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
-      ),
-    );
-  }
-}
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onRetry});
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final AppLocalizations t = AppLocalizations.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(message, textAlign: TextAlign.center),
-          const SizedBox(height: 12),
-          FilledButton(onPressed: onRetry, child: Text(t.retry)),
-        ],
       ),
     );
   }

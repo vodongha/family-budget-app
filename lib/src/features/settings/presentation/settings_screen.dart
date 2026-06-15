@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/app_info.dart';
@@ -115,10 +116,17 @@ class SettingsScreen extends ConsumerWidget {
                 ListTile(
                   leading: Icon(Icons.tag, color: cs.primary),
                   title: Text(t.version),
-                  trailing: Text(
-                    version,
-                    style: TextStyle(color: cs.onSurfaceVariant),
+                  subtitle: Text(t.openOnPlayStore),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(version,
+                          style: TextStyle(color: cs.onSurfaceVariant)),
+                      const SizedBox(width: 8),
+                      Icon(Icons.open_in_new, size: 18, color: cs.primary),
+                    ],
                   ),
+                  onTap: () => _openPlayStore(context, t),
                 ),
               ],
             ),
@@ -126,6 +134,17 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _openPlayStore(BuildContext context, AppLocalizations t) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final bool ok = await launchUrl(
+      Uri.parse(Publisher.playStoreUrl),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!ok) {
+      messenger.showSnackBar(SnackBar(content: Text(t.openLinkFailed)));
+    }
   }
 }
 

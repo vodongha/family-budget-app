@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_error_view.dart';
 import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
 import '../../../core/responsive.dart';
 import '../../categories/application/categories_controller.dart';
 import '../../categories/domain/category.dart';
+import '../../wallets/presentation/scope_toggle.dart';
 import '../application/budgets_controller.dart';
 import '../domain/budget.dart';
 
@@ -26,29 +28,43 @@ class BudgetsScreen extends ConsumerWidget {
         label: Text(t.addBudget),
       ),
       body: ResponsiveCenter(
-        child: budgets.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('$e')),
-          data: (list) {
-            if (list.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(t.noBudgetsYet, textAlign: TextAlign.center),
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: ScopeToggle(),
+            ),
+            Expanded(
+              child: budgets.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => AppErrorView(
+                  error: e,
+                  onRetry: () => ref.invalidate(budgetsControllerProvider),
                 ),
-              );
-            }
-            return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-              itemCount: list.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, i) => _BudgetCard(
-                budget: list[i],
-                onEdit: () => _editBudget(context, ref, t, list[i]),
-                onDelete: () => _deleteBudget(context, ref, t, list[i]),
+                data: (list) {
+                  if (list.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child:
+                            Text(t.noBudgetsYet, textAlign: TextAlign.center),
+                      ),
+                    );
+                  }
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+                    itemCount: list.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, i) => _BudgetCard(
+                      budget: list[i],
+                      onEdit: () => _editBudget(context, ref, t, list[i]),
+                      onDelete: () => _deleteBudget(context, ref, t, list[i]),
+                    ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );

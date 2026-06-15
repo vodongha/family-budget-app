@@ -9,11 +9,18 @@ class CategoryRepository {
 
   final Dio _dio;
 
-  Future<List<Category>> list({bool includeArchived = false}) async {
+  /// [scope] is the API value (`all` / `family` / `personal`).
+  Future<List<Category>> list({
+    String scope = 'all',
+    bool includeArchived = false,
+  }) async {
     try {
       final Response<dynamic> res = await _dio.get(
         '/categories',
-        queryParameters: {if (includeArchived) 'include_archived': true},
+        queryParameters: {
+          'scope': scope,
+          if (includeArchived) 'include_archived': true,
+        },
       );
       return (res.data as List)
           .map((e) => Category.fromJson((e as Map).cast<String, dynamic>()))
@@ -23,19 +30,25 @@ class CategoryRepository {
     }
   }
 
+  /// [scope] is `personal` (private) or `family` (shared).
   Future<Category> create({
     required String name,
     required String kind,
+    String scope = 'personal',
     String? icon,
     String? color,
   }) async {
     try {
-      final Response<dynamic> res = await _dio.post('/categories', data: {
-        'name': name,
-        'kind': kind,
-        if (icon != null && icon.isNotEmpty) 'icon': icon,
-        if (color != null && color.isNotEmpty) 'color': color,
-      });
+      final Response<dynamic> res = await _dio.post(
+        '/categories',
+        queryParameters: {'scope': scope},
+        data: {
+          'name': name,
+          'kind': kind,
+          if (icon != null && icon.isNotEmpty) 'icon': icon,
+          if (color != null && color.isNotEmpty) 'color': color,
+        },
+      );
       return Category.fromJson((res.data as Map).cast<String, dynamic>());
     } catch (e) {
       throw toApiException(e);

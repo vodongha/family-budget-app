@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_error_view.dart';
 import '../../../core/money.dart';
 import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
@@ -75,9 +76,8 @@ class DashboardScreen extends ConsumerWidget {
       body: ResponsiveCenter(
         child: summary.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => _ErrorView(
-            message: '$e',
-            retryLabel: t.retry,
+          error: (e, _) => AppErrorView(
+            error: e,
             onRetry: () =>
                 ref.read(dashboardControllerProvider.notifier).refresh(),
           ),
@@ -201,12 +201,11 @@ class _HubPagerState extends ConsumerState<_HubPager> {
       _HubItem(Icons.receipt_long_outlined, t.transactions, '/transactions'),
       _HubItem(Icons.bar_chart_outlined, t.statistics, '/stats'),
       _HubItem(Icons.calendar_month_outlined, t.calendar, '/calendar'),
-      // Budgets, categories and members are shared family features.
-      _HubItem(Icons.pie_chart_outline, t.budgets, '/budgets',
-          familyOnly: true),
+      // Budgets and categories follow the personal/family scope (no family
+      // required for personal); members is a shared family feature.
+      _HubItem(Icons.pie_chart_outline, t.budgets, '/budgets'),
       _HubItem(Icons.swap_horiz, t.transferMoney, '/transfers/new'),
-      _HubItem(Icons.category_outlined, t.categories, '/categories',
-          familyOnly: true),
+      _HubItem(Icons.category_outlined, t.categories, '/categories'),
       _HubItem(Icons.people_outline, t.members, '/members', familyOnly: true),
       _HubItem(Icons.mail_outline, t.invitations, '/invitations'),
     ];
@@ -629,36 +628,6 @@ class _EmptyWallets extends StatelessWidget {
               icon: const Icon(Icons.add),
               label: Text(addLabel),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({
-    required this.message,
-    required this.retryLabel,
-    required this.onRetry,
-  });
-  final String message;
-  final String retryLabel;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48),
-            const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton.tonal(onPressed: onRetry, child: Text(retryLabel)),
           ],
         ),
       ),

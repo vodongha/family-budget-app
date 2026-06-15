@@ -12,4 +12,9 @@ class Publisher {
 
   static const String name = 'Võ Đông Hà';
   static const String website = 'https://vodongha.id.vn';
+
+  /// Android application id and its Google Play listing URL.
+  static const String androidAppId = 'vn.famo.budget';
+  static const String playStoreUrl =
+      'https://play.google.com/store/apps/details?id=$androidAppId';
 }

@@ -9,9 +9,13 @@ class BudgetRepository {
 
   final Dio _dio;
 
-  Future<List<Budget>> list() async {
+  /// [scope] is `personal` or `family`.
+  Future<List<Budget>> list({String scope = 'personal'}) async {
     try {
-      final Response<dynamic> res = await _dio.get('/budgets');
+      final Response<dynamic> res = await _dio.get(
+        '/budgets',
+        queryParameters: {'scope': scope},
+      );
       return (res.data as List)
           .map((e) => Budget.fromJson((e as Map).cast<String, dynamic>()))
           .toList();
@@ -20,11 +24,17 @@ class BudgetRepository {
     }
   }
 
-  Future<void> create(
-      {required String categoryRid, required int amount}) async {
+  Future<void> create({
+    required String categoryRid,
+    required int amount,
+    String scope = 'personal',
+  }) async {
     try {
-      await _dio.post('/budgets',
-          data: {'category_rid': categoryRid, 'amount': amount});
+      await _dio.post(
+        '/budgets',
+        queryParameters: {'scope': scope},
+        data: {'category_rid': categoryRid, 'amount': amount},
+      );
     } catch (e) {
       throw toApiException(e);
     }

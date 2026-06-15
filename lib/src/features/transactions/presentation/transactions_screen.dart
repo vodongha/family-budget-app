@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_error_view.dart';
 import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
 import '../../../core/responsive.dart';
@@ -48,22 +49,9 @@ class TransactionsScreen extends ConsumerWidget {
       body: ResponsiveCenter(
         child: txns.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('$e', textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
-                  FilledButton.tonal(
-                    onPressed: () =>
-                        ref.invalidate(transactionsControllerProvider),
-                    child: Text(t.retry),
-                  ),
-                ],
-              ),
-            ),
+          error: (e, _) => AppErrorView(
+            error: e,
+            onRetry: () => ref.invalidate(transactionsControllerProvider),
           ),
           data: (list) {
             if (list.isEmpty) {
