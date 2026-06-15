@@ -12,6 +12,7 @@ import '../../auth/presentation/avatar.dart';
 import '../../family/presentation/create_family_dialog.dart';
 import '../../transactions/application/transactions_controller.dart';
 import '../../transactions/domain/transaction.dart';
+import '../../wallets/application/wallet_scope.dart';
 import '../../wallets/application/wallets_controller.dart';
 import '../../wallets/presentation/scope_toggle.dart';
 import '../../wallets/presentation/wallet_edit_sheet.dart';
@@ -121,9 +122,17 @@ class DashboardScreen extends ConsumerWidget {
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       IconButton(
-                        tooltip: t.transactions,
-                        icon: const Icon(Icons.receipt_long_outlined),
-                        onPressed: () => context.push('/transactions'),
+                        tooltip: t.newWallet,
+                        icon: const Icon(Icons.add_circle_outline),
+                        // Defaults the new wallet to the current scope (a
+                        // personal wallet on the Personal tab, a shared one on
+                        // the Family tab). Transactions live in the hub already.
+                        onPressed: () => showWalletEditSheet(
+                          context,
+                          ref,
+                          initialPersonal: ref.read(walletScopeProvider) ==
+                              WalletScope.personal,
+                        ),
                       ),
                     ],
                   ),
@@ -133,7 +142,12 @@ class DashboardScreen extends ConsumerWidget {
                   _EmptyWallets(
                     label: t.noWalletsYet,
                     addLabel: t.newWallet,
-                    onAdd: () => showWalletEditSheet(context, ref),
+                    onAdd: () => showWalletEditSheet(
+                      context,
+                      ref,
+                      initialPersonal:
+                          ref.read(walletScopeProvider) == WalletScope.personal,
+                    ),
                   )
                 else
                   ...s.wallets.map((w) => Padding(
@@ -468,8 +482,9 @@ class _WalletTile extends ConsumerWidget {
     final bool isOwner =
         ref.watch(authControllerProvider).valueOrNull?.isOwner ?? false;
     // A personal wallet is private to its owner (who is the only one seeing it),
-    // so they may edit/delete it; a shared family wallet only by the family owner.
-    final bool canManage = isOwner || wallet.isPersonal;
+    // so they may edit/delete it; a shared family wallet by the family owner or
+    // the member who created it.
+    final bool canManage = isOwner || wallet.isPersonal || wallet.createdByMe;
     final Color accent = wallet.colorOr(cs.primaryContainer);
     final bool hasColor = wallet.color != null && wallet.color!.isNotEmpty;
     final bool hasIcon = wallet.icon != null && wallet.icon!.isNotEmpty;
