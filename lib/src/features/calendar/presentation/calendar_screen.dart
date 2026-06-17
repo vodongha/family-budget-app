@@ -27,8 +27,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   static DateTime _dayOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
-  /// Short money label for a calendar cell, e.g. 20000 → "20k", 1500000 → "1.5tr".
-  static String _compact(int v) {
+  /// Short money label for a calendar cell from minor units of [currency], e.g.
+  /// 20000 VND → "20k", 1500000 → "1.5tr". For a decimal currency the compaction
+  /// works on the major value.
+  static String _compact(int minor, String currency) {
+    final num v = minor / _pow10(Money.decimalsFor(currency));
     if (v >= 1000000) {
       final double m = v / 1000000;
       return '${m == m.roundToDouble() ? m.toStringAsFixed(0) : m.toStringAsFixed(1)}tr';
@@ -36,7 +39,30 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     if (v >= 1000) {
       return '${(v / 1000).round()}k';
     }
-    return '$v';
+    return v == v.roundToDouble() ? '${v.toInt()}' : v.toStringAsFixed(2);
+  }
+
+  static int _pow10(int n) {
+    int r = 1;
+    for (int i = 0; i < n; i++) {
+      r *= 10;
+    }
+    return r;
+  }
+
+  /// The single currency shared by [txns], or null if they mix currencies
+  /// (we can't sum across currencies client-side without exchange rates).
+  static String? _singleCurrency(Iterable<Transaction> txns) {
+    String? c;
+    for (final Transaction tx in txns) {
+      if (tx.type.isTransfer) continue;
+      if (c == null) {
+        c = tx.currency;
+      } else if (c != tx.currency) {
+        return null;
+      }
+    }
+    return c;
   }
 
   /// Group a month's income/expense transactions by day (transfers excluded).
@@ -120,8 +146,23 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     net += e.signedAmount;
                   }
                   final Color color = net >= 0 ? Colors.green : Colors.red;
+                  final String? cur = _singleCurrency(events);
+                  // Mixed currencies can't be summed client-side → show a dot.
+                  if (cur == null) {
+                    return Positioned(
+                      bottom: 3,
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: Colors.blueGrey,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    );
+                  }
                   final String label =
-                      '${net >= 0 ? '+' : '−'}${_compact(net.abs())}';
+                      '${net >= 0 ? '+' : '−'}${_compact(net.abs(), cur)}';
                   return Positioned(
                     bottom: 1,
                     child: Text(
@@ -147,18 +188,20 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     '${_selected.year}-${_selected.month.toString().padLeft(2, '0')}-${_selected.day.toString().padLeft(2, '0')}',
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  Row(
-                    children: [
-                      Text('+${Money.format(dayIncome)}',
-                          style: const TextStyle(
-                              color: Colors.green,
-                              fontWeight: FontWeight.w600)),
-                      const SizedBox(width: 12),
-                      Text('−${Money.format(dayExpense)}',
-                          style: const TextStyle(
-                              color: Colors.red, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
+                  if (_singleCurrency(dayTxns) case final String dayCur)
+                    Row(
+                      children: [
+                        Text('+${Money.formatIn(dayIncome, dayCur)}',
+                            style: const TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(width: 12),
+                        Text('−${Money.formatIn(dayExpense, dayCur)}',
+                            style: const TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.w600)),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -211,7 +254,7 @@ class _DayTxnTile extends StatelessWidget {
       title: Text(title, overflow: TextOverflow.ellipsis),
       subtitle: categoryName != null ? Text(categoryName) : null,
       trailing: Text(
-        '${income ? '+' : '−'}${Money.format(txn.amount)}',
+        '${income ? '+' : '−'}${Money.formatIn(txn.amount, txn.currency)}',
         style: TextStyle(color: color, fontWeight: FontWeight.w600),
       ),
       onTap: (txn.type.isTransfer || !txn.canEdit)

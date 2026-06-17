@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/error_text.dart';
+import '../../../core/money.dart';
 import '../../auth/application/auth_controller.dart';
 import '../application/wallets_controller.dart';
 import '../domain/wallet.dart';
@@ -54,6 +55,7 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
       TextEditingController(text: widget.existing?.icon ?? '');
   late String? _color = widget.existing?.color;
   late bool _personal = widget.existing?.isPersonal ?? widget.initialPersonal;
+  late String _currency = widget.existing?.currency ?? Money.baseCurrency;
   bool _saving = false;
 
   bool get _isEdit => widget.existing != null;
@@ -93,6 +95,7 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
           visibility: personal ? 'personal' : 'family',
           icon: icon.isEmpty ? null : icon,
           color: _color,
+          currency: _currency,
         );
       }
       navigator.pop();
@@ -147,6 +150,28 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
                   autofocus: !_isEdit,
                   decoration: InputDecoration(labelText: t.walletName),
                 ),
+                const SizedBox(height: 12),
+                // Currency is chosen at creation and fixed afterwards (changing it
+                // would reinterpret the wallet's stored amounts).
+                if (!_isEdit)
+                  DropdownButtonFormField<String>(
+                    initialValue: _currency,
+                    decoration: InputDecoration(labelText: t.currency),
+                    items: [
+                      for (final String c in Money.supportedCurrencies)
+                        DropdownMenuItem<String>(
+                          value: c,
+                          child: Text('$c  ·  ${Money.symbolFor(c)}'),
+                        ),
+                    ],
+                    onChanged: (v) =>
+                        setState(() => _currency = v ?? _currency),
+                  )
+                else
+                  InputDecorator(
+                    decoration: InputDecoration(labelText: t.currency),
+                    child: Text('$_currency  ·  ${Money.symbolFor(_currency)}'),
+                  ),
                 const SizedBox(height: 12),
                 if (showVisibility)
                   SegmentedButton<bool>(

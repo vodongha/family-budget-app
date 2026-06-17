@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/money.dart';
+
 /// A wallet (account/purse) within a family. Its [balance] is **derived** on
 /// the backend (sum of signed transactions), never stored — the client just
 /// displays whatever the API returns.
@@ -9,6 +11,7 @@ class Wallet {
     required this.name,
     required this.balance,
     this.visibility = 'family',
+    this.currency = 'VND',
     this.icon,
     this.color,
     this.txnCount = 0,
@@ -21,14 +24,20 @@ class Wallet {
   /// `family` (shared with all members) or `personal` (private to its owner).
   final String visibility;
 
+  /// ISO-4217 currency; [balance] is integer minor units of this currency.
+  final String currency;
+
   /// Optional emoji/icon (rendered as text), or null → a default icon.
   final String? icon;
 
   /// Optional hex colour (e.g. `#5B5BF0`), or null → a default colour.
   final String? color;
 
-  /// Integer đồng.
+  /// Integer minor units of [currency].
   final int balance;
+
+  /// The wallet's balance formatted in its own currency.
+  String get formattedBalance => Money.formatIn(balance, currency);
 
   /// Number of transactions in this wallet (shown before deleting).
   final int txnCount;
@@ -59,6 +68,7 @@ class Wallet {
       rid: json['rid'] as String,
       name: json['name'] as String,
       visibility: (json['visibility'] ?? 'family') as String,
+      currency: (json['currency'] ?? 'VND') as String,
       icon: json['icon'] as String?,
       color: json['color'] as String?,
       balance: (json['balance'] ?? 0) as int,

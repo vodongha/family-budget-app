@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
@@ -46,7 +47,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     if (e != null) {
       _type =
           e.type.isIncome ? TransactionType.income : TransactionType.expense;
-      _amount.text = Money.group(e.amount);
+      _amount.text = Money.editText(e.amount, e.currency);
       _note.text = e.note ?? '';
       _walletRid = e.walletRid;
       _categoryRid = e.category?.rid;
@@ -61,11 +62,24 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     super.dispose();
   }
 
-  /// The amount formatted with separators (e.g. `50.000 â‚«`) for the live preview
+  /// The currency of the currently selected wallet (defaults to the base).
+  String _currencyFor(List<Wallet>? wallets) {
+    if (wallets == null || _walletRid == null) {
+      return Money.baseCurrency;
+    }
+    for (final Wallet w in wallets) {
+      if (w.rid == _walletRid) {
+        return w.currency;
+      }
+    }
+    return Money.baseCurrency;
+  }
+
+  /// The amount formatted in the selected wallet's currency for the live preview
   /// shown under the field; null while empty/zero.
-  String? _amountPreview() {
-    final int? a = Money.parse(_amount.text);
-    return (a == null || a == 0) ? null : Money.format(a);
+  String? _amountPreview(String currency) {
+    final int? a = Money.parseIn(_amount.text, currency);
+    return (a == null || a == 0) ? null : Money.formatIn(a, currency);
   }
 
   Future<void> _pickDate() async {
@@ -91,7 +105,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     );
   }
 
-  Future<void> _submit(AppLocalizations t) async {
+  Future<void> _submit(AppLocalizations t, String currency) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -100,7 +114,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           .showSnackBar(SnackBar(content: Text(t.pickWalletFirst)));
       return;
     }
-    final int? amount = Money.parse(_amount.text);
+    final int? amount = Money.parseIn(_amount.text, currency);
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(t.enterAmountGtZero)));
@@ -193,6 +207,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final AppLocalizations t = AppLocalizations.of(context);
     final AsyncValue<List<Wallet>> wallets =
         ref.watch(walletsControllerProvider);
+    final String currency = _currencyFor(wallets.valueOrNull);
+    final bool decimalAmount = Money.decimalsFor(currency) > 0;
 
     // Drop a stale selection if it no longer matches the current kind.
     final List<Category> kindCats =
@@ -241,18 +257,23 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             const SizedBox(height: 20),
             TextFormField(
               controller: _amount,
-              keyboardType: TextInputType.number,
-              inputFormatters: [ThousandsSeparatorInputFormatter()],
-              // Live grouped preview below the field â€” reliable on every platform
-              // (the in-field formatter is skipped on web while an IME composes).
+              keyboardType: TextInputType.numberWithOptions(
+                decimal: decimalAmount,
+              ),
+              // 0-decimal currencies (VND…) get live thousands grouping; currencies
+              // with decimals (USD…) accept a decimal point instead.
+              inputFormatters: decimalAmount
+                  ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))]
+                  : [ThousandsSeparatorInputFormatter()],
+              // Live preview below the field, in the wallet's currency.
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 labelText: t.amountLabel,
                 hintText: t.amountHint,
-                helperText: _amountPreview(),
+                helperText: _amountPreview(currency),
               ),
               validator: (v) {
-                final int? a = Money.parse(v ?? '');
+                final int? a = Money.parseIn(v ?? '', currency);
                 return (a == null || a <= 0) ? t.enterAmountGtZero : null;
               },
             ),
@@ -332,7 +353,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             ),
             const SizedBox(height: 24),
             FilledButton(
-              onPressed: _saving ? null : () => _submit(t),
+              onPressed: _saving ? null : () => _submit(t, currency),
               child: _saving
                   ? const SizedBox(
                       height: 20,

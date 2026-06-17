@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_date_picker.dart';
 import '../../../core/error_text.dart';
 import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
@@ -45,7 +47,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
       messenger.showSnackBar(SnackBar(content: Text(t.transferSameWallet)));
       return;
     }
-    final int? amount = Money.parse(_amount.text);
+    final int? amount = Money.parseIn(_amount.text, _currencyOf(wallets, from));
     if (amount == null || amount <= 0) {
       messenger.showSnackBar(SnackBar(content: Text(t.enterAmountGtZero)));
       return;
@@ -72,14 +74,27 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
     }
   }
 
-  List<PickerOption<String>> _options(List<Wallet> wallets) {
+  String _currencyOf(List<Wallet> wallets, String? rid) {
+    for (final Wallet w in wallets) {
+      if (w.rid == rid) {
+        return w.currency;
+      }
+    }
+    return Money.baseCurrency;
+  }
+
+  List<PickerOption<String>> _options(
+    List<Wallet> wallets, {
+    String? onlyCurrency,
+  }) {
     return [
       for (final w in wallets)
-        PickerOption(
-          value: w.rid,
-          label: w.name,
-          icon: w.isPersonal ? Icons.lock_outline : null,
-        ),
+        if (onlyCurrency == null || w.currency == onlyCurrency)
+          PickerOption(
+            value: w.rid,
+            label: '${w.name} · ${w.currency}',
+            icon: w.isPersonal ? Icons.lock_outline : null,
+          ),
     ];
   }
 
@@ -105,6 +120,13 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
             );
           }
           _fromRid ??= list.first.rid;
+          final String fromCurrency = _currencyOf(list, _fromRid);
+          // A transfer is same-currency only — drop a destination whose currency
+          // no longer matches the source.
+          if (_toRid != null && _currencyOf(list, _toRid) != fromCurrency) {
+            _toRid = null;
+          }
+          final bool decimalAmount = Money.decimalsFor(fromCurrency) > 0;
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -118,21 +140,28 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
               AppPicker<String>(
                 label: t.toWallet,
                 value: _toRid ?? '',
-                options: _options(list),
+                // Only wallets sharing the source currency (cross-currency
+                // transfers aren't supported).
+                options: _options(list, onlyCurrency: fromCurrency),
                 onChanged: (v) => setState(() => _toRid = v),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _amount,
-                keyboardType: TextInputType.number,
-                inputFormatters: [ThousandsSeparatorInputFormatter()],
+                keyboardType:
+                    TextInputType.numberWithOptions(decimal: decimalAmount),
+                inputFormatters: decimalAmount
+                    ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))]
+                    : [ThousandsSeparatorInputFormatter()],
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   labelText: t.amountLabel,
                   hintText: t.amountHint,
                   helperText: () {
-                    final int? a = Money.parse(_amount.text);
-                    return (a == null || a == 0) ? null : Money.format(a);
+                    final int? a = Money.parseIn(_amount.text, fromCurrency);
+                    return (a == null || a == 0)
+                        ? null
+                        : Money.formatIn(a, fromCurrency);
                   }(),
                 ),
               ),
@@ -150,7 +179,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                   '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}',
                 ),
                 onTap: () async {
-                  final DateTime? picked = await showDatePicker(
+                  final DateTime? picked = await showAppDatePicker(
                     context: context,
                     initialDate: _date,
                     firstDate: DateTime(2020),

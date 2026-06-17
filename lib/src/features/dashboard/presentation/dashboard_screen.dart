@@ -568,7 +568,7 @@ class _WalletTile extends ConsumerWidget {
                 ),
               ),
               Text(
-                Money.format(wallet.balance),
+                wallet.formattedBalance,
                 style:
                     const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
               ),
