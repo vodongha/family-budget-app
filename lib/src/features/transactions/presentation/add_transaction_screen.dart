@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_date_picker.dart';
+import '../../../core/error_text.dart';
 import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
 import '../../categories/application/categories_controller.dart';
@@ -59,7 +61,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     super.dispose();
   }
 
-  /// The amount formatted with separators (e.g. `50.000 ₫`) for the live preview
+  /// The amount formatted with separators (e.g. `50.000 â‚«`) for the live preview
   /// shown under the field; null while empty/zero.
   String? _amountPreview() {
     final int? a = Money.parse(_amount.text);
@@ -67,7 +69,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   }
 
   Future<void> _pickDate() async {
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showAppDatePicker(
       context: context,
       initialDate: _date,
       firstDate: DateTime(2020),
@@ -134,7 +136,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$e')),
+          SnackBar(content: Text(friendlyError(context, e))),
         );
       }
     } finally {
@@ -180,7 +182,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('$e')));
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
         setState(() => _saving = false);
       }
     }
@@ -232,7 +234,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               selected: {_type},
               onSelectionChanged: (s) => setState(() {
                 _type = s.first;
-                // Categories are kind-specific — reset when switching.
+                // Categories are kind-specific â€” reset when switching.
                 _categoryRid = null;
               }),
             ),
@@ -241,7 +243,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               controller: _amount,
               keyboardType: TextInputType.number,
               inputFormatters: [ThousandsSeparatorInputFormatter()],
-              // Live grouped preview below the field — reliable on every platform
+              // Live grouped preview below the field â€” reliable on every platform
               // (the in-field formatter is skipped on web while an IME composes).
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
@@ -257,11 +259,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             const SizedBox(height: 16),
             wallets.when(
               loading: () => const LinearProgressIndicator(),
-              error: (e, _) => Text('$e'),
+              error: (e, _) => Text(friendlyError(context, e)),
               data: (allWallets) {
                 // Only offer wallets that belong to the slice being added to:
                 // family (shared) on the family tab, personal (private) on the
-                // personal tab — so a transaction can't land in the wrong scope.
+                // personal tab â€” so a transaction can't land in the wrong scope.
                 final WalletScope scope = ref.watch(walletScopeProvider);
                 final List<Wallet> list = allWallets
                     .where((w) => scope == WalletScope.personal

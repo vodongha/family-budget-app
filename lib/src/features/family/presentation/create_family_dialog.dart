@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/error_text.dart';
 import '../../auth/application/auth_controller.dart';
 
 /// Prompts the signed-in account to create a family (it has none yet), e.g. when
@@ -46,7 +47,10 @@ class _CreateFamilyDialogState extends ConsumerState<_CreateFamilyDialog> {
       await ref.read(authControllerProvider.notifier).createFamily(name);
       navigator.pop(true);
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
       if (mounted) {
         setState(() => _saving = false);
       }

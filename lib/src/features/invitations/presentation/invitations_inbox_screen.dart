@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/error_text.dart';
 import '../../../core/api_client.dart';
 import '../../dashboard/application/dashboard_controller.dart';
 import '../../members/application/members_controller.dart';
@@ -25,7 +26,7 @@ class InvitationsInboxScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(t.invitations)),
       body: inbox.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, _) => Center(child: Text(friendlyError(context, e))),
         data: (list) {
           if (list.isEmpty) {
             return Center(
@@ -62,7 +63,7 @@ class InvitationsInboxScreen extends ConsumerWidget {
     final router = GoRouter.of(context);
     try {
       await ref.read(inboxControllerProvider.notifier).accept(invite.rid);
-      // The active family changed — drop cached family-scoped data.
+      // The active family changed â€” drop cached family-scoped data.
       ref.invalidate(dashboardControllerProvider);
       ref.invalidate(walletsControllerProvider);
       ref.invalidate(transactionsControllerProvider);
@@ -89,7 +90,10 @@ class InvitationsInboxScreen extends ConsumerWidget {
     try {
       await ref.read(inboxControllerProvider.notifier).decline(invite.rid);
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     }
   }
 }

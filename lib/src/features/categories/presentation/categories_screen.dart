@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/error_text.dart';
 import '../../../core/app_error_view.dart';
 import '../../../core/responsive.dart';
 import '../../wallets/presentation/scope_toggle.dart';
@@ -99,7 +100,7 @@ class CategoriesScreen extends ConsumerWidget {
                 maxLength: 4,
                 decoration: InputDecoration(
                   labelText: t.iconOptional,
-                  hintText: '🍜',
+                  hintText: 'ðŸœ',
                 ),
               ),
             ],
@@ -127,7 +128,10 @@ class CategoriesScreen extends ConsumerWidget {
             icon: icon.text.trim().isEmpty ? null : icon.text.trim(),
           );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     }
   }
 }
@@ -169,8 +173,8 @@ class _CategoryTile extends ConsumerWidget {
           color: category.colorOr(cs.primary).withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(12),
         ),
-        child:
-            Text(category.icon ?? '🏷️', style: const TextStyle(fontSize: 18)),
+        child: Text(category.icon ?? 'ðŸ·ï¸',
+            style: const TextStyle(fontSize: 18)),
       ),
       title: Text(category.label(t)),
       trailing: PopupMenuButton<String>(
@@ -220,7 +224,7 @@ class _CategoryTile extends ConsumerWidget {
               maxLength: 4,
               decoration: InputDecoration(
                 labelText: t.iconOptional,
-                hintText: '🍜',
+                hintText: 'ðŸœ',
               ),
             ),
           ],
@@ -247,7 +251,10 @@ class _CategoryTile extends ConsumerWidget {
             icon: icon.text.trim().isEmpty ? null : icon.text.trim(),
           );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     }
   }
 
@@ -285,7 +292,10 @@ class _CategoryTile extends ConsumerWidget {
           .read(categoriesControllerProvider.notifier)
           .delete(category.rid);
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     }
   }
 }

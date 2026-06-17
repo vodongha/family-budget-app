@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/error_text.dart';
 import '../../auth/application/auth_controller.dart';
 import '../data/invitation_repository.dart';
 import '../domain/invitation.dart';
@@ -52,10 +53,13 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
             displayName: _name.text.trim(),
             email: needsEmail ? _email.text.trim() : null,
           );
-      // New session token is stored — re-read auth so the router enters the app.
+      // New session token is stored â€” re-read auth so the router enters the app.
       ref.invalidate(authControllerProvider);
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     } finally {
       if (mounted) {
         setState(() => _saving = false);

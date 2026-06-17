@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/app_date_picker.dart';
 import '../../../core/app_error_view.dart';
 import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
@@ -192,7 +193,7 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
   String _fmt(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-  Future<DateTime?> _pick(DateTime? initial) => showDatePicker(
+  Future<DateTime?> _pick(DateTime? initial) => showAppDatePicker(
         context: context,
         initialDate: initial ?? DateTime.now(),
         firstDate: DateTime(2020),
@@ -274,19 +275,10 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
               ],
             ),
             const SizedBox(height: 12),
+            // Primary action (Apply) on the left, secondary (Clear) on the
+            // right — consistent with the app's other dialogs.
             Row(
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      ref.read(txnFilterProvider.notifier).state =
-                          emptyTxnFilter;
-                      Navigator.pop(context);
-                    },
-                    child: Text(t.clear),
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
                   child: FilledButton(
                     onPressed: () {
@@ -301,6 +293,17 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                       Navigator.pop(context);
                     },
                     child: Text(t.apply),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      ref.read(txnFilterProvider.notifier).state =
+                          emptyTxnFilter;
+                      Navigator.pop(context);
+                    },
+                    child: Text(t.clear),
                   ),
                 ),
               ],

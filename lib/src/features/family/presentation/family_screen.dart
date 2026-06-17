@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/error_text.dart';
 import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/domain/auth_user.dart';
@@ -34,15 +35,48 @@ class FamilyScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(20),
           children: [
             Card(
-              child: ListTile(
-                leading: Icon(Icons.home_outlined, color: cs.primary),
-                title: Text(user.familyName ?? t.family),
-                trailing: user.isOwner
-                    ? TextButton(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: cs.primaryContainer,
+                      child: Icon(Icons.home_rounded, color: cs.primary),
+                    ),
+                    const SizedBox(width: 16),
+                    // Expanded so a long family name wraps gracefully instead of
+                    // collapsing into a one-character-per-line column.
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            t.family,
+                            style: TextStyle(
+                              color: cs.onSurfaceVariant,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            user.familyName ?? t.family,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (user.isOwner)
+                      TextButton.icon(
                         onPressed: () => _rename(context, ref, t, user),
-                        child: Text(t.rename),
-                      )
-                    : null,
+                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        label: Text(t.rename),
+                      ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 8),
@@ -119,7 +153,10 @@ class FamilyScreen extends ConsumerWidget {
       await ref.read(membersControllerProvider.notifier).renameFamily(name);
       await ref.read(authControllerProvider.notifier).refreshUser();
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     }
   }
 
@@ -139,7 +176,10 @@ class FamilyScreen extends ConsumerWidget {
       ref.read(walletScopeProvider.notifier).state = WalletScope.personal;
       router.go('/');
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     }
   }
 
@@ -160,7 +200,10 @@ class FamilyScreen extends ConsumerWidget {
       ref.read(walletScopeProvider.notifier).state = WalletScope.personal;
       router.go('/');
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     }
   }
 

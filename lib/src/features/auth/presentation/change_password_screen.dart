@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/error_text.dart';
 import '../application/auth_controller.dart';
 import '../domain/auth_user.dart';
 
-/// Change the account password — or, for a Google-only account that has none
+/// Change the account password â€” or, for a Google-only account that has none
 /// yet, set the first password (no current-password field).
 class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -43,7 +44,10 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       messenger.showSnackBar(SnackBar(content: Text(t.passwordChanged)));
       navigator.pop();
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     } finally {
       if (mounted) {
         setState(() => _saving = false);
