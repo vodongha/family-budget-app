@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/error_text.dart';
 import '../../../core/app_error_view.dart';
+import '../../../core/item_actions.dart';
 import '../../../core/money.dart';
 import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
@@ -122,19 +123,23 @@ class DashboardScreen extends ConsumerWidget {
                             .titleMedium
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
-                      IconButton(
-                        tooltip: t.newWallet,
-                        icon: const Icon(Icons.add_circle_outline),
-                        // Defaults the new wallet to the current scope (a
-                        // personal wallet on the Personal tab, a shared one on
-                        // the Family tab). Transactions live in the hub already.
-                        onPressed: () => showWalletEditSheet(
-                          context,
-                          ref,
-                          initialPersonal: ref.read(walletScopeProvider) ==
-                              WalletScope.personal,
+                      // Show the header "+" only once there's at least one
+                      // wallet — the empty state below has its own add button,
+                      // so two add affordances never appear at the same time.
+                      if (s.wallets.isNotEmpty)
+                        IconButton(
+                          tooltip: t.newWallet,
+                          icon: const Icon(Icons.add_circle_outline),
+                          // Defaults the new wallet to the current scope (a
+                          // personal wallet on the Personal tab, a shared one on
+                          // the Family tab). Transactions live in the hub already.
+                          onPressed: () => showWalletEditSheet(
+                            context,
+                            ref,
+                            initialPersonal: ref.read(walletScopeProvider) ==
+                                WalletScope.personal,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -221,7 +226,10 @@ class _HubPagerState extends ConsumerState<_HubPager> {
       _HubItem(Icons.pie_chart_outline, t.budgets, '/budgets'),
       _HubItem(Icons.swap_horiz, t.transferMoney, '/transfers/new'),
       _HubItem(Icons.category_outlined, t.categories, '/categories'),
-      _HubItem(Icons.people_outline, t.members, '/members', familyOnly: true),
+      // Family management (rename / members / leave / delete) lives here now;
+      // the Members list is reached from inside it, not as its own hub shortcut.
+      _HubItem(Icons.manage_accounts_outlined, t.manageFamily, '/family',
+          familyOnly: true),
       _HubItem(Icons.mail_outline, t.invitations, '/invitations'),
     ];
     final List<List<_HubItem>> pages = [
@@ -494,6 +502,23 @@ class _WalletTile extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: () =>
             _openFilteredTransactions(context, ref, walletRid: wallet.rid),
+        // Long-press surfaces the same edit/delete actions as the ⋮ menu.
+        onLongPress: canManage
+            ? () => showItemActions(context, [
+                  ItemAction(
+                    icon: Icons.edit_outlined,
+                    label: t.editWallet,
+                    onTap: () =>
+                        showWalletEditSheet(context, ref, existing: wallet),
+                  ),
+                  ItemAction(
+                    icon: Icons.delete_outline,
+                    label: t.deleteWallet,
+                    destructive: true,
+                    onTap: () => _confirmDelete(context, ref, t),
+                  ),
+                ])
+            : null,
         child: Padding(
           padding: EdgeInsets.fromLTRB(16, 14, canManage ? 4 : 16, 14),
           child: Row(

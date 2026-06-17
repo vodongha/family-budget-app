@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/error_text.dart';
 import '../../../core/app_error_view.dart';
+import '../../../core/item_actions.dart';
 import '../../../core/responsive.dart';
 import '../../wallets/presentation/scope_toggle.dart';
 import '../application/categories_controller.dart';
@@ -177,6 +178,19 @@ class _CategoryTile extends ConsumerWidget {
             style: const TextStyle(fontSize: 18)),
       ),
       title: Text(category.label(t)),
+      onLongPress: () => showItemActions(context, [
+        ItemAction(
+          icon: Icons.edit_outlined,
+          label: t.editCategory,
+          onTap: () => _editDialog(context, ref, t),
+        ),
+        ItemAction(
+          icon: Icons.delete_outline,
+          label: t.delete,
+          destructive: true,
+          onTap: () => _deleteDialog(context, ref, t),
+        ),
+      ]),
       trailing: PopupMenuButton<String>(
         icon: Icon(Icons.more_vert, color: cs.onSurfaceVariant),
         onSelected: (v) {

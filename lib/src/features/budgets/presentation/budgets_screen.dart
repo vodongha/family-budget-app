@@ -5,6 +5,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../core/error_text.dart';
 import '../../../core/app_error_view.dart';
 import '../../../core/app_picker.dart';
+import '../../../core/item_actions.dart';
 import '../../../core/money.dart';
 import '../../../core/responsive.dart';
 import '../../categories/application/categories_controller.dart';
@@ -235,6 +236,19 @@ class _BudgetCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: onEdit,
+        onLongPress: () => showItemActions(context, [
+          ItemAction(
+            icon: Icons.edit_outlined,
+            label: t.edit,
+            onTap: onEdit,
+          ),
+          ItemAction(
+            icon: Icons.delete_outline,
+            label: t.delete,
+            destructive: true,
+            onTap: onDelete,
+          ),
+        ]),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
