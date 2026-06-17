@@ -44,6 +44,7 @@
   "enterAmountGtZero": "Enter an amount greater than 0",
   "wallet": "Wallet",
   "newWallet": "New wallet",
+  "edit": "Edit",
   "editWallet": "Edit wallet",
   "editCategory": "Edit",
   "walletName": "Wallet name",
