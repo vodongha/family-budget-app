@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/error_text.dart';
 import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
 import '../../transactions/application/transactions_controller.dart';
@@ -64,7 +65,8 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
       }
     } catch (e) {
       if (mounted) {
-        messenger.showSnackBar(SnackBar(content: Text('$e')));
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
         setState(() => _saving = false);
       }
     }
@@ -91,7 +93,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
       appBar: AppBar(title: Text(t.transferMoney)),
       body: wallets.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, _) => Center(child: Text(friendlyError(context, e))),
         data: (list) {
           if (list.length < 2) {
             return Center(

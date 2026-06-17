@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/error_text.dart';
 import '../../../core/app_error_view.dart';
 import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
@@ -99,7 +100,10 @@ class MembersScreen extends ConsumerWidget {
           .transferOwnership(member.rid);
       messenger.showSnackBar(SnackBar(content: Text(t.ownershipTransferred)));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     }
   }
 
@@ -139,7 +143,10 @@ class MembersScreen extends ConsumerWidget {
           .read(membersControllerProvider.notifier)
           .removeMember(member.rid);
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     }
   }
 
@@ -179,7 +186,10 @@ class MembersScreen extends ConsumerWidget {
       ref.read(walletScopeProvider.notifier).state = WalletScope.personal;
       router.go('/');
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     }
   }
 }
@@ -210,6 +220,8 @@ class _MemberTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _RolePill(label: member.isOwner ? t.roleOwner : t.roleMember),
+          // Always reserve the menu's width so the role pills line up across
+          // every row, whether or not the row has a ⋮ menu.
           if (canManage)
             PopupMenuButton<String>(
               icon: Icon(Icons.more_vert, color: cs.onSurfaceVariant),
@@ -243,7 +255,9 @@ class _MemberTile extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
+            )
+          else
+            const SizedBox(width: 48),
         ],
       ),
     );

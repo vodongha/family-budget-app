@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/error_text.dart';
 import '../../../core/app_error_view.dart';
 import '../../../core/money.dart';
 import '../../../core/responsive.dart';
@@ -20,7 +21,7 @@ import '../../wallets/domain/wallet.dart';
 import '../application/dashboard_controller.dart';
 import '../domain/dashboard_summary.dart';
 
-/// Sets the transaction filter and opens the Transactions screen — used by the
+/// Sets the transaction filter and opens the Transactions screen â€” used by the
 /// dashboard's income/expense pills and wallet tiles for contextual drill-down.
 void _openFilteredTransactions(
   BuildContext context,
@@ -178,7 +179,7 @@ class _HubPagerState extends ConsumerState<_HubPager> {
   final PageController _controller = PageController();
   int _page = 0;
 
-  static const int _perPage = 8; // 4 columns × 2 rows
+  static const int _perPage = 8; // 4 columns Ã— 2 rows
 
   @override
   void dispose() {
@@ -610,7 +611,10 @@ class _WalletTile extends ConsumerWidget {
         SnackBar(content: Text(t.walletDeleted(removed))),
       );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     }
   }
 }

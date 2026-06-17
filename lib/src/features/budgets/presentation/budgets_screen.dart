@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/error_text.dart';
 import '../../../core/app_error_view.dart';
 import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
@@ -76,13 +77,16 @@ class BudgetsScreen extends ConsumerWidget {
     final budgeted = (ref.read(budgetsControllerProvider).valueOrNull ?? [])
         .map((b) => b.category.rid)
         .toSet();
-    // Categories load asynchronously — wait for them so we don't mistake a
+    // Categories load asynchronously â€” wait for them so we don't mistake a
     // not-yet-loaded list for "no categories available".
     final List<Category> all;
     try {
       all = await ref.read(categoriesControllerProvider.future);
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
       return;
     }
     if (!context.mounted) {
@@ -150,7 +154,10 @@ class BudgetsScreen extends ConsumerWidget {
           .read(budgetsControllerProvider.notifier)
           .create(categoryRid: categoryRid!, amount: value);
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     }
   }
 
@@ -191,7 +198,10 @@ class BudgetsScreen extends ConsumerWidget {
           .read(budgetsControllerProvider.notifier)
           .edit(rid: b.rid, amount: value);
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     }
   }
 

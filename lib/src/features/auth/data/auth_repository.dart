@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../core/api_client.dart';
 import '../../../core/token_storage.dart';
@@ -150,7 +151,18 @@ class AuthRepository {
 
   Future<String?> readToken() => _storage.read();
 
-  Future<void> logout() => _storage.clear();
+  /// Clear our JWT and also sign out of Google, so a Google user who signs out
+  /// is shown the account chooser next time (instead of being silently
+  /// re-signed-in with the previously selected account). Google sign-out is
+  /// best-effort — failures (or a user who never used Google) are ignored.
+  Future<void> logout() async {
+    await _storage.clear();
+    try {
+      await GoogleSignIn().signOut();
+    } catch (_) {
+      // Not signed in with Google, or the plugin is unavailable — ignore.
+    }
+  }
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {

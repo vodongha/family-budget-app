@@ -1,8 +1,9 @@
-import 'package:fl_chart/fl_chart.dart';
+﻿import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/error_text.dart';
 import '../../../core/money.dart';
 import '../../../core/responsive.dart';
 import '../../dashboard/application/dashboard_controller.dart';
@@ -57,7 +58,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               title: t.monthlyTrend,
               child: monthly.when(
                 loading: () => const _ChartLoading(),
-                error: (e, _) => _ChartMessage('$e'),
+                error: (e, _) => _ChartMessage(friendlyError(context, e)),
                 data: (points) => _MonthlyBars(points: points),
               ),
             ),
@@ -66,7 +67,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               title: t.incomeVsExpense,
               child: monthly.when(
                 loading: () => const _ChartLoading(),
-                error: (e, _) => _ChartMessage('$e'),
+                error: (e, _) => _ChartMessage(friendlyError(context, e)),
                 data: (points) => _IncomeExpenseDonut(
                   income: points.fold(0, (a, p) => a + p.income),
                   expense: points.fold(0, (a, p) => a + p.expense),
@@ -81,7 +82,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               title: t.balanceByWallet,
               child: summary.when(
                 loading: () => const _ChartLoading(),
-                error: (e, _) => _ChartMessage('$e'),
+                error: (e, _) => _ChartMessage(friendlyError(context, e)),
                 data: (s) => _WalletBars(
                   wallets: s.wallets,
                   emptyLabel: t.noData,
@@ -134,7 +135,7 @@ class _ByCategoryCardState extends ConsumerState<_ByCategoryCard> {
           const SizedBox(height: 16),
           slices.when(
             loading: () => const _ChartLoading(),
-            error: (e, _) => _ChartMessage('$e'),
+            error: (e, _) => _ChartMessage(friendlyError(context, e)),
             data: (data) => _CategoryDonut(slices: data, emptyLabel: t.noData),
           ),
         ],
@@ -437,7 +438,7 @@ class _WalletBars extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
-                      name.length > 8 ? '${name.substring(0, 7)}…' : name,
+                      name.length > 8 ? '${name.substring(0, 7)}â€¦' : name,
                       style: const TextStyle(fontSize: 10),
                     ),
                   );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/error_text.dart';
 import '../../auth/application/auth_controller.dart';
 import '../application/wallets_controller.dart';
 import '../domain/wallet.dart';
@@ -83,7 +84,7 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
           color: _color,
         );
       } else {
-        // No family → only a personal wallet is possible.
+        // No family â†’ only a personal wallet is possible.
         final bool hasFamily =
             ref.read(authControllerProvider).valueOrNull?.hasFamily ?? false;
         final bool personal = _personal || !hasFamily;
@@ -96,7 +97,10 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
       }
       navigator.pop();
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     } finally {
       if (mounted) {
         setState(() => _saving = false);
@@ -108,7 +112,7 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
   Widget build(BuildContext context) {
     final AppLocalizations t = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
-    // Without a family there's no "shared" option — only personal wallets.
+    // Without a family there's no "shared" option â€” only personal wallets.
     final bool hasFamily =
         ref.watch(authControllerProvider).valueOrNull?.hasFamily ?? false;
     final bool showVisibility = !_isEdit && hasFamily;
@@ -128,7 +132,7 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
             constraints: const BoxConstraints(maxWidth: 520),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              // stretch → children (incl. the action Row) get a tight full width,
+              // stretch â†’ children (incl. the action Row) get a tight full width,
               // so the Expanded "Save" button fills instead of collapsing.
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -169,7 +173,7 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
                   maxLength: 4,
                   decoration: InputDecoration(
                     labelText: t.iconOptional,
-                    hintText: '💵',
+                    hintText: 'ðŸ’µ',
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -193,7 +197,7 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
                 const SizedBox(height: 20),
                 // Full-width stacked buttons. Using SizedBox(infinity) instead of
                 // a Row+Expanded guarantees the button can't collapse to ~0 width
-                // (which made the "Lưu" label wrap vertically) regardless of the
+                // (which made the "LÆ°u" label wrap vertically) regardless of the
                 // parent's width constraints.
                 SizedBox(
                   width: double.infinity,

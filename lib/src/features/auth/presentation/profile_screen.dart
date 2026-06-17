@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/error_text.dart';
 import '../../../core/phone_field.dart';
 import '../../../core/responsive.dart';
 import '../application/auth_controller.dart';
@@ -42,7 +43,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           .updateProfile(displayName: name, phone: _phone);
       messenger.showSnackBar(SnackBar(content: Text(t.saved)));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
     } finally {
       if (mounted) {
         setState(() => _saving = false);
