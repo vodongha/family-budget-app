@@ -218,7 +218,8 @@ class _HubPagerState extends ConsumerState<_HubPager> {
     final AppLocalizations t = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
     final List<_HubItem> items = [
-      _HubItem(Icons.receipt_long_outlined, t.transactions, '/transactions'),
+      _HubItem(Icons.receipt_long_outlined, t.transactions, '/transactions',
+          clearFilter: true),
       _HubItem(Icons.bar_chart_outlined, t.statistics, '/stats'),
       _HubItem(Icons.calendar_month_outlined, t.calendar, '/calendar'),
       // Budgets and categories follow the personal/family scope (no family
@@ -274,7 +275,13 @@ class _HubPagerState extends ConsumerState<_HubPager> {
 }
 
 class _HubItem {
-  const _HubItem(this.icon, this.label, this.route, {this.familyOnly = false});
+  const _HubItem(
+    this.icon,
+    this.label,
+    this.route, {
+    this.familyOnly = false,
+    this.clearFilter = false,
+  });
   final IconData icon;
   final String label;
   final String route;
@@ -282,6 +289,11 @@ class _HubItem {
   /// Requires a family (e.g. budgets, categories, members); a family-less user
   /// is prompted to create one instead of navigating into a 403.
   final bool familyOnly;
+
+  /// Reset the transaction filter before navigating, so opening Transactions
+  /// from the hub always shows everything (the dashboard's income/expense and
+  /// wallet taps set a filter; the hub shortcut should not inherit it).
+  final bool clearFilter;
 }
 
 class _HubCell extends ConsumerWidget {
@@ -301,6 +313,9 @@ class _HubCell extends ConsumerWidget {
             await showCreateFamilyDialog(context, ref);
             return;
           }
+        }
+        if (item.clearFilter) {
+          ref.read(txnFilterProvider.notifier).state = emptyTxnFilter;
         }
         if (context.mounted) {
           context.push(item.route);
