@@ -36,7 +36,7 @@ class FamilyScreen extends ConsumerWidget {
           children: [
             Card(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+                padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
                 child: Row(
                   children: [
                     CircleAvatar(
@@ -45,14 +45,18 @@ class FamilyScreen extends ConsumerWidget {
                       child: Icon(Icons.home_rounded, color: cs.primary),
                     ),
                     const SizedBox(width: 16),
-                    // Expanded so a long family name wraps gracefully instead of
-                    // collapsing into a one-character-per-line column.
+                    // Expanded gives the name the remaining width; maxLines: 1
+                    // guarantees it can never collapse into a one-char-per-line
+                    // column even if a sibling tried to take all the width.
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             t.family,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: cs.onSurfaceVariant,
                               fontSize: 12,
@@ -61,6 +65,8 @@ class FamilyScreen extends ConsumerWidget {
                           const SizedBox(height: 2),
                           Text(
                             user.familyName ?? t.family,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
@@ -69,11 +75,13 @@ class FamilyScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
+                    // A fixed-size IconButton (not a TextButton, which could grow
+                    // and squeeze the name) for the rename action.
                     if (user.isOwner)
-                      TextButton.icon(
+                      IconButton(
+                        tooltip: t.rename,
+                        icon: const Icon(Icons.edit_outlined),
                         onPressed: () => _rename(context, ref, t, user),
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        label: Text(t.rename),
                       ),
                   ],
                 ),

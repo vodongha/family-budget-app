@@ -1,4 +1,4 @@
-﻿import 'package:fl_chart/fl_chart.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -438,7 +438,7 @@ class _WalletBars extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
-                      name.length > 8 ? '${name.substring(0, 7)}â€¦' : name,
+                      name.length > 8 ? '${name.substring(0, 7)}…' : name,
                       style: const TextStyle(fontSize: 10),
                     ),
                   );

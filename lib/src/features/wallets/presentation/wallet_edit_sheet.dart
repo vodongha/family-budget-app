@@ -198,7 +198,7 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
                   maxLength: 4,
                   decoration: InputDecoration(
                     labelText: t.iconOptional,
-                    hintText: 'ðŸ’µ',
+                    hintText: '💵',
                   ),
                 ),
                 const SizedBox(height: 4),

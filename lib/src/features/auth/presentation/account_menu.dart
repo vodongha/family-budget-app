@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/api_client.dart';
+import '../../../core/config.dart';
 import '../application/auth_controller.dart';
 import '../domain/auth_user.dart';
 import 'avatar.dart';
@@ -87,15 +90,7 @@ class _AccountSheet extends ConsumerWidget {
                 parentContext.push('/settings');
               },
             ),
-            if (user.hasFamily)
-              _MenuTile(
-                icon: Icons.diversity_3_outlined,
-                label: t.manageFamily,
-                onTap: () {
-                  Navigator.pop(context);
-                  parentContext.push('/family');
-                },
-              ),
+            // Family management lives in the hub now, not here.
             // Privacy policy sits below Settings; shown in-app via a WebView that
             // loads the bilingual page served by the backend.
             _MenuTile(
@@ -104,6 +99,23 @@ class _AccountSheet extends ConsumerWidget {
               onTap: () {
                 Navigator.pop(context);
                 parentContext.push('/privacy');
+              },
+            ),
+            // Community & support forum: in-app WebView on mobile; on web open a
+            // new tab (an external site can't be iframed reliably).
+            _MenuTile(
+              icon: Icons.forum_outlined,
+              label: t.community,
+              onTap: () {
+                Navigator.pop(context);
+                if (kIsWeb) {
+                  launchUrl(
+                    Uri.parse(AppConfig.communityUrl),
+                    webOnlyWindowName: '_blank',
+                  );
+                } else {
+                  parentContext.push('/community');
+                }
               },
             ),
             _MenuTile(

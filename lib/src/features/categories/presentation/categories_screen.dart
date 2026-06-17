@@ -101,7 +101,7 @@ class CategoriesScreen extends ConsumerWidget {
                 maxLength: 4,
                 decoration: InputDecoration(
                   labelText: t.iconOptional,
-                  hintText: 'ðŸœ',
+                  hintText: '🍜',
                 ),
               ),
             ],
@@ -174,8 +174,8 @@ class _CategoryTile extends ConsumerWidget {
           color: category.colorOr(cs.primary).withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Text(category.icon ?? 'ðŸ·ï¸',
-            style: const TextStyle(fontSize: 18)),
+        child:
+            Text(category.icon ?? '🏷️', style: const TextStyle(fontSize: 18)),
       ),
       title: Text(category.label(t)),
       onLongPress: () => showItemActions(context, [
@@ -217,7 +217,7 @@ class _CategoryTile extends ConsumerWidget {
     AppLocalizations t,
   ) async {
     final name = TextEditingController(text: category.label(t));
-    final icon = TextEditingController(text: category.icon ?? '');
+    final icon = TextEditingController(text: category.icon ?? '🏷️');
     final messenger = ScaffoldMessenger.of(context);
     final bool? ok = await showDialog<bool>(
       context: context,
@@ -238,7 +238,7 @@ class _CategoryTile extends ConsumerWidget {
               maxLength: 4,
               decoration: InputDecoration(
                 labelText: t.iconOptional,
-                hintText: 'ðŸœ',
+                hintText: '🍜',
               ),
             ),
           ],
