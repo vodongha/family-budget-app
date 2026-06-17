@@ -18,6 +18,7 @@ Future<DateTime?> showAppDatePicker({
   return showDialog<DateTime>(
     context: context,
     builder: (ctx) => AlertDialog(
+      actionsOverflowButtonSpacing: 8,
       contentPadding: const EdgeInsets.symmetric(vertical: 8),
       content: SizedBox(
         width: 320,

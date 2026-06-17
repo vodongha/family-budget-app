@@ -65,13 +65,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     return c;
   }
 
-  /// Group a month's income/expense transactions by day (transfers excluded).
+  /// Group a month's transactions by day. Transfers are included so they show in
+  /// the day's list, but the net markers / day totals exclude them (a transfer
+  /// is not income or expense — see the marker builder and day summary).
   Map<DateTime, List<Transaction>> _byDay(List<Transaction> txns) {
     final Map<DateTime, List<Transaction>> map = {};
     for (final t in txns) {
-      if (t.type.isTransfer) {
-        continue;
-      }
       map.putIfAbsent(_dayOnly(t.occurredOn), () => []).add(t);
     }
     return map;
@@ -143,7 +142,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   }
                   int net = 0;
                   for (final e in events) {
-                    net += e.signedAmount;
+                    if (!e.type.isTransfer) {
+                      net += e.signedAmount;
+                    }
                   }
                   final Color color = net >= 0 ? Colors.green : Colors.red;
                   final String? cur = _singleCurrency(events);

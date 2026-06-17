@@ -16,7 +16,10 @@ import '../features/family/presentation/family_screen.dart';
 import '../features/invitations/presentation/add_member_screen.dart';
 import '../features/invitations/presentation/invitations_inbox_screen.dart';
 import '../features/invitations/presentation/invite_screen.dart';
+import '../../l10n/app_localizations.dart';
 import '../features/legal/presentation/privacy_policy_screen.dart';
+import '../features/legal/presentation/web_page_screen.dart';
+import 'config.dart';
 import '../features/members/presentation/members_screen.dart';
 import '../features/settings/presentation/about_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
@@ -149,6 +152,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'privacy',
             builder: (_, __) => const PrivacyPolicyScreen(),
+          ),
+          GoRoute(
+            path: 'community',
+            builder: (context, __) => WebPageScreen(
+              title: AppLocalizations.of(context).community,
+              url: AppConfig.communityUrl,
+            ),
           ),
           GoRoute(
             path: 'about',

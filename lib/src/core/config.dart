@@ -28,4 +28,8 @@ class AppConfig {
     defaultValue:
         '692858320760-0n5vkifgkqjoktqigpsjrhr8jqphjdka.apps.googleusercontent.com',
   );
+
+  /// Community & support forum, opened from the account menu (in-app WebView on
+  /// mobile, a new browser tab on web).
+  static const String communityUrl = 'https://vodongha.forumvi.com';
 }
