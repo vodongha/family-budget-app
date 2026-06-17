@@ -35,6 +35,41 @@ void main() {
     });
   });
 
+  group('Money.parseIn (currency-aware)', () {
+    test('0-decimal currency parses as whole minor units', () {
+      expect(Money.parseIn('50000', 'VND'), 50000);
+      expect(Money.parseIn('1.234.567', 'VND'), 1234567);
+    });
+
+    test('2-decimal currency converts a major amount to minor units', () {
+      expect(Money.parseIn('10.50', 'USD'), 1050);
+      expect(Money.parseIn('10', 'USD'), 1000);
+      expect(Money.parseIn('0.5', 'USD'), 50);
+      expect(Money.parseIn('10,5', 'EUR'), 1050); // comma as decimal sep
+    });
+
+    test('returns null for empty input', () {
+      expect(Money.parseIn('', 'USD'), isNull);
+    });
+  });
+
+  group('Money.formatIn', () {
+    test('formats in the currency with its decimals and symbol', () {
+      final String usd = Money.formatIn(1050, 'USD');
+      expect(usd.replaceAll(RegExp(r'[^0-9]'), ''), '1050'); // 10.50
+      expect(usd.contains(r'$'), isTrue);
+
+      final String vnd = Money.formatIn(50000, 'VND');
+      expect(vnd.replaceAll(RegExp(r'[^0-9]'), ''), '50000');
+      expect(vnd.contains('₫'), isTrue);
+    });
+
+    test('editText round-trips through parseIn', () {
+      expect(Money.parseIn(Money.editText(1050, 'USD'), 'USD'), 1050);
+      expect(Money.parseIn(Money.editText(50000, 'VND'), 'VND'), 50000);
+    });
+  });
+
   group('ThousandsSeparatorInputFormatter', () {
     TextEditingValue fmt(String text) => ThousandsSeparatorInputFormatter()
         .formatEditUpdate(TextEditingValue.empty, TextEditingValue(text: text));

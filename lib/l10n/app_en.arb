@@ -48,6 +48,7 @@
   "editWallet": "Edit wallet",
   "editCategory": "Edit",
   "walletName": "Wallet name",
+  "currency": "Currency",
   "colorOptional": "Color (optional)",
   "personal": "Personal",
   "sharedWallet": "Shared",

@@ -61,6 +61,7 @@ class Transaction {
     required this.type,
     required this.amount,
     required this.occurredOn,
+    this.currency = 'VND',
     this.note,
     this.category,
     this.createdBy,
@@ -71,7 +72,10 @@ class Transaction {
   final String walletRid;
   final TransactionType type;
 
-  /// Positive integer đồng.
+  /// The wallet's ISO-4217 currency; [amount] is minor units of this.
+  final String currency;
+
+  /// Positive integer minor units of [currency].
   final int amount;
   final DateTime occurredOn;
   final String? note;
@@ -94,6 +98,7 @@ class Transaction {
     return Transaction(
       rid: json['rid'] as String,
       walletRid: (json['wallet_rid'] ?? '') as String,
+      currency: (json['currency'] ?? 'VND') as String,
       type: TransactionType.fromApi((json['type'] ?? 'expense') as String),
       amount: (json['amount'] ?? 0) as int,
       occurredOn: DateTime.parse(json['occurred_on'] as String),

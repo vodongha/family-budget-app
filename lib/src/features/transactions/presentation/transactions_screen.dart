@@ -172,14 +172,27 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   }
 
   /// Net (income − expense, transfers excluded) per day, for the day headers.
-  Map<DateTime, int> _dayNet() {
+  /// ``currency`` is the day's single currency, or null when the day mixes
+  /// currencies (we can't sum across currencies client-side without rates, so the
+  /// header then omits the amount).
+  Map<DateTime, ({int net, String? currency})> _dayNet() {
     final Map<DateTime, int> net = {};
+    final Map<DateTime, String?> currency = {};
+    final Set<DateTime> mixed = {};
     for (final Transaction tx in _items) {
       if (tx.type.isTransfer) continue;
       final DateTime d = _dayOnly(tx.occurredOn);
       net[d] = (net[d] ?? 0) + tx.signedAmount;
+      if (!currency.containsKey(d)) {
+        currency[d] = tx.currency;
+      } else if (currency[d] != tx.currency) {
+        mixed.add(d);
+      }
     }
-    return net;
+    return {
+      for (final DateTime d in net.keys)
+        d: (net: net[d]!, currency: mixed.contains(d) ? null : currency[d]),
+    };
   }
 
   @override
@@ -193,7 +206,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     ref.listen(walletScopeProvider, (_, __) => _reload());
 
     // Flatten the items into [date header, txn, txn, date header, ...] rows.
-    final Map<DateTime, int> dayNet = _dayNet();
+    final Map<DateTime, ({int net, String? currency})> dayNet = _dayNet();
     final List<Object> rows = [];
     DateTime? lastDay;
     for (final Transaction tx in _items) {
@@ -238,7 +251,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   Widget _buildBody(
     AppLocalizations t,
     List<Object> rows,
-    Map<DateTime, int> dayNet,
+    Map<DateTime, ({int net, String? currency})> dayNet,
     bool showCreator,
     bool filterActive,
   ) {
@@ -270,7 +283,12 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           }
           final Object row = rows[i];
           if (row is DateTime) {
-            return _DateHeader(day: row, net: dayNet[row] ?? 0);
+            final info = dayNet[row];
+            return _DateHeader(
+              day: row,
+              net: info?.net ?? 0,
+              currency: info?.currency,
+            );
           }
           final Transaction tx = row as Transaction;
           return _TransactionTile(
@@ -292,11 +310,14 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   }
 }
 
-/// A day separator with the day's net amount, like a bank statement.
+/// A day separator with the day's net amount, like a bank statement. The amount
+/// is shown only when the day has a single currency ([currency] non-null); a
+/// mixed-currency day shows just the date (we can't sum across currencies here).
 class _DateHeader extends StatelessWidget {
-  const _DateHeader({required this.day, required this.net});
+  const _DateHeader({required this.day, required this.net, this.currency});
   final DateTime day;
   final int net;
+  final String? currency;
 
   @override
   Widget build(BuildContext context) {
@@ -320,9 +341,9 @@ class _DateHeader extends StatelessWidget {
               ),
             ),
           ),
-          if (net != 0)
+          if (net != 0 && currency != null)
             Text(
-              '${net >= 0 ? '+' : '−'}${Money.format(net.abs())}',
+              '${net >= 0 ? '+' : '−'}${Money.formatIn(net.abs(), currency!)}',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -415,7 +436,7 @@ class _TransactionTile extends StatelessWidget {
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: subtitle.isEmpty ? null : Text(subtitle),
       trailing: Text(
-        '$sign${Money.format(txn.amount)}',
+        '$sign${Money.formatIn(txn.amount, txn.currency)}',
         style: Theme.of(context)
             .textTheme
             .titleMedium

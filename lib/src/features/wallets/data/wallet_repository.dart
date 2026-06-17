@@ -31,6 +31,7 @@ class WalletRepository {
     String visibility = 'family',
     String? icon,
     String? color,
+    String currency = 'VND',
   }) async {
     try {
       final Response<dynamic> res = await _dio.post(
@@ -38,6 +39,7 @@ class WalletRepository {
         data: {
           'name': name,
           'visibility': visibility,
+          'currency': currency,
           if (icon != null) 'icon': icon,
           if (color != null) 'color': color,
         },

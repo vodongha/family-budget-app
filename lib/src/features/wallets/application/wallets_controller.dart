@@ -19,12 +19,14 @@ class WalletsController extends AsyncNotifier<List<Wallet>> {
     String visibility = 'family',
     String? icon,
     String? color,
+    String currency = 'VND',
   }) async {
     await ref.read(walletRepositoryProvider).create(
           name,
           visibility: visibility,
           icon: icon,
           color: color,
+          currency: currency,
         );
     // A new personal wallet may change what the scoped dashboard shows.
     ref.invalidate(dashboardControllerProvider);
