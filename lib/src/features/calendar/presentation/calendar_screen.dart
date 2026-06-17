@@ -50,12 +50,37 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     return r;
   }
 
-  /// The single currency shared by [txns], or null if they mix currencies
-  /// (we can't sum across currencies client-side without exchange rates).
-  static String? _singleCurrency(Iterable<Transaction> txns) {
+  /// Transfer groups with only ONE leg in the month's data — i.e. transfers that
+  /// cross the current scope's boundary (the other leg is in a wallet outside the
+  /// scope). These count as income/expense (like the backend's totals); an
+  /// internal transfer has both legs present and stays neutral.
+  static Set<String> _boundaryGroups(List<Transaction> monthTxns) {
+    final Map<String, int> counts = {};
+    for (final Transaction t in monthTxns) {
+      final String? g = t.groupRid;
+      if (t.type.isTransfer && g != null) {
+        counts[g] = (counts[g] ?? 0) + 1;
+      }
+    }
+    return {
+      for (final MapEntry<String, int> e in counts.entries)
+        if (e.value == 1) e.key,
+    };
+  }
+
+  /// Whether [t] counts toward income/expense totals: a normal transaction, or a
+  /// boundary-crossing transfer leg.
+  static bool _counts(Transaction t, Set<String> boundary) =>
+      !t.type.isTransfer ||
+      (t.groupRid != null && boundary.contains(t.groupRid));
+
+  /// The single currency shared by the counting transactions in [txns], or null
+  /// if they mix currencies (can't sum across currencies client-side).
+  static String? _singleCurrency(
+      Iterable<Transaction> txns, Set<String> boundary) {
     String? c;
     for (final Transaction tx in txns) {
-      if (tx.type.isTransfer) continue;
+      if (!_counts(tx, boundary)) continue;
       if (c == null) {
         c = tx.currency;
       } else if (c != tx.currency) {
@@ -87,14 +112,19 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       ),
     );
 
+    final List<Transaction> monthTxns =
+        monthly.maybeWhen(data: (l) => l, orElse: () => const <Transaction>[]);
+    final Set<String> boundary = _boundaryGroups(monthTxns);
     final Map<DateTime, List<Transaction>> byDay =
         monthly.maybeWhen(data: _byDay, orElse: () => const {});
     final List<Transaction> dayTxns = byDay[_dayOnly(_selected)] ?? const [];
-    final int dayExpense = dayTxns
-        .where((x) => x.type == TransactionType.expense)
+    // Inflow = income + boundary transfer-in; outflow = expense + boundary
+    // transfer-out. Internal transfers don't count.
+    final int dayInflow = dayTxns
+        .where((x) => _counts(x, boundary) && x.type.isInflow)
         .fold(0, (a, x) => a + x.amount);
-    final int dayIncome = dayTxns
-        .where((x) => x.type == TransactionType.income)
+    final int dayOutflow = dayTxns
+        .where((x) => _counts(x, boundary) && !x.type.isInflow)
         .fold(0, (a, x) => a + x.amount);
 
     return Scaffold(
@@ -142,12 +172,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   }
                   int net = 0;
                   for (final e in events) {
-                    if (!e.type.isTransfer) {
+                    if (_counts(e, boundary)) {
                       net += e.signedAmount;
                     }
                   }
                   final Color color = net >= 0 ? Colors.green : Colors.red;
-                  final String? cur = _singleCurrency(events);
+                  final String? cur = _singleCurrency(events, boundary);
                   // Mixed currencies can't be summed client-side → show a dot.
                   if (cur == null) {
                     return Positioned(
@@ -189,15 +219,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     '${_selected.year}-${_selected.month.toString().padLeft(2, '0')}-${_selected.day.toString().padLeft(2, '0')}',
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  if (_singleCurrency(dayTxns) case final String dayCur)
+                  if (_singleCurrency(dayTxns, boundary)
+                      case final String dayCur)
                     Row(
                       children: [
-                        Text('+${Money.formatIn(dayIncome, dayCur)}',
+                        Text('+${Money.formatIn(dayInflow, dayCur)}',
                             style: const TextStyle(
                                 color: Colors.green,
                                 fontWeight: FontWeight.w600)),
                         const SizedBox(width: 12),
-                        Text('−${Money.formatIn(dayExpense, dayCur)}',
+                        Text('−${Money.formatIn(dayOutflow, dayCur)}',
                             style: const TextStyle(
                                 color: Colors.red,
                                 fontWeight: FontWeight.w600)),
