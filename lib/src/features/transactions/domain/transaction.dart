@@ -62,6 +62,7 @@ class Transaction {
     required this.amount,
     required this.occurredOn,
     this.currency = 'VND',
+    this.groupRid,
     this.note,
     this.category,
     this.createdBy,
@@ -71,6 +72,11 @@ class Transaction {
   final String rid;
   final String walletRid;
   final TransactionType type;
+
+  /// Shared by the two legs of a transfer (null for normal transactions). Lets
+  /// the client pair legs — e.g. a transfer whose sibling leg isn't in the
+  /// current scope's data crosses the scope boundary.
+  final String? groupRid;
 
   /// The wallet's ISO-4217 currency; [amount] is minor units of this.
   final String currency;
@@ -99,6 +105,7 @@ class Transaction {
       rid: json['rid'] as String,
       walletRid: (json['wallet_rid'] ?? '') as String,
       currency: (json['currency'] ?? 'VND') as String,
+      groupRid: json['group_rid'] as String?,
       type: TransactionType.fromApi((json['type'] ?? 'expense') as String),
       amount: (json['amount'] ?? 0) as int,
       occurredOn: DateTime.parse(json['occurred_on'] as String),
