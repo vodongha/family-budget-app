@@ -33,7 +33,7 @@
   "retry": "Thử lại",
   "noTransactionsYet": "Chưa có giao dịch nào.",
   "addTransaction": "Thêm giao dịch",
-  "amountLabel": "Số tiền (₫)",
+  "amountLabel": "Số tiền",
   "amountHint": "vd: 50000",
   "enterAmountGtZero": "Nhập số tiền lớn hơn 0",
   "wallet": "Ví",
@@ -219,6 +219,16 @@
   "monthlyLimit": "Hạn mức tháng",
   "primaryCurrency": "Tiền tệ chính",
   "primaryCurrencyNote": "Các tổng hiển thị theo tiền này; mỗi ví giữ tiền riêng.",
+  "exchangeRate": "Tỷ giá",
+  "ratesUpdatedAt": "Cập nhật lúc {time}",
+  "@ratesUpdatedAt": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "ratesNeverUpdated": "Chưa cập nhật",
+  "ratesAutoNote": "Tự động cập nhật mỗi 12 giờ",
+  "refreshRates": "Cập nhật tỷ giá",
+  "ratesRefreshed": "Đã cập nhật tỷ giá",
+  "ratesRefreshFailed": "Không cập nhật được tỷ giá",
   "budgetDeleted": "Đã xoá ngân sách",
   "overBudgetBy": "Vượt {amount}",
   "@overBudgetBy": {

@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/app_info.dart';
+import '../../../core/error_text.dart';
 import '../../../core/money.dart';
 import '../../../core/prefs.dart';
 import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
+import '../../budgets/application/budgets_controller.dart';
+import '../../dashboard/application/dashboard_controller.dart';
+import '../../rates/data/rates_repository.dart';
+import '../../rates/domain/rates_info.dart';
+import '../../stats/data/stats_repository.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -116,6 +123,8 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   onTap: () => _pickCurrency(context, ref, t, displayCurrency),
                 ),
+                const Divider(height: 1),
+                const _RatesTile(),
               ],
             ),
             const SizedBox(height: 24),
@@ -224,6 +233,75 @@ class SettingsScreen extends ConsumerWidget {
     if (!ok) {
       messenger.showSnackBar(SnackBar(content: Text(t.openLinkFailed)));
     }
+  }
+}
+
+/// Shows when the exchange rates were last refreshed, with a manual refresh
+/// button. The rates also auto-refresh every 12h on the server.
+class _RatesTile extends ConsumerStatefulWidget {
+  const _RatesTile();
+
+  @override
+  ConsumerState<_RatesTile> createState() => _RatesTileState();
+}
+
+class _RatesTileState extends ConsumerState<_RatesTile> {
+  bool _busy = false;
+
+  Future<void> _refresh() async {
+    final AppLocalizations t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    try {
+      await ref.read(ratesRepositoryProvider).refresh();
+      ref.invalidate(ratesInfoProvider);
+      // Converted totals depend on the rates, so refresh them too.
+      ref.invalidate(dashboardControllerProvider);
+      ref.invalidate(monthlyStatsProvider);
+      ref.invalidate(categoryStatsProvider);
+      ref.invalidate(budgetsControllerProvider);
+      messenger.showSnackBar(SnackBar(content: Text(t.ratesRefreshed)));
+    } catch (e) {
+      if (mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations t = AppLocalizations.of(context);
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final AsyncValue<RatesInfo> info = ref.watch(ratesInfoProvider);
+    final String when = info.when(
+      data: (i) => i.updatedAt == null
+          ? t.ratesNeverUpdated
+          : t.ratesUpdatedAt(DateFormat('d MMM y, HH:mm').format(i.updatedAt!)),
+      loading: () => '…',
+      error: (_, __) => t.ratesNeverUpdated,
+    );
+    return ListTile(
+      leading: Icon(Icons.currency_exchange, color: cs.primary),
+      title: Text(t.exchangeRate),
+      subtitle: Text('$when\n${t.ratesAutoNote}'),
+      isThreeLine: true,
+      trailing: _busy
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : IconButton(
+              tooltip: t.refreshRates,
+              icon: const Icon(Icons.refresh),
+              onPressed: _refresh,
+            ),
+    );
   }
 }
 
