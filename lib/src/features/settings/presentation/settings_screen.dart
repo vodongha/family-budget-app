@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/app_info.dart';
+import '../../../core/money.dart';
 import '../../../core/prefs.dart';
 import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
@@ -22,6 +23,7 @@ class SettingsScreen extends ConsumerWidget {
           orElse: () => '',
         );
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final String displayCurrency = ref.watch(displayCurrencyControllerProvider);
     final bool hasPassword =
         ref.watch(authControllerProvider).valueOrNull?.hasPassword ?? true;
 
@@ -91,6 +93,32 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 24),
+            _SectionHeader(t.primaryCurrency),
+            _OptionCard(
+              children: [
+                ListTile(
+                  leading: Icon(Icons.payments_outlined, color: cs.primary),
+                  title: Text(t.primaryCurrency),
+                  subtitle: Text(t.primaryCurrencyNote),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '$displayCurrency  ${Money.symbolFor(displayCurrency)}',
+                        style: TextStyle(
+                          color: cs.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                  onTap: () => _pickCurrency(context, ref, t, displayCurrency),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
             _SectionHeader(t.account),
             _OptionCard(
               children: [
@@ -134,6 +162,57 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _pickCurrency(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations t,
+    String current,
+  ) async {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final String? picked = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+              child: Text(
+                t.primaryCurrency,
+                style: Theme.of(ctx)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ),
+            for (final String code in Money.supportedCurrencies)
+              ListTile(
+                leading: SizedBox(
+                  width: 28,
+                  child: Text(
+                    Money.symbolFor(code),
+                    style: const TextStyle(fontSize: 18),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                title: Text(code),
+                trailing: code == current
+                    ? Icon(Icons.check_circle, color: cs.primary)
+                    : null,
+                onTap: () => Navigator.pop(ctx, code),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked != null && picked != current) {
+      await ref
+          .read(displayCurrencyControllerProvider.notifier)
+          .setCurrency(picked);
+    }
   }
 
   Future<void> _openPlayStore(BuildContext context, AppLocalizations t) async {

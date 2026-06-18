@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/error_text.dart';
 import '../../../core/money.dart';
+import '../../../core/prefs.dart';
 import '../../../core/responsive.dart';
 import '../../dashboard/application/dashboard_controller.dart';
 import '../../dashboard/domain/dashboard_summary.dart';
@@ -28,6 +29,9 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations t = AppLocalizations.of(context);
     final WalletScope scope = ref.watch(walletScopeProvider);
+    // Cross-wallet totals (trend, income-vs-expense, by-category) are rendered in
+    // the chosen display currency; the by-wallet chart stays in each wallet's own.
+    final String currency = ref.watch(displayCurrencyControllerProvider);
     final AsyncValue<List<MonthlyPoint>> monthly =
         ref.watch(monthlyStatsProvider((months: _months, scope: scope.api)));
     final AsyncValue<DashboardSummary> summary =
@@ -59,7 +63,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               child: monthly.when(
                 loading: () => const _ChartLoading(),
                 error: (e, _) => _ChartMessage(friendlyError(context, e)),
-                data: (points) => _MonthlyBars(points: points),
+                data: (points) =>
+                    _MonthlyBars(points: points, currency: currency),
               ),
             ),
             const SizedBox(height: 16),
@@ -74,6 +79,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   incomeLabel: t.income,
                   expenseLabel: t.expense,
                   emptyLabel: t.noData,
+                  currency: currency,
                 ),
               ),
             ),
@@ -90,7 +96,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            _ByCategoryCard(months: _months, scope: scope.api),
+            _ByCategoryCard(
+                months: _months, scope: scope.api, currency: currency),
           ],
         ),
       ),
@@ -100,9 +107,14 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
 
 /// Spending/earning broken down by category, with an expense/income toggle.
 class _ByCategoryCard extends ConsumerStatefulWidget {
-  const _ByCategoryCard({required this.months, required this.scope});
+  const _ByCategoryCard({
+    required this.months,
+    required this.scope,
+    required this.currency,
+  });
   final int months;
   final String scope;
+  final String currency;
 
   @override
   ConsumerState<_ByCategoryCard> createState() => _ByCategoryCardState();
@@ -136,7 +148,11 @@ class _ByCategoryCardState extends ConsumerState<_ByCategoryCard> {
           slices.when(
             loading: () => const _ChartLoading(),
             error: (e, _) => _ChartMessage(friendlyError(context, e)),
-            data: (data) => _CategoryDonut(slices: data, emptyLabel: t.noData),
+            data: (data) => _CategoryDonut(
+              slices: data,
+              emptyLabel: t.noData,
+              currency: widget.currency,
+            ),
           ),
         ],
       ),
@@ -145,9 +161,14 @@ class _ByCategoryCardState extends ConsumerState<_ByCategoryCard> {
 }
 
 class _CategoryDonut extends StatelessWidget {
-  const _CategoryDonut({required this.slices, required this.emptyLabel});
+  const _CategoryDonut({
+    required this.slices,
+    required this.emptyLabel,
+    required this.currency,
+  });
   final List<CategorySlice> slices;
   final String emptyLabel;
+  final String currency;
 
   // Fallback palette for slices without a stored colour.
   static const List<Color> _palette = [
@@ -201,6 +222,7 @@ class _CategoryDonut extends StatelessWidget {
             icon: slices[i].icon,
             label: slices[i].label(t),
             amount: slices[i].amount,
+            currency: currency,
             percent: total == 0 ? 0 : slices[i].amount / total,
           ),
         ],
@@ -215,12 +237,14 @@ class _CategoryLegend extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.amount,
+    required this.currency,
     required this.percent,
   });
   final Color color;
   final String? icon;
   final String label;
   final int amount;
+  final String currency;
   final double percent;
 
   @override
@@ -249,7 +273,7 @@ class _CategoryLegend extends StatelessWidget {
           style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
         ),
         const SizedBox(width: 10),
-        Text(Money.format(amount),
+        Text(Money.formatIn(amount, currency),
             style: const TextStyle(fontWeight: FontWeight.w600)),
       ],
     );
@@ -257,8 +281,9 @@ class _CategoryLegend extends StatelessWidget {
 }
 
 class _MonthlyBars extends StatelessWidget {
-  const _MonthlyBars({required this.points});
+  const _MonthlyBars({required this.points, required this.currency});
   final List<MonthlyPoint> points;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -279,7 +304,7 @@ class _MonthlyBars extends StatelessWidget {
           barTouchData: BarTouchData(
             touchTooltipData: BarTouchTooltipData(
               getTooltipItem: (group, _, rod, __) => BarTooltipItem(
-                Money.format(rod.toY.toInt()),
+                Money.formatIn(rod.toY.toInt(), currency),
                 const TextStyle(color: Colors.white, fontSize: 11),
               ),
             ),
@@ -342,6 +367,7 @@ class _IncomeExpenseDonut extends StatelessWidget {
     required this.incomeLabel,
     required this.expenseLabel,
     required this.emptyLabel,
+    required this.currency,
   });
 
   final int income;
@@ -349,6 +375,7 @@ class _IncomeExpenseDonut extends StatelessWidget {
   final String incomeLabel;
   final String expenseLabel;
   final String emptyLabel;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -381,9 +408,17 @@ class _IncomeExpenseDonut extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        _Legend(color: Colors.green, label: incomeLabel, amount: income),
+        _Legend(
+            color: Colors.green,
+            label: incomeLabel,
+            amount: income,
+            currency: currency),
         const SizedBox(height: 6),
-        _Legend(color: Colors.red, label: expenseLabel, amount: expense),
+        _Legend(
+            color: Colors.red,
+            label: expenseLabel,
+            amount: expense,
+            currency: currency),
       ],
     );
   }
@@ -413,8 +448,13 @@ class _WalletBars extends StatelessWidget {
           borderData: FlBorderData(show: false),
           barTouchData: BarTouchData(
             touchTooltipData: BarTouchTooltipData(
+              // Each wallet's balance is in its own currency, so the tooltip
+              // formats with that wallet's currency rather than a global one.
               getTooltipItem: (group, _, rod, __) => BarTooltipItem(
-                Money.format(rod.toY.toInt()),
+                Money.formatIn(
+                  rod.toY.toInt(),
+                  wallets[group.x].currency as String,
+                ),
                 const TextStyle(color: Colors.white, fontSize: 11),
               ),
             ),
@@ -471,10 +511,12 @@ class _Legend extends StatelessWidget {
     required this.color,
     required this.label,
     required this.amount,
+    required this.currency,
   });
   final Color color;
   final String label;
   final int amount;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -484,7 +526,7 @@ class _Legend extends StatelessWidget {
         const SizedBox(width: 8),
         Text(label),
         const Spacer(),
-        Text(Money.format(amount),
+        Text(Money.formatIn(amount, currency),
             style: const TextStyle(fontWeight: FontWeight.w600)),
       ],
     );

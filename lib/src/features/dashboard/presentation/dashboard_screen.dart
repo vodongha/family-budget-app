@@ -99,6 +99,7 @@ class DashboardScreen extends ConsumerWidget {
                   income: s.totalIncome,
                   expenseLabel: t.expense,
                   expense: s.totalExpense,
+                  currency: s.currency,
                   onIncomeTap: () => _openFilteredTransactions(
                     context,
                     ref,
@@ -358,6 +359,7 @@ class _BalanceHero extends StatelessWidget {
     required this.income,
     required this.expenseLabel,
     required this.expense,
+    required this.currency,
     this.onIncomeTap,
     this.onExpenseTap,
   });
@@ -368,6 +370,9 @@ class _BalanceHero extends StatelessWidget {
   final int income;
   final String expenseLabel;
   final int expense;
+
+  /// The currency the totals are expressed in (the chosen display currency).
+  final String currency;
   final VoidCallback? onIncomeTap;
   final VoidCallback? onExpenseTap;
 
@@ -400,7 +405,7 @@ class _BalanceHero extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            Money.format(net),
+            Money.formatIn(net, currency),
             style: TextStyle(
               color: cs.onPrimary,
               fontSize: 34,
@@ -416,6 +421,7 @@ class _BalanceHero extends StatelessWidget {
                   icon: Icons.arrow_downward_rounded,
                   label: incomeLabel,
                   amount: income,
+                  currency: currency,
                   onTap: onIncomeTap,
                 ),
               ),
@@ -425,6 +431,7 @@ class _BalanceHero extends StatelessWidget {
                   icon: Icons.arrow_upward_rounded,
                   label: expenseLabel,
                   amount: expense,
+                  currency: currency,
                   onTap: onExpenseTap,
                 ),
               ),
@@ -441,12 +448,14 @@ class _HeroStat extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.amount,
+    required this.currency,
     this.onTap,
   });
 
   final IconData icon;
   final String label;
   final int amount;
+  final String currency;
   final VoidCallback? onTap;
 
   @override
@@ -477,7 +486,7 @@ class _HeroStat extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      Money.format(amount),
+                      Money.formatIn(amount, currency),
                       style: TextStyle(
                         color: cs.onPrimary,
                         fontWeight: FontWeight.w700,

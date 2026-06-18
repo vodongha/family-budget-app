@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'money.dart';
+
 /// Provides the SharedPreferences instance. Overridden in main() after it has
 /// been loaded, so the rest of the app can read it synchronously.
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -54,3 +56,28 @@ class ThemeController extends Notifier<ThemeMode> {
 
 final themeControllerProvider =
     NotifierProvider<ThemeController, ThemeMode>(ThemeController.new);
+
+/// Holds the currency that cross-wallet **totals** are displayed in (dashboard,
+/// stats, budgets). Per-wallet balances always stay in their own currency.
+/// Persisted; defaults to the base currency (VND). Conversion happens on the
+/// backend via the stored exchange rate — the app just sends this code.
+class DisplayCurrencyController extends Notifier<String> {
+  static const String _key = 'display_currency';
+
+  @override
+  String build() {
+    final String? code = ref.read(sharedPreferencesProvider).getString(_key);
+    return (code != null && Money.supportedCurrencies.contains(code))
+        ? code
+        : Money.baseCurrency;
+  }
+
+  Future<void> setCurrency(String code) async {
+    await ref.read(sharedPreferencesProvider).setString(_key, code);
+    state = code;
+  }
+}
+
+final displayCurrencyControllerProvider =
+    NotifierProvider<DisplayCurrencyController, String>(
+        DisplayCurrencyController.new);

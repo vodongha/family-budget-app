@@ -90,6 +90,16 @@ class Money {
     return (minorAmount / _pow10(dec)).toStringAsFixed(dec);
   }
 
+  /// The input formatters to use for an amount field in [currency]: live
+  /// thousands grouping for a 0-decimal currency (VND/JPY/KRW), or free digits
+  /// plus a decimal separator for currencies with minor units (USD/EUR/…).
+  static List<TextInputFormatter> inputFormattersFor(String currency) {
+    if (decimalsFor(currency) == 0) {
+      return [ThousandsSeparatorInputFormatter()];
+    }
+    return [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))];
+  }
+
   /// Parses user input (digits, dots, spaces) into integer đồng.
   /// Returns null when the cleaned input is empty or not a whole number.
   static int? parse(String input) {

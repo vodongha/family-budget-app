@@ -222,7 +222,9 @@
   "noBudgetsYet": "No budgets yet. Add one to track monthly spending by category.",
   "noCategoryForBudget": "All expense categories already have a budget.",
   "category": "Category",
-  "monthlyLimit": "Monthly limit (₫)",
+  "monthlyLimit": "Monthly limit",
+  "primaryCurrency": "Primary currency",
+  "primaryCurrencyNote": "Totals are shown in this currency; wallets keep their own.",
   "budgetDeleted": "Budget deleted",
   "overBudgetBy": "Over by {amount}",
   "@overBudgetBy": {
