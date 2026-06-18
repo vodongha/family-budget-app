@@ -40,7 +40,10 @@
   "noTransactionsYet": "No transactions yet.",
   "addTransaction": "Add transaction",
   "amountLabel": "Amount",
-  "amountHint": "e.g. 50000",
+  "amountHint": "e.g. {example}",
+  "@amountHint": {
+    "placeholders": { "example": { "type": "String" } }
+  },
   "enterAmountGtZero": "Enter an amount greater than 0",
   "wallet": "Wallet",
   "newWallet": "New wallet",

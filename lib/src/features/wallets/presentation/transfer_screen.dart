@@ -156,7 +156,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   labelText: t.amountLabel,
-                  hintText: t.amountHint,
+                  hintText: t.amountHint(Money.hintExample(fromCurrency)),
                   suffixText: Money.symbolFor(fromCurrency),
                   helperText: () {
                     final int? a = Money.parseIn(_amount.text, fromCurrency);

@@ -140,6 +140,16 @@ class Money {
     return s == currency ? currency : '$currency  $s';
   }
 
+  /// An example amount for a field hint, grouped and with the right number of
+  /// decimals for [currency] (no symbol): `50.000` for VND, `50.000,00` for USD.
+  static String hintExample(String currency) {
+    final int dec = decimalsFor(currency);
+    final NumberFormat f = NumberFormat.decimalPattern('vi_VN')
+      ..minimumFractionDigits = dec
+      ..maximumFractionDigits = dec;
+    return f.format(50000);
+  }
+
   static int _pow10(int n) {
     int r = 1;
     for (int i = 0; i < n; i++) {
