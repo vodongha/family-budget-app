@@ -57,7 +57,7 @@ receives whole-number minor units, and the app only ever *formats* them
 | Auth | google_sign_in (web: Google Identity Services) |
 | Phone input | phone_form_field (country-code picker + E.164) |
 | Charts | fl_chart |
-| Misc | package_info_plus (version), url_launcher (publisher link), webview_flutter + web (in-app privacy policy) |
+| Misc | package_info_plus (version), webview_flutter + web (in-app privacy policy / publisher website / community), url_launcher (opening links in a new tab on web) |
 | Formatting | intl |
 
 ## Architecture

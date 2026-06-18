@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../l10n/app_localizations.dart';
@@ -86,7 +88,11 @@ class AboutScreen extends ConsumerWidget {
                   leading: Icon(Icons.public, color: cs.primary),
                   title: Text(t.website),
                   subtitle: Text(Publisher.website),
-                  trailing: const Icon(Icons.open_in_new, size: 18),
+                  // In-app WebView on mobile (chevron); a new tab on web.
+                  trailing: Icon(
+                    kIsWeb ? Icons.open_in_new : Icons.chevron_right,
+                    size: 18,
+                  ),
                   onTap: () => _open(context, t),
                 ),
               ],
@@ -97,14 +103,21 @@ class AboutScreen extends ConsumerWidget {
     );
   }
 
+  // Open the publisher website in an in-app WebView on mobile (an external site
+  // can't be iframed reliably, so web opens a new tab instead) — mirrors the
+  // community/support link.
   Future<void> _open(BuildContext context, AppLocalizations t) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final bool ok = await launchUrl(
-      Uri.parse(Publisher.website),
-      mode: LaunchMode.externalApplication,
-    );
-    if (!ok) {
-      messenger.showSnackBar(SnackBar(content: Text(t.openLinkFailed)));
+    if (kIsWeb) {
+      final messenger = ScaffoldMessenger.of(context);
+      final bool ok = await launchUrl(
+        Uri.parse(Publisher.website),
+        webOnlyWindowName: '_blank',
+      );
+      if (!ok) {
+        messenger.showSnackBar(SnackBar(content: Text(t.openLinkFailed)));
+      }
+    } else {
+      context.push('/website');
     }
   }
 }

@@ -140,7 +140,12 @@ Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner
   `/privacy`, an in-app **WebView** that loads the backend's bilingual page
   (`${AppConfig.apiBaseUrl}/privacy?lang=<locale>`). `privacy_web_view.dart` is a conditional
   export — `webview_flutter` on Android/iOS, an `<iframe>` (`package:web` + `dart:ui_web`) on
-  web. The backend is the single source of truth; the app just embeds it.
+  web. The backend is the single source of truth; the app just embeds it. `WebPageScreen`
+  (`web_page_screen.dart`) reuses the same platform-dispatched WebView for arbitrary external
+  URLs — the **community/support forum** (`/community`) and the **About → publisher website**
+  (`/website`). On **web** those open a new tab via `launchUrl(webOnlyWindowName: '_blank')`
+  instead (an external site can't be iframed reliably); `url_launcher` is only for that
+  new-tab case now.
 - **No-family flow (personal-first).** There is no forced onboarding screen. A signed-in account
   with **no family** (`AuthUser.hasFamily` false) lands on the app with the scope toggle defaulting
   to **Personal** (`walletScopeProvider` default = personal), which works without a family. Tapping
