@@ -579,6 +579,10 @@ class _HeroRateBadgeState extends ConsumerState<_HeroRateBadge> {
             child: Text(
               t.ratesUpdatedAt(DateFormat('d/M HH:mm').format(updated)),
               style: TextStyle(color: fg.withValues(alpha: 0.85), fontSize: 11),
+              // Keep it on one line — on narrow phones it otherwise wrapped and
+              // pushed the badge below the "net balance" label.
+              maxLines: 1,
+              softWrap: false,
               overflow: TextOverflow.ellipsis,
             ),
           ),

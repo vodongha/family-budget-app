@@ -236,7 +236,7 @@
   "ratesNeverUpdated": "Not updated yet",
   "ratesAutoNote": "Auto-refreshes every 12 hours",
   "refreshRates": "Refresh rates",
-  "ratesRefreshed": "Exchange rates updated",
+  "ratesRefreshed": "Foreign exchange rates updated",
   "ratesRefreshFailed": "Couldn't refresh exchange rates",
   "currencyConverter": "Currency converter",
   "convertFrom": "From",
