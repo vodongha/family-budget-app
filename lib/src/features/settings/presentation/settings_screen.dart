@@ -12,6 +12,7 @@ import '../../../core/prefs.dart';
 import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../budgets/application/budgets_controller.dart';
+import '../../calendar/application/calendar_controller.dart';
 import '../../dashboard/application/dashboard_controller.dart';
 import '../../rates/data/rates_repository.dart';
 import '../../rates/domain/rates_info.dart';
@@ -260,6 +261,7 @@ class _RatesTileState extends ConsumerState<_RatesTile> {
       ref.invalidate(monthlyStatsProvider);
       ref.invalidate(categoryStatsProvider);
       ref.invalidate(budgetsControllerProvider);
+      ref.invalidate(calendarStatsProvider);
       messenger.showSnackBar(SnackBar(content: Text(t.ratesRefreshed)));
     } catch (e) {
       if (mounted) {

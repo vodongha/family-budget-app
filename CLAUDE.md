@@ -174,8 +174,11 @@ Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner
   progress bar + over-budget warning; add/edit/delete.
 - **Transfers** (`features/wallets/presentation/transfer_screen.dart`): `/transfers/new` moves
   money between two wallets via `TransactionsController.transfer`.
-- **Calendar** (`features/calendar/`): `/calendar` shows a month grid (each day's net amount)
-  via `monthTransactionsProvider`; tap a day for its totals + transactions. Scope-aware.
+- **Calendar** (`features/calendar/`): `/calendar` shows a month grid; each day's **net marker and
+  the day summary** come from `calendarStatsProvider` (`GET /stats/calendar`), converted to the
+  **display currency** on the backend, so they read in one currency even across mixed-currency
+  wallets. The per-day transaction **list** still shows each row in its own wallet currency
+  (`monthTransactionsProvider`). Scope-aware.
 
 ## Members, invites & statistics
 

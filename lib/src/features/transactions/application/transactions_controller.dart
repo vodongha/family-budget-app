@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../calendar/application/calendar_controller.dart';
 import '../../dashboard/application/dashboard_controller.dart';
 import '../../stats/data/stats_repository.dart';
 import '../../wallets/application/wallet_scope.dart';
@@ -44,6 +45,8 @@ class TransactionsController extends AsyncNotifier<List<Transaction>> {
     ref.invalidate(dashboardControllerProvider);
     ref.invalidate(monthlyStatsProvider);
     ref.invalidate(categoryStatsProvider);
+    ref.invalidate(monthTransactionsProvider);
+    ref.invalidate(calendarStatsProvider);
   }
 
   Future<void> add({
