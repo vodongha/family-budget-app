@@ -216,7 +216,9 @@
   "noBudgetsYet": "Chưa có ngân sách. Thêm để theo dõi chi tiêu theo danh mục mỗi tháng.",
   "noCategoryForBudget": "Mọi danh mục chi đều đã có ngân sách.",
   "category": "Danh mục",
-  "monthlyLimit": "Hạn mức tháng (₫)",
+  "monthlyLimit": "Hạn mức tháng",
+  "primaryCurrency": "Tiền tệ chính",
+  "primaryCurrencyNote": "Các tổng hiển thị theo tiền này; mỗi ví giữ tiền riêng.",
   "budgetDeleted": "Đã xoá ngân sách",
   "overBudgetBy": "Vượt {amount}",
   "@overBudgetBy": {

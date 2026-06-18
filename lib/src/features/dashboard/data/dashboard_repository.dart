@@ -10,11 +10,19 @@ class DashboardRepository {
   final Dio _dio;
 
   /// [scope] is the API value (`all` / `family` / `personal`).
-  Future<DashboardSummary> summary({String scope = 'all'}) async {
+  /// [displayCurrency] is the currency the totals are rendered in (per-wallet
+  /// balances stay in their own currency).
+  Future<DashboardSummary> summary({
+    String scope = 'all',
+    String displayCurrency = 'VND',
+  }) async {
     try {
       final Response<dynamic> res = await _dio.get(
         '/dashboard/summary',
-        queryParameters: {'scope': scope},
+        queryParameters: {
+          'scope': scope,
+          'display_currency': displayCurrency,
+        },
       );
       return DashboardSummary.fromJson(
           (res.data as Map).cast<String, dynamic>());

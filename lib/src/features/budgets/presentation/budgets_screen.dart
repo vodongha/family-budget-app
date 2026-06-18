@@ -7,6 +7,7 @@ import '../../../core/app_error_view.dart';
 import '../../../core/app_picker.dart';
 import '../../../core/item_actions.dart';
 import '../../../core/money.dart';
+import '../../../core/prefs.dart';
 import '../../../core/responsive.dart';
 import '../../categories/application/categories_controller.dart';
 import '../../categories/domain/category.dart';
@@ -21,6 +22,8 @@ class BudgetsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations t = AppLocalizations.of(context);
     final budgets = ref.watch(budgetsControllerProvider);
+    // Budget limits/spend follow the chosen display currency.
+    final String currency = ref.watch(displayCurrencyControllerProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(t.budgets)),
@@ -59,6 +62,7 @@ class BudgetsScreen extends ConsumerWidget {
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, i) => _BudgetCard(
                       budget: list[i],
+                      currency: currency,
                       onEdit: () => _editBudget(context, ref, t, list[i]),
                       onDelete: () => _deleteBudget(context, ref, t, list[i]),
                     ),
@@ -101,6 +105,7 @@ class BudgetsScreen extends ConsumerWidget {
       messenger.showSnackBar(SnackBar(content: Text(t.noCategoryForBudget)));
       return;
     }
+    final String currency = ref.read(displayCurrencyControllerProvider);
     String? categoryRid = options.first.rid;
     final amount = TextEditingController();
 
@@ -127,8 +132,11 @@ class BudgetsScreen extends ConsumerWidget {
               TextField(
                 controller: amount,
                 keyboardType: TextInputType.number,
-                inputFormatters: [ThousandsSeparatorInputFormatter()],
-                decoration: InputDecoration(labelText: t.monthlyLimit),
+                inputFormatters: Money.inputFormattersFor(currency),
+                decoration: InputDecoration(
+                  labelText: t.monthlyLimit,
+                  suffixText: Money.symbolFor(currency),
+                ),
               ),
             ],
           ),
@@ -145,7 +153,7 @@ class BudgetsScreen extends ConsumerWidget {
     if (ok != true || categoryRid == null) {
       return;
     }
-    final int? value = Money.parse(amount.text);
+    final int? value = Money.parseIn(amount.text, currency);
     if (value == null || value <= 0) {
       messenger.showSnackBar(SnackBar(content: Text(t.enterAmountGtZero)));
       return;
@@ -164,7 +172,9 @@ class BudgetsScreen extends ConsumerWidget {
 
   Future<void> _editBudget(
       BuildContext context, WidgetRef ref, AppLocalizations t, Budget b) async {
-    final amount = TextEditingController(text: Money.group(b.amount));
+    final String currency = ref.read(displayCurrencyControllerProvider);
+    final amount =
+        TextEditingController(text: Money.editText(b.amount, currency));
     final messenger = ScaffoldMessenger.of(context);
     final bool? ok = await showDialog<bool>(
       context: context,
@@ -174,8 +184,11 @@ class BudgetsScreen extends ConsumerWidget {
         content: TextField(
           controller: amount,
           keyboardType: TextInputType.number,
-          inputFormatters: [ThousandsSeparatorInputFormatter()],
-          decoration: InputDecoration(labelText: t.monthlyLimit),
+          inputFormatters: Money.inputFormattersFor(currency),
+          decoration: InputDecoration(
+            labelText: t.monthlyLimit,
+            suffixText: Money.symbolFor(currency),
+          ),
         ),
         actions: [
           FilledButton(
@@ -189,7 +202,7 @@ class BudgetsScreen extends ConsumerWidget {
     if (ok != true) {
       return;
     }
-    final int? value = Money.parse(amount.text);
+    final int? value = Money.parseIn(amount.text, currency);
     if (value == null || value <= 0) {
       messenger.showSnackBar(SnackBar(content: Text(t.enterAmountGtZero)));
       return;
@@ -217,11 +230,13 @@ class BudgetsScreen extends ConsumerWidget {
 class _BudgetCard extends StatelessWidget {
   const _BudgetCard({
     required this.budget,
+    required this.currency,
     required this.onEdit,
     required this.onDelete,
   });
 
   final Budget budget;
+  final String currency;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -287,13 +302,15 @@ class _BudgetCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${Money.format(budget.spent)} / ${Money.format(budget.amount)}',
+                    '${Money.formatIn(budget.spent, currency)} / ${Money.formatIn(budget.amount, currency)}',
                     style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
                   ),
                   Text(
                     budget.isOver
-                        ? t.overBudgetBy(Money.format(-budget.remaining))
-                        : t.remainingAmount(Money.format(budget.remaining)),
+                        ? t.overBudgetBy(
+                            Money.formatIn(-budget.remaining, currency))
+                        : t.remainingAmount(
+                            Money.formatIn(budget.remaining, currency)),
                     style: TextStyle(
                       color: budget.isOver ? cs.error : cs.onSurfaceVariant,
                       fontSize: 13,

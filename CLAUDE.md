@@ -254,9 +254,16 @@ English + Vietnamese via the official `flutter_localizations` + ARB pipeline.
   tokens (`primary`, `onSurfaceVariant`, …); **don't hardcode colours**.
 - `ThemeController` (`core/prefs.dart`) holds `ThemeMode` (system/light/dark), persisted via
   `shared_preferences`, default `system`. `MaterialApp.router` reads it via `themeControllerProvider`.
-- **Settings** (`features/settings/presentation/settings_screen.dart`, `/settings`) chooses theme
-  + language. **Account menu** (`features/auth/presentation/account_menu.dart`, `showAccountSheet`)
-  is the bottom sheet opened from the dashboard avatar: edit profile, settings, sign out, delete.
+- **Settings** (`features/settings/presentation/settings_screen.dart`, `/settings`) chooses theme,
+  language, and the **primary (display) currency**. **Account menu**
+  (`features/auth/presentation/account_menu.dart`, `showAccountSheet`) is the bottom sheet opened
+  from the dashboard avatar: edit profile, settings, sign out, delete.
+- **Display currency** (`DisplayCurrencyController` in `core/prefs.dart`, persisted, default VND):
+  the currency that cross-wallet **totals** (dashboard hero, stats charts, budgets) are shown in.
+  Dashboard/stats/budgets repos send it as `display_currency`; the backend converts via the stored
+  exchange rate. **Per-wallet balances stay in each wallet's own currency** (the by-wallet chart and
+  wallet tiles use `Money.formatIn(amount, wallet.currency)`). Budget amounts are entered/shown in
+  the display currency (`Money.inputFormattersFor`/`parseIn`/`editText`).
 
 ## Profile & account deletion
 

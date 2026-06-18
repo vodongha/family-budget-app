@@ -9,12 +9,16 @@ class BudgetRepository {
 
   final Dio _dio;
 
-  /// [scope] is `personal` or `family`.
-  Future<List<Budget>> list({String scope = 'personal'}) async {
+  /// [scope] is `personal` or `family`. Limits/spend come back in
+  /// [displayCurrency]; an [amount] sent to the API is in [displayCurrency] too.
+  Future<List<Budget>> list({
+    String scope = 'personal',
+    String displayCurrency = 'VND',
+  }) async {
     try {
       final Response<dynamic> res = await _dio.get(
         '/budgets',
-        queryParameters: {'scope': scope},
+        queryParameters: {'scope': scope, 'display_currency': displayCurrency},
       );
       return (res.data as List)
           .map((e) => Budget.fromJson((e as Map).cast<String, dynamic>()))
@@ -28,11 +32,12 @@ class BudgetRepository {
     required String categoryRid,
     required int amount,
     String scope = 'personal',
+    String displayCurrency = 'VND',
   }) async {
     try {
       await _dio.post(
         '/budgets',
-        queryParameters: {'scope': scope},
+        queryParameters: {'scope': scope, 'display_currency': displayCurrency},
         data: {'category_rid': categoryRid, 'amount': amount},
       );
     } catch (e) {
@@ -40,9 +45,17 @@ class BudgetRepository {
     }
   }
 
-  Future<void> update({required String rid, required int amount}) async {
+  Future<void> update({
+    required String rid,
+    required int amount,
+    String displayCurrency = 'VND',
+  }) async {
     try {
-      await _dio.patch('/budgets/$rid', data: {'amount': amount});
+      await _dio.patch(
+        '/budgets/$rid',
+        queryParameters: {'display_currency': displayCurrency},
+        data: {'amount': amount},
+      );
     } catch (e) {
       throw toApiException(e);
     }
