@@ -233,6 +233,7 @@
   "convertFrom": "Từ",
   "convertTo": "Sang",
   "swap": "Đảo",
+  "noResults": "Không có kết quả",
   "budgetDeleted": "Đã xoá ngân sách",
   "overBudgetBy": "Vượt {amount}",
   "@overBudgetBy": {

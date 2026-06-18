@@ -38,7 +38,7 @@ class _CurrencyConverterScreenState
 
   List<PickerOption<String>> _currencyOptions() => [
         for (final String c in Money.supportedCurrencies)
-          PickerOption(value: c, label: '$c  ${Money.symbolFor(c)}'),
+          PickerOption(value: c, label: Money.currencyLabel(c)),
       ];
 
   void _swap() {
@@ -125,6 +125,7 @@ class _CurrencyConverterScreenState
               child: AppPicker<String>(
                 label: t.convertFrom,
                 value: from,
+                searchable: true,
                 options: _currencyOptions(),
                 onChanged: (v) => setState(() => _from = v),
               ),
@@ -138,6 +139,7 @@ class _CurrencyConverterScreenState
               child: AppPicker<String>(
                 label: t.convertTo,
                 value: to,
+                searchable: true,
                 options: _currencyOptions(),
                 onChanged: (v) => setState(() => _to = v),
               ),
