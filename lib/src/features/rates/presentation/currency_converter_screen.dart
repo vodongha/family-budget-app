@@ -129,6 +129,7 @@ class _CurrencyConverterScreenState
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
             labelText: t.amountLabel,
+            hintText: t.amountHint(Money.hintExample(from)),
             suffixText: Money.symbolFor(from),
             // Grouped preview in the "from" currency (like the other amount
             // fields) — reliable even when an IME keeps the input box ungrouped.

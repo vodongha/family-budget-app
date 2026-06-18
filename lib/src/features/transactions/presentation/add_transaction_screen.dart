@@ -269,7 +269,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 labelText: t.amountLabel,
-                hintText: t.amountHint,
+                hintText: t.amountHint(Money.hintExample(currency)),
                 suffixText: Money.symbolFor(currency),
                 helperText: _amountPreview(currency),
               ),

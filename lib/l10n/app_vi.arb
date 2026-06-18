@@ -34,7 +34,7 @@
   "noTransactionsYet": "Chưa có giao dịch nào.",
   "addTransaction": "Thêm giao dịch",
   "amountLabel": "Số tiền",
-  "amountHint": "vd: 50000",
+  "amountHint": "vd: {example}",
   "enterAmountGtZero": "Nhập số tiền lớn hơn 0",
   "wallet": "Ví",
   "newWallet": "Ví mới",
