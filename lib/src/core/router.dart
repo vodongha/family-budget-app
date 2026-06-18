@@ -19,6 +19,7 @@ import '../features/invitations/presentation/invite_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../features/legal/presentation/privacy_policy_screen.dart';
 import '../features/legal/presentation/web_page_screen.dart';
+import 'app_info.dart';
 import 'config.dart';
 import '../features/members/presentation/members_screen.dart';
 import '../features/rates/presentation/currency_converter_screen.dart';
@@ -164,6 +165,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'about',
             builder: (_, __) => const AboutScreen(),
+          ),
+          GoRoute(
+            path: 'website',
+            builder: (context, __) => WebPageScreen(
+              title: AppLocalizations.of(context).website,
+              url: Publisher.website,
+            ),
           ),
           GoRoute(
             path: 'stats',
