@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/app_info.dart';
+import '../../../core/app_picker.dart';
 import '../../../core/error_text.dart';
 import '../../../core/money.dart';
 import '../../../core/prefs.dart';
@@ -180,43 +181,15 @@ class SettingsScreen extends ConsumerWidget {
     AppLocalizations t,
     String current,
   ) async {
-    final ColorScheme cs = Theme.of(context).colorScheme;
-    final String? picked = await showModalBottomSheet<String>(
-      context: context,
-      showDragHandle: true,
-      builder: (ctx) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-              child: Text(
-                t.primaryCurrency,
-                style: Theme.of(ctx)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ),
-            for (final String code in Money.supportedCurrencies)
-              ListTile(
-                leading: SizedBox(
-                  width: 28,
-                  child: Text(
-                    Money.symbolFor(code),
-                    style: const TextStyle(fontSize: 18),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                title: Text(code),
-                trailing: code == current
-                    ? Icon(Icons.check_circle, color: cs.primary)
-                    : null,
-                onTap: () => Navigator.pop(ctx, code),
-              ),
-          ],
-        ),
-      ),
+    final String? picked = await showAppPickerSheet<String>(
+      context,
+      title: t.primaryCurrency,
+      selected: current,
+      searchable: true,
+      options: [
+        for (final String code in Money.supportedCurrencies)
+          PickerOption(value: code, label: Money.currencyLabel(code)),
+      ],
     );
     if (picked != null && picked != current) {
       await ref

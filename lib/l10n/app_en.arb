@@ -239,6 +239,7 @@
   "convertFrom": "From",
   "convertTo": "To",
   "swap": "Swap",
+  "noResults": "No results",
   "budgetDeleted": "Budget deleted",
   "overBudgetBy": "Over by {amount}",
   "@overBudgetBy": {
