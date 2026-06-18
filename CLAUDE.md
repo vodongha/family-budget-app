@@ -124,10 +124,18 @@ Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner
 ## Navigation, budgets, transfers & calendar
 
 - **Dashboard hub** (`features/dashboard/`): the home is balance card → wallets → a swipeable
-  **hub** (`_HubPager`, a `PageView` of 4×2 feature shortcuts with page dots). The account
-  sheet (`account_menu.dart`) is account-only (profile / settings / **privacy policy** /
-  sign out / delete); all feature navigation lives in the hub. **Adding a member** is a
-  button on the Members screen, not a hub shortcut.
+  **hub** (`_HubPager`, a `PageView` of 4×2 feature shortcuts with page dots). Shortcuts are
+  **ordered by how often a household uses them** (day-to-day tracking first, rare family-setup on
+  the 2nd page). The `PageView` enables **mouse/trackpad drag** via `ScrollConfiguration`
+  (`dragDevices`) — Flutter web only pages with touch by default, which left the hub feeling stuck
+  on the web app. The account sheet (`account_menu.dart`) is account-only (profile / settings /
+  **privacy policy** / sign out / delete); all feature navigation lives in the hub. **Adding a
+  member** is a button on the Members screen, not a hub shortcut.
+- **Balance hero card** (`_BalanceHero`): shows net + income/expense in the display currency, and a
+  small `_HeroRateBadge` at the top-right with **when rates were last refreshed + a fetch button**
+  (the totals are converted with those rates). The badge and the converter and Settings all call
+  `refreshRates(ref)` (`features/rates/application/rate_refresh.dart`), which refreshes rates then
+  invalidates the dashboard/stats/budgets/calendar providers.
 - **Privacy policy** (`features/legal/`): the account sheet entry (below Settings) opens
   `/privacy`, an in-app **WebView** that loads the backend's bilingual page
   (`${AppConfig.apiBaseUrl}/privacy?lang=<locale>`). `privacy_web_view.dart` is a conditional
@@ -266,7 +274,10 @@ English + Vietnamese via the official `flutter_localizations` + ARB pipeline.
   Dashboard/stats/budgets repos send it as `display_currency`; the backend converts via the stored
   exchange rate. **Per-wallet balances stay in each wallet's own currency** (the by-wallet chart and
   wallet tiles use `Money.formatIn(amount, wallet.currency)`). Budget amounts are entered/shown in
-  the display currency (`Money.inputFormattersFor`/`parseIn`/`editText`). Settings shows an
+  the display currency (`Money.inputFormattersFor`/`parseIn`/`editText`). ~50 currencies are
+  supported (`Money` mirrors the backend's `SUPPORTED_CURRENCIES`); the currency pickers (primary
+  currency + converter) use `AppPicker(searchable: true)` / `showAppPickerSheet(searchable: true)`
+  so you can type a code instead of scrolling, popular currencies listed first. Settings shows an
   **exchange-rate status** row (`features/rates/`, `ratesInfoProvider` → `GET /rates`) with the
   last-updated time and a manual refresh button (`POST /rates/refresh`, then invalidates the
   converted dashboard/stats/budget providers); rates also auto-refresh every 12h server-side. The
