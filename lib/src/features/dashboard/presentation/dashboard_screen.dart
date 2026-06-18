@@ -357,7 +357,11 @@ class _HubCell extends ConsumerWidget {
           Flexible(
             child: Text(
               item.label,
-              maxLines: 2,
+              // One line; long labels (e.g. "Quản lý gia đình") ellipsize instead
+              // of wrapping to two lines, so every hub cell stays aligned and
+              // can't overflow on narrow screens / large system fonts.
+              maxLines: 1,
+              softWrap: false,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
