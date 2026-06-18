@@ -235,6 +235,10 @@
   "refreshRates": "Refresh rates",
   "ratesRefreshed": "Exchange rates updated",
   "ratesRefreshFailed": "Couldn't refresh exchange rates",
+  "currencyConverter": "Currency converter",
+  "convertFrom": "From",
+  "convertTo": "To",
+  "swap": "Swap",
   "budgetDeleted": "Budget deleted",
   "overBudgetBy": "Over by {amount}",
   "@overBudgetBy": {

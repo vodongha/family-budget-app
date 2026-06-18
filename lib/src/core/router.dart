@@ -21,6 +21,7 @@ import '../features/legal/presentation/privacy_policy_screen.dart';
 import '../features/legal/presentation/web_page_screen.dart';
 import 'config.dart';
 import '../features/members/presentation/members_screen.dart';
+import '../features/rates/presentation/currency_converter_screen.dart';
 import '../features/settings/presentation/about_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/stats/presentation/stats_screen.dart';
@@ -171,6 +172,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'categories',
             builder: (_, __) => const CategoriesScreen(),
+          ),
+          GoRoute(
+            path: 'currency-converter',
+            builder: (_, __) => const CurrencyConverterScreen(),
           ),
         ],
       ),

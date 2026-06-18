@@ -228,6 +228,8 @@ class _HubPagerState extends ConsumerState<_HubPager> {
       _HubItem(Icons.pie_chart_outline, t.budgets, '/budgets'),
       _HubItem(Icons.swap_horiz, t.transferMoney, '/transfers/new'),
       _HubItem(Icons.category_outlined, t.categories, '/categories'),
+      _HubItem(
+          Icons.currency_exchange, t.currencyConverter, '/currency-converter'),
       // Family management (rename / members / leave / delete) lives here now;
       // the Members list is reached from inside it, not as its own hub shortcut.
       _HubItem(Icons.manage_accounts_outlined, t.manageFamily, '/family',

@@ -270,7 +270,10 @@ English + Vietnamese via the official `flutter_localizations` + ARB pipeline.
   **exchange-rate status** row (`features/rates/`, `ratesInfoProvider` → `GET /rates`) with the
   last-updated time and a manual refresh button (`POST /rates/refresh`, then invalidates the
   converted dashboard/stats/budget providers); rates also auto-refresh every 12h server-side. The
-  transfer / add-transaction amount fields show the wallet's currency symbol (no hard-coded ₫).
+  transfer / add-transaction amount fields show the wallet's currency symbol (no hard-coded ₫). A
+  **currency converter** tool (`features/rates/presentation/currency_converter_screen.dart`, route
+  `/currency-converter`, in the dashboard hub) converts any pair client-side using `RatesInfo.rateToBase`
+  (the rate list from `GET /rates`); it's display-only and never touches wallets/transactions.
 
 ## Profile & account deletion
 
