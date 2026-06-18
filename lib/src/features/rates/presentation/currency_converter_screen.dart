@@ -130,6 +130,11 @@ class _CurrencyConverterScreenState
           decoration: InputDecoration(
             labelText: t.amountLabel,
             suffixText: Money.symbolFor(from),
+            // Grouped preview in the "from" currency (like the other amount
+            // fields) — reliable even when an IME keeps the input box ungrouped.
+            helperText: (amountMinor == null || amountMinor == 0)
+                ? null
+                : Money.formatIn(amountMinor, from),
           ),
         ),
         const SizedBox(height: 16),
