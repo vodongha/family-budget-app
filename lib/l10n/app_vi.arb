@@ -229,6 +229,10 @@
   "refreshRates": "Cập nhật tỷ giá",
   "ratesRefreshed": "Đã cập nhật tỷ giá",
   "ratesRefreshFailed": "Không cập nhật được tỷ giá",
+  "currencyConverter": "Đổi tiền",
+  "convertFrom": "Từ",
+  "convertTo": "Sang",
+  "swap": "Đảo",
   "budgetDeleted": "Đã xoá ngân sách",
   "overBudgetBy": "Vượt {amount}",
   "@overBudgetBy": {
