@@ -6,11 +6,13 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/app_error_view.dart';
 import '../../../core/money.dart';
+import '../../../core/prefs.dart';
 import '../../../core/responsive.dart';
 import '../../transactions/domain/transaction.dart';
 import '../../wallets/application/wallet_scope.dart';
 import '../../wallets/presentation/scope_toggle.dart';
 import '../application/calendar_controller.dart';
+import '../domain/day_total.dart';
 
 /// A month calendar of spending: each day is marked by a dot (net income green /
 /// net expense red); tapping a day lists that day's transactions below.
@@ -50,46 +52,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     return r;
   }
 
-  /// Transfer groups with only ONE leg in the month's data — i.e. transfers that
-  /// cross the current scope's boundary (the other leg is in a wallet outside the
-  /// scope). These count as income/expense (like the backend's totals); an
-  /// internal transfer has both legs present and stays neutral.
-  static Set<String> _boundaryGroups(List<Transaction> monthTxns) {
-    final Map<String, int> counts = {};
-    for (final Transaction t in monthTxns) {
-      final String? g = t.groupRid;
-      if (t.type.isTransfer && g != null) {
-        counts[g] = (counts[g] ?? 0) + 1;
-      }
-    }
-    return {
-      for (final MapEntry<String, int> e in counts.entries)
-        if (e.value == 1) e.key,
-    };
-  }
-
-  /// Whether [t] counts toward income/expense totals: a normal transaction, or a
-  /// boundary-crossing transfer leg.
-  static bool _counts(Transaction t, Set<String> boundary) =>
-      !t.type.isTransfer ||
-      (t.groupRid != null && boundary.contains(t.groupRid));
-
-  /// The single currency shared by the counting transactions in [txns], or null
-  /// if they mix currencies (can't sum across currencies client-side).
-  static String? _singleCurrency(
-      Iterable<Transaction> txns, Set<String> boundary) {
-    String? c;
-    for (final Transaction tx in txns) {
-      if (!_counts(tx, boundary)) continue;
-      if (c == null) {
-        c = tx.currency;
-      } else if (c != tx.currency) {
-        return null;
-      }
-    }
-    return c;
-  }
-
   /// Group a month's transactions by day. Transfers are included so they show in
   /// the day's list, but the net markers / day totals exclude them (a transfer
   /// is not income or expense — see the marker builder and day summary).
@@ -106,26 +68,23 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final AppLocalizations t = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
     final WalletScope scope = ref.watch(walletScopeProvider);
-    final AsyncValue<List<Transaction>> monthly = ref.watch(
-      monthTransactionsProvider(
-        (year: _focused.year, month: _focused.month, scope: scope.api),
-      ),
-    );
+    final MonthKey key =
+        (year: _focused.year, month: _focused.month, scope: scope.api);
+    final AsyncValue<List<Transaction>> monthly =
+        ref.watch(monthTransactionsProvider(key));
+    // Per-day totals converted to the display currency (backend); the markers and
+    // day summary read from this so they show one currency even across wallets.
+    final String currency = ref.watch(displayCurrencyControllerProvider);
+    final Map<DateTime, DayTotal> dayTotals =
+        ref.watch(calendarStatsProvider(key)).maybeWhen(
+              data: (m) => m,
+              orElse: () => const <DateTime, DayTotal>{},
+            );
 
-    final List<Transaction> monthTxns =
-        monthly.maybeWhen(data: (l) => l, orElse: () => const <Transaction>[]);
-    final Set<String> boundary = _boundaryGroups(monthTxns);
     final Map<DateTime, List<Transaction>> byDay =
         monthly.maybeWhen(data: _byDay, orElse: () => const {});
     final List<Transaction> dayTxns = byDay[_dayOnly(_selected)] ?? const [];
-    // Inflow = income + boundary transfer-in; outflow = expense + boundary
-    // transfer-out. Internal transfers don't count.
-    final int dayInflow = dayTxns
-        .where((x) => _counts(x, boundary) && x.type.isInflow)
-        .fold(0, (a, x) => a + x.amount);
-    final int dayOutflow = dayTxns
-        .where((x) => _counts(x, boundary) && !x.type.isInflow)
-        .fold(0, (a, x) => a + x.amount);
+    final DayTotal? dayTotal = dayTotals[_dayOnly(_selected)];
 
     return Scaffold(
       appBar: AppBar(title: Text(t.calendar)),
@@ -170,16 +129,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   if (events.isEmpty) {
                     return null;
                   }
-                  int net = 0;
-                  for (final e in events) {
-                    if (_counts(e, boundary)) {
-                      net += e.signedAmount;
-                    }
-                  }
-                  final Color color = net >= 0 ? Colors.green : Colors.red;
-                  final String? cur = _singleCurrency(events, boundary);
-                  // Mixed currencies can't be summed client-side → show a dot.
-                  if (cur == null) {
+                  final DayTotal? dt = dayTotals[_dayOnly(day)];
+                  final int net = dt?.net ?? 0;
+                  // Days with only internal transfers have transactions but no
+                  // net income/expense → a neutral dot.
+                  if (dt == null || net == 0) {
                     return Positioned(
                       bottom: 3,
                       child: Container(
@@ -192,8 +146,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       ),
                     );
                   }
+                  final Color color = net > 0 ? Colors.green : Colors.red;
                   final String label =
-                      '${net >= 0 ? '+' : '−'}${_compact(net.abs(), cur)}';
+                      '${net > 0 ? '+' : '−'}${_compact(net.abs(), currency)}';
                   return Positioned(
                     bottom: 1,
                     child: Text(
@@ -219,16 +174,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     '${_selected.year}-${_selected.month.toString().padLeft(2, '0')}-${_selected.day.toString().padLeft(2, '0')}',
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  if (_singleCurrency(dayTxns, boundary)
-                      case final String dayCur)
+                  if (dayTotal != null)
                     Row(
                       children: [
-                        Text('+${Money.formatIn(dayInflow, dayCur)}',
+                        Text('+${Money.formatIn(dayTotal.income, currency)}',
                             style: const TextStyle(
                                 color: Colors.green,
                                 fontWeight: FontWeight.w600)),
                         const SizedBox(width: 12),
-                        Text('−${Money.formatIn(dayOutflow, dayCur)}',
+                        Text('−${Money.formatIn(dayTotal.expense, currency)}',
                             style: const TextStyle(
                                 color: Colors.red,
                                 fontWeight: FontWeight.w600)),

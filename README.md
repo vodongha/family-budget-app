@@ -23,7 +23,7 @@ transactions.
 | **Categories** | Family-scoped income/expense categories (emoji + colour) for tagging transactions; **edit** name and icon. |
 | **Budgets** | Per-category **monthly limit** with a progress bar and over-budget warning. |
 | **Transfer** | Move money between two wallets (recorded as linked transfer legs; excluded from income/expense totals). |
-| **Calendar** | Month grid showing each day's net amount; tap a day for its income/expense totals and transactions. |
+| **Calendar** | Month grid showing each day's net amount (in your **display currency**, converted on the backend); tap a day for its income/expense totals and transactions (each shown in its own wallet currency). |
 | **Personal vs family** | A scope toggle (**Personal** / **Family**) switches the dashboard, transactions, statistics and calendar between private and shared wallets. The app opens on **Personal**, which works **without a family**; tapping **Family** (or a family-only feature) with no family prompts to create one. |
 | **Family management** | From the account menu → **Manage family**: rename, leave, or (owner, sole member) delete the family (your personal data is kept). On **Members**, the owner can remove a member; anyone can leave. |
 | **Statistics** | Charts (`fl_chart`): monthly income/expense bars (1M/3M/6M/12M, **default 1 month**), income-vs-expense donut, balance-by-wallet bars, and a by-category donut. A scope toggle shows **personal** and **family** statistics separately. |
