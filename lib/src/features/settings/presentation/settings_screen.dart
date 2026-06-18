@@ -12,12 +12,9 @@ import '../../../core/money.dart';
 import '../../../core/prefs.dart';
 import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
-import '../../budgets/application/budgets_controller.dart';
-import '../../calendar/application/calendar_controller.dart';
-import '../../dashboard/application/dashboard_controller.dart';
+import '../../rates/application/rate_refresh.dart';
 import '../../rates/data/rates_repository.dart';
 import '../../rates/domain/rates_info.dart';
-import '../../stats/data/stats_repository.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -227,14 +224,7 @@ class _RatesTileState extends ConsumerState<_RatesTile> {
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _busy = true);
     try {
-      await ref.read(ratesRepositoryProvider).refresh();
-      ref.invalidate(ratesInfoProvider);
-      // Converted totals depend on the rates, so refresh them too.
-      ref.invalidate(dashboardControllerProvider);
-      ref.invalidate(monthlyStatsProvider);
-      ref.invalidate(categoryStatsProvider);
-      ref.invalidate(budgetsControllerProvider);
-      ref.invalidate(calendarStatsProvider);
+      await refreshRates(ref);
       messenger.showSnackBar(SnackBar(content: Text(t.ratesRefreshed)));
     } catch (e) {
       if (mounted) {

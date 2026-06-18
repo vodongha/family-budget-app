@@ -9,6 +9,7 @@ import '../../../core/error_text.dart';
 import '../../../core/money.dart';
 import '../../../core/prefs.dart';
 import '../../../core/responsive.dart';
+import '../application/rate_refresh.dart';
 import '../data/rates_repository.dart';
 import '../domain/rates_info.dart';
 
@@ -54,8 +55,7 @@ class _CurrencyConverterScreenState
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _refreshing = true);
     try {
-      await ref.read(ratesRepositoryProvider).refresh();
-      ref.invalidate(ratesInfoProvider);
+      await refreshRates(ref);
       messenger.showSnackBar(SnackBar(content: Text(t.ratesRefreshed)));
     } catch (e) {
       if (mounted) {
@@ -100,16 +100,31 @@ class _CurrencyConverterScreenState
     final int? amountMinor = Money.parseIn(_amount.text, from);
     final int? resultMinor =
         amountMinor == null ? null : rates.convertMinor(amountMinor, from, to);
-    // 1 unit of `from` expressed in `to`, for the rate line.
-    final int oneUnit = _pow10(Money.decimalsFor(from));
-    final int? unitRate = rates.convertMinor(oneUnit, from, to);
+    // Rate line. "1 from = X to", but if one unit of `from` rounds to ~0 in `to`
+    // (e.g. 1 VND in USD), show the inverse ("1 to = Y from") so it's meaningful.
+    String? rateLine;
+    final int? fwd =
+        rates.convertMinor(_pow10(Money.decimalsFor(from)), from, to);
+    if (fwd != null && fwd > 0) {
+      rateLine = '1 $from ≈ ${Money.formatIn(fwd, to)}';
+    } else {
+      final int? inv =
+          rates.convertMinor(_pow10(Money.decimalsFor(to)), to, from);
+      if (inv != null) {
+        rateLine = '1 $to ≈ ${Money.formatIn(inv, from)}';
+      }
+    }
 
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         TextField(
           controller: _amount,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          // Match the other amount fields: grouped digits for 0-decimal
+          // currencies (1.234.567), a decimal point for the rest.
+          keyboardType: TextInputType.numberWithOptions(
+            decimal: Money.decimalsFor(from) > 0,
+          ),
           inputFormatters: Money.inputFormattersFor(from),
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
@@ -161,10 +176,10 @@ class _CurrencyConverterScreenState
                   ),
                   textAlign: TextAlign.center,
                 ),
-                if (unitRate != null) ...[
+                if (rateLine != null) ...[
                   const SizedBox(height: 8),
                   Text(
-                    '1 $from ≈ ${Money.formatIn(unitRate, to)}',
+                    rateLine,
                     style: TextStyle(color: cs.onSurfaceVariant),
                   ),
                 ],
@@ -182,18 +197,26 @@ class _CurrencyConverterScreenState
                     : t.ratesUpdatedAt(
                         DateFormat('d MMM y, HH:mm').format(rates.updatedAt!)),
                 style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            const SizedBox(width: 8),
+            // A compact icon button (not a wide labelled button) so the date
+            // text always keeps its width.
             _refreshing
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
                   )
-                : TextButton.icon(
+                : IconButton(
+                    tooltip: t.refreshRates,
+                    icon: const Icon(Icons.refresh),
                     onPressed: _refresh,
-                    icon: const Icon(Icons.refresh, size: 18),
-                    label: Text(t.refreshRates),
                   ),
           ],
         ),

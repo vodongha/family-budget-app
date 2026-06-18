@@ -1,6 +1,8 @@
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/error_text.dart';
@@ -9,6 +11,8 @@ import '../../../core/item_actions.dart';
 import '../../../core/money.dart';
 import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
+import '../../rates/application/rate_refresh.dart';
+import '../../rates/data/rates_repository.dart';
 import '../../auth/presentation/account_menu.dart';
 import '../../auth/presentation/avatar.dart';
 import '../../family/presentation/create_family_dialog.dart';
@@ -218,14 +222,15 @@ class _HubPagerState extends ConsumerState<_HubPager> {
   Widget build(BuildContext context) {
     final AppLocalizations t = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
+    // Ordered by how often a household uses them: day-to-day tracking first,
+    // then planning, then occasional tools, then rare family-setup actions
+    // (which land on the 2nd hub page).
     final List<_HubItem> items = [
       _HubItem(Icons.receipt_long_outlined, t.transactions, '/transactions',
           clearFilter: true),
       _HubItem(Icons.bar_chart_outlined, t.statistics, '/stats'),
-      _HubItem(Icons.calendar_month_outlined, t.calendar, '/calendar'),
-      // Budgets and categories follow the personal/family scope (no family
-      // required for personal); members is a shared family feature.
       _HubItem(Icons.pie_chart_outline, t.budgets, '/budgets'),
+      _HubItem(Icons.calendar_month_outlined, t.calendar, '/calendar'),
       _HubItem(Icons.swap_horiz, t.transferMoney, '/transfers/new'),
       _HubItem(Icons.category_outlined, t.categories, '/categories'),
       _HubItem(
@@ -246,11 +251,23 @@ class _HubPagerState extends ConsumerState<_HubPager> {
       children: [
         SizedBox(
           height: 196,
-          child: PageView.builder(
-            controller: _controller,
-            itemCount: pages.length,
-            onPageChanged: (p) => setState(() => _page = p),
-            itemBuilder: (_, p) => _buildPage(pages[p]),
+          // Allow horizontal drag with a mouse/trackpad too — by default Flutter
+          // web only pages with touch, so the hub felt stuck on the web app.
+          child: ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              dragDevices: const {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
+                PointerDeviceKind.trackpad,
+                PointerDeviceKind.stylus,
+              },
+            ),
+            child: PageView.builder(
+              controller: _controller,
+              itemCount: pages.length,
+              onPageChanged: (p) => setState(() => _page = p),
+              itemBuilder: (_, p) => _buildPage(pages[p]),
+            ),
           ),
         ),
         if (pages.length > 1) ...[
@@ -401,9 +418,18 @@ class _BalanceHero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            netLabel,
-            style: TextStyle(color: cs.onPrimary.withValues(alpha: 0.85)),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  netLabel,
+                  style: TextStyle(color: cs.onPrimary.withValues(alpha: 0.85)),
+                ),
+              ),
+              // Rate freshness + a fetch button, where the converted totals show.
+              const _HeroRateBadge(),
+            ],
           ),
           const SizedBox(height: 6),
           Text(
@@ -502,6 +528,76 @@ class _HeroStat extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Small badge on the balance hero: when rates were last refreshed + a fetch
+/// button (the hero totals are shown in the chosen display currency, converted
+/// with these rates).
+class _HeroRateBadge extends ConsumerStatefulWidget {
+  const _HeroRateBadge();
+
+  @override
+  ConsumerState<_HeroRateBadge> createState() => _HeroRateBadgeState();
+}
+
+class _HeroRateBadgeState extends ConsumerState<_HeroRateBadge> {
+  bool _busy = false;
+
+  Future<void> _refresh() async {
+    final AppLocalizations t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    try {
+      await refreshRates(ref);
+      messenger.showSnackBar(SnackBar(content: Text(t.ratesRefreshed)));
+    } catch (e) {
+      if (mounted) {
+        messenger
+            .showSnackBar(SnackBar(content: Text(friendlyError(context, e))));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final AppLocalizations t = AppLocalizations.of(context);
+    final Color fg = cs.onPrimary;
+    final DateTime? updated =
+        ref.watch(ratesInfoProvider).valueOrNull?.updatedAt;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (updated != null)
+          Flexible(
+            child: Text(
+              t.ratesUpdatedAt(DateFormat('d/M HH:mm').format(updated)),
+              style: TextStyle(color: fg.withValues(alpha: 0.85), fontSize: 11),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        const SizedBox(width: 4),
+        _busy
+            ? SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: fg),
+              )
+            : IconButton(
+                tooltip: t.refreshRates,
+                icon: Icon(Icons.refresh, color: fg, size: 18),
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: _refresh,
+              ),
+      ],
     );
   }
 }
