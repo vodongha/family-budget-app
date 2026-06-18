@@ -58,10 +58,30 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
     if (account == null) {
       return;
     }
-    final GoogleSignInAuthentication auth = await account.authentication;
-    final String? idToken = auth.idToken;
-    if (idToken != null && idToken.isNotEmpty) {
+    try {
+      final GoogleSignInAuthentication auth = await account.authentication;
+      final String? idToken = auth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        // No usable token — clear the picked account so a retry can re-prompt.
+        await _gsi.signOut();
+        return;
+      }
       await ref.read(authControllerProvider.notifier).signInWithGoogle(idToken);
+      if (!mounted) {
+        return; // Success: the router has navigated away and disposed us.
+      }
+      // signInWithGoogle swallows failures into the auth state (AsyncValue.guard).
+      // If the exchange failed (e.g. the server was unreachable), Google still
+      // holds the chosen account, so tapping the button again would reuse it
+      // *without* re-firing onCurrentUserChanged — leaving the user stuck. Clear
+      // it so the next tap re-opens the account picker. (The login screen already
+      // surfaces the error via a snackbar.)
+      if (ref.read(authControllerProvider).hasError) {
+        await _gsi.signOut();
+      }
+    } catch (_) {
+      // Fetching the Google token itself failed — reset so a retry works.
+      await _gsi.signOut();
     }
   }
 
