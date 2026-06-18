@@ -284,7 +284,9 @@ English + Vietnamese via the official `flutter_localizations` + ARB pipeline.
   transfer / add-transaction amount fields show the wallet's currency symbol (no hard-coded ₫). A
   **currency converter** tool (`features/rates/presentation/currency_converter_screen.dart`, route
   `/currency-converter`, in the dashboard hub) converts any pair client-side using `RatesInfo.rateToBase`
-  (the rate list from `GET /rates`); it's display-only and never touches wallets/transactions.
+  (the rate list from `GET /rates`); it's display-only and never touches wallets/transactions. The
+  amount field shows a grouped preview in the "from" currency as `helperText` (like the other amount
+  fields — reliable even when an IME keeps the raw input box ungrouped on web).
 
 ## Profile & account deletion
 
