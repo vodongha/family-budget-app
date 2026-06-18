@@ -419,16 +419,22 @@ class _BalanceHero extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            // Centre the short label and the rate badge against each other; the
+            // badge keeps a constant height (see _HeroRateBadge) so toggling its
+            // busy spinner never changes the row height (no "jump" on refresh).
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: Text(
-                  netLabel,
-                  style: TextStyle(color: cs.onPrimary.withValues(alpha: 0.85)),
-                ),
+              Text(
+                netLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: cs.onPrimary.withValues(alpha: 0.85)),
               ),
+              const SizedBox(width: 8),
               // Rate freshness + a fetch button, where the converted totals show.
-              const _HeroRateBadge(),
+              // Takes the remaining width and right-aligns; the timestamp
+              // ellipsizes instead of wrapping to a second line.
+              const Expanded(child: _HeroRateBadge()),
             ],
           ),
           const SizedBox(height: 6),
@@ -572,12 +578,16 @@ class _HeroRateBadgeState extends ConsumerState<_HeroRateBadge> {
     final DateTime? updated =
         ref.watch(ratesInfoProvider).valueOrNull?.updatedAt;
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      // Fill the space the parent Expanded gives us and hug the right edge, so
+      // the timestamp sits next to the refresh button regardless of width.
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (updated != null)
           Flexible(
             child: Text(
               t.ratesUpdatedAt(DateFormat('d/M HH:mm').format(updated)),
+              textAlign: TextAlign.end,
               style: TextStyle(color: fg.withValues(alpha: 0.85), fontSize: 11),
               // Keep it on one line — on narrow phones it otherwise wrapped and
               // pushed the badge below the "net balance" label.
@@ -587,20 +597,30 @@ class _HeroRateBadgeState extends ConsumerState<_HeroRateBadge> {
             ),
           ),
         const SizedBox(width: 4),
-        _busy
-            ? SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2, color: fg),
-              )
-            : IconButton(
-                tooltip: t.refreshRates,
-                icon: Icon(Icons.refresh, color: fg, size: 18),
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: _refresh,
-              ),
+        // Constant 28×28 slot for both states so swapping the icon for the
+        // busy spinner doesn't resize the row (which made the card jump).
+        SizedBox(
+          width: 28,
+          height: 28,
+          child: _busy
+              ? Center(
+                  child: SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: fg),
+                  ),
+                )
+              : IconButton(
+                  tooltip: t.refreshRates,
+                  icon: Icon(Icons.refresh, color: fg, size: 18),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints.tightFor(
+                    width: 28,
+                    height: 28,
+                  ),
+                  onPressed: _refresh,
+                ),
+        ),
       ],
     );
   }
