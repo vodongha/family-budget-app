@@ -227,7 +227,7 @@
   "ratesNeverUpdated": "Chưa cập nhật",
   "ratesAutoNote": "Tự động cập nhật mỗi 12 giờ",
   "refreshRates": "Cập nhật tỷ giá",
-  "ratesRefreshed": "Đã cập nhật tỷ giá",
+  "ratesRefreshed": "Đã cập nhật tỷ giá ngoại tệ",
   "ratesRefreshFailed": "Không cập nhật được tỷ giá",
   "currencyConverter": "Đổi tiền",
   "convertFrom": "Từ",
