@@ -39,7 +39,7 @@
   "retry": "Retry",
   "noTransactionsYet": "No transactions yet.",
   "addTransaction": "Add transaction",
-  "amountLabel": "Amount (₫)",
+  "amountLabel": "Amount",
   "amountHint": "e.g. 50000",
   "enterAmountGtZero": "Enter an amount greater than 0",
   "wallet": "Wallet",
@@ -225,6 +225,16 @@
   "monthlyLimit": "Monthly limit",
   "primaryCurrency": "Primary currency",
   "primaryCurrencyNote": "Totals are shown in this currency; wallets keep their own.",
+  "exchangeRate": "Exchange rate",
+  "ratesUpdatedAt": "Updated {time}",
+  "@ratesUpdatedAt": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "ratesNeverUpdated": "Not updated yet",
+  "ratesAutoNote": "Auto-refreshes every 12 hours",
+  "refreshRates": "Refresh rates",
+  "ratesRefreshed": "Exchange rates updated",
+  "ratesRefreshFailed": "Couldn't refresh exchange rates",
   "budgetDeleted": "Budget deleted",
   "overBudgetBy": "Over by {amount}",
   "@overBudgetBy": {

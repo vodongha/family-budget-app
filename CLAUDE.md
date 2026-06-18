@@ -263,7 +263,11 @@ English + Vietnamese via the official `flutter_localizations` + ARB pipeline.
   Dashboard/stats/budgets repos send it as `display_currency`; the backend converts via the stored
   exchange rate. **Per-wallet balances stay in each wallet's own currency** (the by-wallet chart and
   wallet tiles use `Money.formatIn(amount, wallet.currency)`). Budget amounts are entered/shown in
-  the display currency (`Money.inputFormattersFor`/`parseIn`/`editText`).
+  the display currency (`Money.inputFormattersFor`/`parseIn`/`editText`). Settings shows an
+  **exchange-rate status** row (`features/rates/`, `ratesInfoProvider` → `GET /rates`) with the
+  last-updated time and a manual refresh button (`POST /rates/refresh`, then invalidates the
+  converted dashboard/stats/budget providers); rates also auto-refresh every 12h server-side. The
+  transfer / add-transaction amount fields show the wallet's currency symbol (no hard-coded ₫).
 
 ## Profile & account deletion
 

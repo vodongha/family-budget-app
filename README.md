@@ -29,16 +29,18 @@ transactions.
 | **Statistics** | Charts (`fl_chart`): monthly income/expense bars (1M/3M/6M/12M, **default 1 month**), income-vs-expense donut, balance-by-wallet bars, and a by-category donut. A scope toggle shows **personal** and **family** statistics separately. |
 | **Members & invites** | A **Members** screen lists the family; **any member can add a member** from a button there (the owner can also **transfer ownership**). Invite by email or phone: if the contact already has an account the invite arrives **in-app** (an **Invitations** inbox to accept/decline — no link); otherwise a shareable registration link is shown. |
 | **Account menu** | Tap the avatar → a focused sheet: edit profile (incl. phone), settings, **privacy policy** (shown in-app via a WebView), sign out, **delete account** (Google Play policy — soft-delete + 30-day purge on the backend). Feature navigation lives in the dashboard hub. |
-| **Settings** | **Light / dark / system** theme and language, both persisted. Default follows the system. |
+| **Currencies** | Each wallet keeps its own currency; pick a **primary (display) currency** in Settings and the cross-wallet **totals** (dashboard, statistics, budgets) convert to it via the live exchange rate, while per-wallet balances stay in their own currency. Settings shows when rates were last updated (they auto-refresh every 12h) with a **manual refresh** button. |
+| **Settings** | **Light / dark / system** theme, language, and **primary currency**, all persisted. Default follows the system. |
 | **Localization** | English & Tiếng Việt. Follows the device language by default; selectable in Settings and persisted. |
 | **Modern UI** | Material 3 with a tonal indigo palette, gradient balance hero, rounded cards, filled inputs — light & dark. **Responsive**: on wide screens (web / tablet) content is width-capped and centred instead of stretching edge-to-edge. |
 
 ## Money rule
 
-Amounts are **integer đồng** everywhere — the API sends and receives whole-number minor
-units, and the app only ever *formats* them (`lib/src/core/money.dart`). Money is never a
-`double`; direction comes from the transaction **type**, not the sign. Wallet balances are
-**derived** on the backend, never stored client-side.
+Amounts are **integer minor units** of each wallet's currency everywhere — the API sends and
+receives whole-number minor units, and the app only ever *formats* them
+(`lib/src/core/money.dart`). Money is never a `double`; direction comes from the transaction
+**type**, not the sign. Wallet balances and the converted display-currency totals are
+**derived** on the backend, never computed client-side.
 
 ## Tech stack
 
