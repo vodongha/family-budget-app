@@ -243,6 +243,8 @@
   "convertTo": "To",
   "swap": "Swap",
   "noResults": "No results",
+  "deleteBudget": "Delete budget",
+  "deleteBudgetConfirm": "Delete this budget?",
   "budgetDeleted": "Budget deleted",
   "overBudgetBy": "Over by {amount}",
   "@overBudgetBy": {

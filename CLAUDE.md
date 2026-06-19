@@ -309,6 +309,9 @@ message. Keep this entry point — Google Play requires in-app account deletion.
 - Blazor-style "code-behind" isn't a thing here, but keep widgets thin — push logic into
   controllers/repositories.
 - New screens go under `features/<feature>/presentation/` and route via `core/router.dart`.
+- **Every destructive action confirms first.** Any delete (transaction, budget, wallet, category,
+  family, member, account) must show an `AlertDialog` (cancel + a red confirm) before calling the
+  controller — never delete on a single tap.
 - Run `dart format .` before committing — CI fails on unformatted code.
 
 ## Build & run
