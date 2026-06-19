@@ -126,7 +126,9 @@ dart format .
 ## CI
 
 `.github/workflows/ci.yml` runs `dart format` check + `flutter analyze` + `flutter test`
-on pushes and PRs to `master`. No device or backend secrets needed.
+on pushes to `develop` and PRs to `master`. No device or backend secrets needed. Work lands on
+`develop`; a `develop → master` PR cuts a release, and `sync-develop.yml` merges `master` back
+into `develop`. See [Wiki › Git Workflow](https://github.com/vodongha/family-budget-app/wiki/Git-Workflow).
 
 ## Docs
 
