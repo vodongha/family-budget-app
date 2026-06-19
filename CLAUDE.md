@@ -358,8 +358,13 @@ and falls back to debug signing when it's absent (so `flutter run` works without
   GIT_COMMITTER_NAME="Claude Opus 4.8" GIT_COMMITTER_EMAIL="noreply@anthropic.com" \
     git commit --author="vodongha <vodongha@hotmail.com>" -m "..."
   ```
-- Branch off `master`; merge with merge commits (no squash/rebase). Reference the backend
-  repo when a change tracks an API change.
+- **develop/master model** (mirrors `vodongha-personal`): `feature/*` and `bug/*` branch off
+  `develop` and PR into `develop`; `hotfix/*` branch off `master` and PR into `master`. **`master`
+  is release-only — never commit directly.** Cut a release by PR-ing `develop → master`, then tag
+  it (e.g. `v1.0.0`) for the Play build. `sync-develop.yml` merges `master → develop` after every
+  push to `master`, so feature branches start from the latest released code.
+- Merge with merge commits (no squash/rebase). Reference the backend repo when a change tracks an
+  API change.
 
 ## Gotchas
 
