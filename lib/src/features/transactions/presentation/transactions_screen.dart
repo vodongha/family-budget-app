@@ -7,6 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../core/app_date_picker.dart';
 import '../../../core/app_error_view.dart';
 import '../../../core/app_picker.dart';
+import '../../../core/confirm.dart';
 import '../../../core/error_text.dart';
 import '../../../core/item_actions.dart';
 import '../../../core/money.dart';
@@ -161,26 +162,12 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 
   Future<void> _deleteTxn(String rid) async {
     final t = AppLocalizations.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(t.deleteTransaction),
-        content: Text(t.deleteTransactionConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(t.cancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: cs.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(t.delete),
-          ),
-        ],
-      ),
+    final ok = await confirmDelete(
+      context,
+      title: t.deleteTransaction,
+      message: t.deleteTransactionConfirm,
     );
-    if (ok != true) {
+    if (!ok) {
       return;
     }
     try {

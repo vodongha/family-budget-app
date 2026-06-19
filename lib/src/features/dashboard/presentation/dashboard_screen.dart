@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/confirm.dart';
 import '../../../core/error_text.dart';
 import '../../../core/app_error_view.dart';
 import '../../../core/item_actions.dart';
@@ -755,28 +756,13 @@ class _WalletTile extends ConsumerWidget {
     AppLocalizations t,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
-    final ColorScheme cs = Theme.of(context).colorScheme;
-    final bool? ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        actionsOverflowButtonSpacing: 8,
-        icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
-        title: Text(t.deleteWallet),
-        content: Text(t.deleteWalletConfirm(wallet.name, wallet.txnCount)),
-        actions: [
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: cs.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(t.deleteWallet),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(t.cancel),
-          ),
-        ],
-      ),
+    final bool ok = await confirmDelete(
+      context,
+      title: t.deleteWallet,
+      message: t.deleteWalletConfirm(wallet.name, wallet.txnCount),
+      confirmLabel: t.deleteWallet,
     );
-    if (ok != true) {
+    if (!ok) {
       return;
     }
     try {

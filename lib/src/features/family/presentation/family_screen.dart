@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/confirm.dart';
 import '../../../core/error_text.dart';
 import '../../../core/responsive.dart';
 import '../../auth/application/auth_controller.dart';
@@ -220,28 +221,12 @@ class FamilyScreen extends ConsumerWidget {
     AppLocalizations t,
     String title,
     String message,
-  ) async {
-    final ColorScheme cs = Theme.of(context).colorScheme;
-    final bool? ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        actionsOverflowButtonSpacing: 8,
-        icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: cs.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(title),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(t.cancel),
-          ),
-        ],
-      ),
+  ) {
+    return confirmDelete(
+      context,
+      title: title,
+      message: message,
+      confirmLabel: title,
     );
-    return ok ?? false;
   }
 }

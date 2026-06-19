@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/confirm.dart';
 import '../../../core/error_text.dart';
 import '../../../core/app_error_view.dart';
 import '../../../core/responsive.dart';
@@ -114,28 +115,13 @@ class MembersScreen extends ConsumerWidget {
     FamilyMember member,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
-    final ColorScheme cs = Theme.of(context).colorScheme;
-    final bool? ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        actionsOverflowButtonSpacing: 8,
-        icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
-        title: Text(t.removeMember),
-        content: Text(t.removeMemberConfirm(member.displayName)),
-        actions: [
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: cs.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(t.removeMember),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(t.cancel),
-          ),
-        ],
-      ),
+    final bool ok = await confirmDelete(
+      context,
+      title: t.removeMember,
+      message: t.removeMemberConfirm(member.displayName),
+      confirmLabel: t.removeMember,
     );
-    if (ok != true) {
+    if (!ok) {
       return;
     }
     try {
@@ -157,28 +143,13 @@ class MembersScreen extends ConsumerWidget {
   ) async {
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
-    final ColorScheme cs = Theme.of(context).colorScheme;
-    final bool? ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        actionsOverflowButtonSpacing: 8,
-        icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
-        title: Text(t.leaveFamily),
-        content: Text(t.leaveFamilyConfirm),
-        actions: [
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: cs.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(t.leaveFamily),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(t.cancel),
-          ),
-        ],
-      ),
+    final bool ok = await confirmDelete(
+      context,
+      title: t.leaveFamily,
+      message: t.leaveFamilyConfirm,
+      confirmLabel: t.leaveFamily,
     );
-    if (ok != true) {
+    if (!ok) {
       return;
     }
     try {
