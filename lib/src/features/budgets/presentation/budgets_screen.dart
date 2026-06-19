@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/confirm.dart';
 import '../../../core/error_text.dart';
 import '../../../core/app_error_view.dart';
 import '../../../core/app_picker.dart';
@@ -222,26 +223,12 @@ class BudgetsScreen extends ConsumerWidget {
   Future<void> _deleteBudget(
       BuildContext context, WidgetRef ref, AppLocalizations t, Budget b) async {
     final messenger = ScaffoldMessenger.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(t.deleteBudget),
-        content: Text(t.deleteBudgetConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(t.cancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: cs.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(t.delete),
-          ),
-        ],
-      ),
+    final ok = await confirmDelete(
+      context,
+      title: t.deleteBudget,
+      message: t.deleteBudgetConfirm,
     );
-    if (ok != true) {
+    if (!ok) {
       return;
     }
     await ref.read(budgetsControllerProvider.notifier).remove(b.rid);

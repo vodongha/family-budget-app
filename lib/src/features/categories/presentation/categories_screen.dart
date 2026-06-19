@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/confirm.dart';
 import '../../../core/error_text.dart';
 import '../../../core/app_error_view.dart';
 import '../../../core/item_actions.dart';
@@ -278,27 +279,12 @@ class _CategoryTile extends ConsumerWidget {
     AppLocalizations t,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
-    final ColorScheme cs = Theme.of(context).colorScheme;
-    final bool? ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        actionsOverflowButtonSpacing: 8,
-        title: Text(t.deleteCategory),
-        content: Text(t.deleteCategoryConfirm(category.label(t))),
-        actions: [
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: cs.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(t.delete),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(t.cancel),
-          ),
-        ],
-      ),
+    final bool ok = await confirmDelete(
+      context,
+      title: t.deleteCategory,
+      message: t.deleteCategoryConfirm(category.label(t)),
     );
-    if (ok != true) {
+    if (!ok) {
       return;
     }
     try {

@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/api_client.dart';
 import '../../../core/config.dart';
+import '../../../core/confirm.dart';
 import '../application/auth_controller.dart';
 import '../domain/auth_user.dart';
 import 'avatar.dart';
@@ -151,28 +152,13 @@ class _AccountSheet extends ConsumerWidget {
   ) async {
     final messenger = ScaffoldMessenger.of(context);
     final notifier = ref.read(authControllerProvider.notifier);
-    final ColorScheme cs = Theme.of(context).colorScheme;
-    final bool? ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        actionsOverflowButtonSpacing: 8,
-        icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
-        title: Text(t.deleteAccount),
-        content: Text(t.deleteAccountWarning),
-        actions: [
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: cs.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(t.deleteAccountConfirm),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(t.cancel),
-          ),
-        ],
-      ),
+    final bool ok = await confirmDelete(
+      context,
+      title: t.deleteAccount,
+      message: t.deleteAccountWarning,
+      confirmLabel: t.deleteAccountConfirm,
     );
-    if (ok != true) {
+    if (!ok) {
       return;
     }
     try {

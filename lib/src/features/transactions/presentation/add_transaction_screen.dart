@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/app_date_picker.dart';
+import '../../../core/confirm.dart';
 import '../../../core/error_text.dart';
 import '../../../core/app_picker.dart';
 import '../../../core/money.dart';
@@ -161,28 +162,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   }
 
   Future<void> _confirmDelete(AppLocalizations t) async {
-    final ColorScheme cs = Theme.of(context).colorScheme;
-    final bool? ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        actionsOverflowButtonSpacing: 8,
-        icon: Icon(Icons.warning_amber_rounded, color: cs.error, size: 32),
-        title: Text(t.deleteTransaction),
-        content: Text(t.deleteTransactionConfirm),
-        actions: [
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: cs.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(t.delete),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(t.cancel),
-          ),
-        ],
-      ),
+    final bool ok = await confirmDelete(
+      context,
+      title: t.deleteTransaction,
+      message: t.deleteTransactionConfirm,
     );
-    if (ok != true) {
+    if (!ok) {
       return;
     }
     setState(() => _saving = true);
