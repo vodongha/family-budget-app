@@ -234,6 +234,8 @@
   "convertTo": "Sang",
   "swap": "Đảo",
   "noResults": "Không có kết quả",
+  "deleteBudget": "Xoá ngân sách",
+  "deleteBudgetConfirm": "Xoá ngân sách này?",
   "budgetDeleted": "Đã xoá ngân sách",
   "overBudgetBy": "Vượt {amount}",
   "@overBudgetBy": {

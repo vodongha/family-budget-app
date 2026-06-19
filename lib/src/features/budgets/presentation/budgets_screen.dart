@@ -222,6 +222,28 @@ class BudgetsScreen extends ConsumerWidget {
   Future<void> _deleteBudget(
       BuildContext context, WidgetRef ref, AppLocalizations t, Budget b) async {
     final messenger = ScaffoldMessenger.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t.deleteBudget),
+        content: Text(t.deleteBudgetConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(t.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: cs.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(t.delete),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) {
+      return;
+    }
     await ref.read(budgetsControllerProvider.notifier).remove(b.rid);
     messenger.showSnackBar(SnackBar(content: Text(t.budgetDeleted)));
   }
