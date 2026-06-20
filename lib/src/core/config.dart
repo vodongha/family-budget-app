@@ -1,15 +1,19 @@
 /// App-wide configuration, resolved at build time.
 ///
 /// The API base URL is supplied with `--dart-define=API_BASE_URL=...`.
-/// The default targets the FastAPI backend from an **Android emulator**, where
-/// `10.0.2.2` maps to the host machine's `localhost`. For iOS simulator or web
-/// use `http://localhost:8000`; for a physical device use the host's LAN IP.
+/// **The default is the production backend** so release builds (`flutter build
+/// appbundle`) always point at the live server even if the flag is forgotten —
+/// a release that defaulted to a localhost address can't reach the backend on a
+/// real device, so nobody can sign in. For **local development** override it to
+/// your backend: `http://10.0.2.2:8000` from an **Android emulator** (where
+/// `10.0.2.2` maps to the host's `localhost`), `http://localhost:8000` for the
+/// iOS simulator or web, or the host's LAN IP for a physical device.
 class AppConfig {
   const AppConfig._();
 
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:8000',
+    defaultValue: 'https://famo.io.vn',
   );
 
   /// Google OAuth **web** client ID — used on every platform:

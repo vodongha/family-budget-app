@@ -106,13 +106,18 @@ flutter create .
 # 2. Install dependencies
 flutter pub get
 
-# 3. Run — point API_BASE_URL at your backend.
+# 3. Run — point API_BASE_URL at your local backend.
 #    Android emulator → host localhost is 10.0.2.2; iOS sim / web → localhost.
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
+
+# Release build (.aab) — API base defaults to the production server (https://famo.io.vn),
+# so no flag is needed; pass --dart-define only to target a different backend.
+flutter build appbundle --release
 ```
 
 Make sure the **backend is running** first (see the family-budget repo). The app shows a
-clear "Cannot reach the server" message if it isn't.
+clear "Cannot reach the server" message if it isn't. The API base URL **defaults to the
+production backend** (`https://famo.io.vn`) so release builds always reach the live server.
 
 ## Tests
 
