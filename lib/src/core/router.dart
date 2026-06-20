@@ -8,6 +8,7 @@ import '../features/auth/presentation/change_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/profile_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
+import '../features/app_update/presentation/app_update_gate.dart';
 import '../features/budgets/presentation/budgets_screen.dart';
 import '../features/calendar/presentation/calendar_screen.dart';
 import '../features/categories/presentation/categories_screen.dart';
@@ -96,7 +97,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/',
-        builder: (_, __) => const DashboardScreen(),
+        builder: (_, __) => const AppUpdateGate(child: DashboardScreen()),
         routes: [
           GoRoute(
             path: 'members',

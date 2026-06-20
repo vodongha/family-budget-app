@@ -179,6 +179,15 @@ Errors: 401 (no/expired token → app drops it and returns to login), 403 (owner
   `isOwner || wallet.isPersonal || wallet.createdByMe` (the family owner, a personal wallet's owner,
   or a shared wallet's creator). `WalletsController.edit` (not `update` — that name collides
   with `AsyncNotifier.update`).
+- **In-app updates** (`features/app_update/`): `AppUpdateGate` wraps the signed-in home
+  (`/` route in `core/router.dart`) and, after the first frame, runs `AppUpdateService.checkAndPrompt`
+  **once per app process**. It uses Google Play **In-App Updates** (`in_app_update` / Play Core):
+  a normal release takes the background **flexible** flow (downloads while the app runs, then a
+  persistent SnackBar with a **Restart** action calls `completeFlexibleUpdate()`); a release with
+  Play **updatePriority ≥ 4** takes the blocking **immediate** flow. Every Play call is wrapped so
+  it's a **silent no-op** off Android/Play (web, iOS, sideloaded, no Play services) — the check
+  never throws and never blocks the UI. The update happens **inside the app** (it does not open the
+  Play listing); for the manual "open on Google Play" link see About (`Publisher.playStoreUrl`).
 - **Responsive** (`core/responsive.dart`, `ResponsiveCenter`): wraps the body of the main screens
   (dashboard, transactions, stats, settings, members, budgets, calendar, profile) to cap width
   (~720) and centre on wide screens. It keeps height tight (LayoutBuilder + SizedBox) so inner
@@ -375,3 +384,8 @@ and falls back to debug signing when it's absent (so `flutter run` works without
 - **Derived balances.** After adding a transaction, invalidate wallets + dashboard providers
   or the displayed balances go stale.
 - **Only `android/` is committed.** A fresh clone still needs `flutter create . --platforms=ios,web,windows` to regenerate the other platform folders before running on those targets.
+- **In-app updates only fire for Play-delivered builds.** `InAppUpdate.checkForUpdate()` throws on
+  a `flutter run`/sideloaded APK (no Play install context) — that's why `AppUpdateService` swallows
+  the error. To actually see the prompt you must install the app from Play (internal-testing track
+  or internal app sharing) with a **lower** versionCode than the one published, then open it. There
+  is nothing to verify on the emulator/dev build beyond "it doesn't crash and is a no-op".

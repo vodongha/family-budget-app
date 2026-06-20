@@ -31,6 +31,7 @@ transactions.
 | **Account menu** | Tap the avatar → a focused sheet: edit profile (incl. phone), settings, **privacy policy** (shown in-app via a WebView), sign out, **delete account** (Google Play policy — soft-delete + 30-day purge on the backend). Feature navigation lives in the dashboard hub. |
 | **Currencies** | ~50 world currencies. Each wallet keeps its own; pick a **primary (display) currency** (searchable picker) and the cross-wallet **totals** (dashboard, statistics, budgets, calendar) convert to it via the live exchange rate, while per-wallet balances stay in their own currency. The **balance card** shows when rates were last refreshed with a **fetch** button (they also auto-refresh every 12h); Settings has the same. |
 | **Currency converter** | A hub tool to convert any amount between two currencies (searchable pickers, swap button, live rate, fetch button); display-only — it never touches your wallets. |
+| **In-app updates** | On Android, when a newer build is live on Google Play the app prompts to update **without leaving the app** (Play In-App Updates): a normal release downloads in the background and offers to restart; a high-priority release uses Play's full-screen immediate flow. A no-op on web / sideloaded builds. |
 | **Settings** | **Light / dark / system** theme, language, and **primary currency**, all persisted. Default follows the system. |
 | **Localization** | English & Tiếng Việt. Follows the device language by default; selectable in Settings and persisted. |
 | **Modern UI** | Material 3 with a tonal indigo palette, gradient balance hero, rounded cards, filled inputs — light & dark. **Responsive**: on wide screens (web / tablet) content is width-capped and centred instead of stretching edge-to-edge. |
@@ -57,7 +58,7 @@ receives whole-number minor units, and the app only ever *formats* them
 | Auth | google_sign_in (web: Google Identity Services) |
 | Phone input | phone_form_field (country-code picker + E.164) |
 | Charts | fl_chart |
-| Misc | package_info_plus (version), webview_flutter + web (in-app privacy policy / publisher website / community), url_launcher (opening links in a new tab on web) |
+| Misc | package_info_plus (version), webview_flutter + web (in-app privacy policy / publisher website / community), url_launcher (opening links in a new tab on web), in_app_update (Google Play in-app updates) |
 | Formatting | intl |
 
 ## Architecture

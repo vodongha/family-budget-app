@@ -111,6 +111,8 @@
   "somethingWrong": "Something went wrong",
   "developer": "Developer",
   "website": "Website",
+  "updateDownloaded": "Update downloaded. Restart to install it.",
+  "updateRestart": "Restart",
   "appIntro": "Family Budget helps your whole family track income and expenses together — shared wallets and a clear monthly overview, on any device.",
   "openLinkFailed": "Could not open the link",
   "addMember": "Add member",

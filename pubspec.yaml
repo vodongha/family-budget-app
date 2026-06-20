@@ -35,6 +35,9 @@ dependencies:
   url_launcher: ^6.3.1
   # In-app WebView for the privacy policy (Android/iOS); web uses an iframe.
   webview_flutter: ^4.10.0
+  # Google Play In-App Updates (Play Core) — prompts to update when a newer
+  # build is live on Play. Android + Play installs only; a no-op elsewhere.
+  in_app_update: ^4.2.3
   # DOM interop for the web iframe fallback (HTMLIFrameElement).
   web: ^1.1.0
   # Charts on the statistics screen.

@@ -102,6 +102,8 @@
   "somethingWrong": "Đã có lỗi xảy ra",
   "developer": "Nhà phát hành",
   "website": "Website",
+  "updateDownloaded": "Đã tải xong bản cập nhật. Khởi động lại để cài đặt.",
+  "updateRestart": "Khởi động lại",
   "appIntro": "Ngân sách Gia đình giúp cả nhà cùng theo dõi thu chi — ví dùng chung và tổng quan rõ ràng theo tháng, trên mọi thiết bị.",
   "openLinkFailed": "Không mở được liên kết",
   "addMember": "Thêm thành viên",
