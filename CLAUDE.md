@@ -60,8 +60,9 @@ Rules:
 
 ## Backend API (contract this app depends on)
 
-Base URL via `--dart-define=API_BASE_URL=...` (default `http://10.0.2.2:8000`, the Android
-emulator's route to host localhost).
+Base URL via `--dart-define=API_BASE_URL=...`. **The default is the production backend
+`https://famo.io.vn`** so release builds are correct even without the flag — for **local dev**
+override it (`http://10.0.2.2:8000` from an Android emulator). See `core/config.dart`.
 
 - `POST /auth/register` `{email, password, display_name, family_name?, phone?}` — creates an
   **account** (no auto-login; app logs in after). `family_name` is **optional**: the app omits it,
@@ -328,11 +329,19 @@ message. Keep this entry point — Google Play requires in-app account deletion.
 ```bash
 flutter create . --platforms=ios,web,windows   # ONE-TIME: generate the still-uncommitted folders
 flutter pub get
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000   # DEV: override to your backend
 flutter analyze
 flutter test
 dart format .
+
+# RELEASE (.aab for Play) — the API base defaults to https://famo.io.vn, so no flag needed:
+flutter build appbundle --release
 ```
+
+**Always point a real-device/release build at the production backend.** The default already does
+this (`AppConfig.apiBaseUrl` = `https://famo.io.vn`); only `flutter run` against a local backend
+needs the `--dart-define` override. A build that ships pointing at `10.0.2.2`/localhost can't reach
+the server on a phone — the app opens but **no one can sign in** (this regressed build 1.0.0+12).
 
 **`android/` is committed** (needed for the Play release: `applicationId = vn.famo.budget`,
 INTERNET permission, and release signing config in `android/app/build.gradle.kts`). Secrets stay
