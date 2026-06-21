@@ -98,6 +98,7 @@
   "errorNoConnection": "Không thể kết nối tới máy chủ. Vui lòng kiểm tra mạng và thử lại.",
   "errorServer": "Đã xảy ra lỗi từ máy chủ. Vui lòng thử lại sau giây lát.",
   "errorSession": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+  "errorInvalidCredentials": "Email hoặc mật khẩu không đúng.",
   "errorGeneric": "Đã xảy ra lỗi. Vui lòng thử lại.",
   "somethingWrong": "Đã có lỗi xảy ra",
   "developer": "Nhà phát hành",
