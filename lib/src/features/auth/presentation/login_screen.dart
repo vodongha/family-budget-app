@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/api_client.dart';
 import '../../../core/error_text.dart';
 import '../application/auth_controller.dart';
 import 'google_sign_in_button.dart';
@@ -43,11 +44,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     ref.listen(authControllerProvider, (_, next) {
       if (next.hasError && !next.isLoading) {
+        final Object error = next.error ?? '';
+        // On the login screen a 401 is wrong email/password, not an expired
+        // session — show that instead of the generic "session expired" message.
+        final String message =
+            (error is ApiException && error.statusCode == 401)
+                ? t.errorInvalidCredentials
+                : friendlyError(context, error);
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(content: Text(friendlyError(context, next.error ?? ''))),
-          );
+          ..showSnackBar(SnackBar(content: Text(message)));
       }
     });
 

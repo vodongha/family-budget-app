@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/auth/application/auth_controller.dart';
 import 'config.dart';
 import 'token_storage.dart';
 
@@ -88,6 +89,30 @@ final dioProvider = Provider<Dio>((ref) {
           options.headers['Authorization'] = 'Bearer $token';
         }
         handler.next(options);
+      },
+      onError: (error, handler) async {
+        // A 401 on an authenticated endpoint means our token is expired or no
+        // longer valid. Drop it and reset the session so the router sends the
+        // user back to `/login` to sign in again. Without this the session only
+        // gets re-checked at app startup, so a token that expires mid-session
+        // leaves the user "signed in" but unauthorized — every screen just
+        // shows "session expired" with no way to re-authenticate.
+        //
+        // The auth endpoints are excluded: a 401 from `/auth/login` (or
+        // register/google) is a bad-credentials error, not an expired session —
+        // there is nothing to drop and the screen shows the real reason itself.
+        final int? code = error.response?.statusCode;
+        final String path = error.requestOptions.path;
+        final bool onAuthEndpoint = path.contains('/auth/login') ||
+            path.contains('/auth/register') ||
+            path.contains('/auth/google');
+        if (code == 401 && !onAuthEndpoint) {
+          await storage.clear();
+          // Re-running the auth bootstrap with no token resolves to signed-out
+          // (no network call), which the router observes and redirects to login.
+          ref.invalidate(authControllerProvider);
+        }
+        handler.next(error);
       },
     ),
   );
