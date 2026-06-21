@@ -107,6 +107,7 @@
   "errorNoConnection": "Can't connect to the server. Please check your network and try again.",
   "errorServer": "Something went wrong on our side. Please try again in a moment.",
   "errorSession": "Your session has expired. Please sign in again.",
+  "errorInvalidCredentials": "Incorrect email or password.",
   "errorGeneric": "Something went wrong. Please try again.",
   "somethingWrong": "Something went wrong",
   "developer": "Developer",
