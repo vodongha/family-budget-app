@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/api_client.dart';
 import '../data/auth_repository.dart';
 import '../domain/auth_user.dart';
 
@@ -18,10 +19,18 @@ class AuthController extends AsyncNotifier<AuthUser?> {
     }
     try {
       return await _repo.me();
-    } catch (_) {
-      // Stale/expired token — drop it and start signed out.
-      await _repo.logout();
-      return null;
+    } on ApiException catch (e) {
+      // Only a real 401 means the token is actually rejected — drop it and sign
+      // out. Any other failure (offline, timeout, or the backend waking from
+      // suspend / a 5xx) is transient: keep the token and resume from the last
+      // cached profile so the user isn't logged out by a momentary hiccup. With
+      // no cache, stay signed out for now but keep the token so a later launch
+      // can recover.
+      if (e.statusCode == 401) {
+        await _repo.logout();
+        return null;
+      }
+      return _repo.cachedUser();
     }
   }
 
