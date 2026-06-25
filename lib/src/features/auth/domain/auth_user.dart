@@ -47,4 +47,19 @@ class AuthUser {
       familyName: json['family_name'] as String?,
     );
   }
+
+  /// Round-trips through [AuthUser.fromJson] (same keys as `GET /auth/me`), so a
+  /// cached copy can resume the session when the server is briefly unreachable.
+  Map<String, dynamic> toJson() {
+    return {
+      'rid': rid,
+      'email': email,
+      'display_name': displayName,
+      'phone': phone,
+      'role': role,
+      'has_family': hasFamily,
+      'has_password': hasPassword,
+      'family_name': familyName,
+    };
+  }
 }

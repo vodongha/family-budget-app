@@ -392,6 +392,14 @@ and falls back to debug signing when it's absent (so `flutter run` works without
   PC. Use `10.0.2.2` for the host. iOS simulator and web can use `localhost`.
 - **Derived balances.** After adding a transaction, invalidate wallets + dashboard providers
   or the displayed balances go stale.
+- **Don't drop the token on a transient error.** The JWT is long-lived (10-year server TTL), so a
+  sign-out should only happen on a real **401** (token actually rejected). The auth bootstrap
+  (`AuthController.build`) and the Dio 401 interceptor (`core/api_client.dart`) must keep the token
+  on connection/timeout/5xx failures — the Fly backend auto-suspends, so the first call after idle
+  can be slow/error, and nuking the token there logs the user out spuriously. `AuthRepository`
+  caches the last `/auth/me` (`TokenStorage.writeUser`) so a transient bootstrap failure resumes
+  from cache instead of signing out; a genuinely invalid token still 401s on the next real call and
+  the interceptor clears it then.
 - **Only `android/` is committed.** A fresh clone still needs `flutter create . --platforms=ios,web,windows` to regenerate the other platform folders before running on those targets.
 - **In-app updates only fire for Play-delivered builds.** `InAppUpdate.checkForUpdate()` throws on
   a `flutter run`/sideloaded APK (no Play install context) — that's why `AppUpdateService` swallows

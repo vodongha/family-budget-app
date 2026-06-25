@@ -75,8 +75,11 @@ final dioProvider = Provider<Dio>((ref) {
   final Dio dio = Dio(
     BaseOptions(
       baseUrl: AppConfig.apiBaseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 15),
+      // Generous enough to ride out the backend waking from Fly auto-suspend
+      // (a cold start opens the Oracle pool), so the first call after idle
+      // doesn't time out and spuriously sign the user out.
+      connectTimeout: const Duration(seconds: 20),
+      receiveTimeout: const Duration(seconds: 30),
       contentType: Headers.jsonContentType,
     ),
   );

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -98,9 +100,29 @@ class AuthRepository {
   Future<AuthUser> me() async {
     try {
       final Response<dynamic> res = await _dio.get('/auth/me');
-      return AuthUser.fromJson((res.data as Map).cast<String, dynamic>());
+      final AuthUser user =
+          AuthUser.fromJson((res.data as Map).cast<String, dynamic>());
+      // Cache the fresh profile so a transient failure on the next launch can
+      // resume the session instead of forcing a sign-out.
+      await _storage.writeUser(jsonEncode(user.toJson()));
+      return user;
     } catch (e) {
       throw toApiException(e);
+    }
+  }
+
+  /// The last cached `/auth/me` profile, or null if none / unreadable. Used to
+  /// keep the user signed in when the server can't be reached at startup.
+  Future<AuthUser?> cachedUser() async {
+    final String? raw = await _storage.readUser();
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+    try {
+      return AuthUser.fromJson(
+          (jsonDecode(raw) as Map).cast<String, dynamic>());
+    } catch (_) {
+      return null;
     }
   }
 
