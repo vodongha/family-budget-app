@@ -1,7 +1,7 @@
 name: family_budget_app
 description: Family Budget — multi-member household expense tracker (Flutter client for the family-budget FastAPI backend).
 publish_to: "none"
-version: 1.0.0+16
+version: 1.0.0+17
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
