@@ -145,6 +145,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
         }
         _loading = false;
       });
+      _autoFill();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -152,6 +153,21 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
         _loading = false;
       });
     }
+  }
+
+  /// Keep loading older months until the list is long enough to scroll (or the
+  /// history runs out). Without this, a sparse current month — e.g. right after
+  /// a new month begins — leaves too little content to scroll, so the
+  /// scroll-triggered pagination never fires and older months stay hidden.
+  void _autoFill() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _loading || !_hasMore || _rangeMode) {
+        return;
+      }
+      if (_scroll.hasClients && _scroll.position.maxScrollExtent <= 0) {
+        _loadMore();
+      }
+    });
   }
 
   void _onScroll() {
