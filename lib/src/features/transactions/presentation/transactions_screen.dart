@@ -405,20 +405,26 @@ class _TransactionTile extends StatelessWidget {
     final String sign = inflow ? '+' : '−';
     final String? categoryName = txn.category?.label(t);
 
+    final String? note =
+        (txn.note != null && txn.note!.isNotEmpty) ? txn.note : null;
+    // The date lives in the day header; the subtitle carries the category (or,
+    // for a transfer, its in/out label) and — in family scope — who created it.
+    final List<String> subtitleParts = [];
     final String title;
     if (transfer) {
-      title =
+      final String transferLabel =
           txn.type == TransactionType.transferIn ? t.transferIn : t.transferOut;
+      // Surface the note as the title so a transfer's purpose is visible, and
+      // keep the in/out label in the subtitle. No note → the label is the title.
+      title = note ?? transferLabel;
+      if (note != null) {
+        subtitleParts.add(transferLabel);
+      }
     } else {
-      title = (txn.note == null || txn.note!.isEmpty)
-          ? (categoryName ?? (inflow ? t.income : t.expense))
-          : txn.note!;
-    }
-    // The date now lives in the day header, so the subtitle only carries the
-    // category and (in family scope) who created it.
-    final List<String> subtitleParts = [];
-    if (!transfer && categoryName != null) {
-      subtitleParts.add(categoryName);
+      title = note ?? (categoryName ?? (inflow ? t.income : t.expense));
+      if (categoryName != null) {
+        subtitleParts.add(categoryName);
+      }
     }
     if (showCreator &&
         txn.createdBy != null &&
