@@ -42,10 +42,11 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
       scopes: const ['email', 'profile', 'openid'],
     );
     _sub = _gsi.onCurrentUserChanged.listen(_onAccount);
-    if (kIsWeb) {
-      // Lets GIS restore a previous session and enables the rendered button.
-      unawaited(_gsi.signInSilently());
-    }
+    // NOTE: do not call signInSilently() on web. It auto-restores the previously
+    // used account (signing in without showing the account chooser on first
+    // visit) and, after logout, replays a stale cached ID token that the backend
+    // rejects (401). The GIS rendered button below works without it: a click
+    // opens the account chooser and returns a fresh token via onCurrentUserChanged.
   }
 
   @override
