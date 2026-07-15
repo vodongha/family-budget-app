@@ -192,7 +192,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final AppLocalizations t = AppLocalizations.of(context);
     final AsyncValue<List<Wallet>> wallets =
         ref.watch(walletsControllerProvider);
-    final String currency = _currencyFor(wallets.valueOrNull);
+    final String currency = _currencyFor(wallets.value);
     final bool decimalAmount = Money.decimalsFor(currency) > 0;
 
     // Drop a stale selection if it no longer matches the current kind.

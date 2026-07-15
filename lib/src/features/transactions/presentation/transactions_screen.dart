@@ -536,7 +536,7 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
   Widget build(BuildContext context) {
     final AppLocalizations t = AppLocalizations.of(context);
     final List<Category> cats =
-        ref.watch(categoriesControllerProvider).valueOrNull ?? [];
+        ref.watch(categoriesControllerProvider).value ?? [];
     // Keep a stale category selection from breaking the dropdown.
     if (_categoryRid != null && !cats.any((c) => c.rid == _categoryRid)) {
       _categoryRid = null;
@@ -614,14 +614,14 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                 Expanded(
                   child: FilledButton(
                     onPressed: () {
-                      ref.read(txnFilterProvider.notifier).state = (
+                      ref.read(txnFilterProvider.notifier).set((
                         type: _type,
                         categoryRid: _categoryRid,
                         // Preserve a wallet filter set by tapping a wallet tile.
                         walletRid: ref.read(txnFilterProvider).walletRid,
                         from: _from,
                         to: _to,
-                      );
+                      ));
                       Navigator.pop(context);
                     },
                     child: Text(t.apply),
@@ -631,8 +631,7 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
-                      ref.read(txnFilterProvider.notifier).state =
-                          emptyTxnFilter;
+                      ref.read(txnFilterProvider.notifier).set(emptyTxnFilter);
                       Navigator.pop(context);
                     },
                     child: Text(t.clear),

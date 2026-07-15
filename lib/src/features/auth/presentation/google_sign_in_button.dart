@@ -10,12 +10,29 @@ import '../../../core/config.dart';
 import '../application/auth_controller.dart';
 import 'google/google_render_button.dart';
 
+/// google_sign_in 7.x must be initialized exactly once per process before any
+/// use. The same web client ID is passed as `clientId` on web (configures GIS
+/// directly) and as `serverClientId` on mobile (so the returned ID token's
+/// audience is one the backend accepts). Shared across button mounts.
+Future<void>? _gsiInit;
+Future<void> _ensureGsiInitialized() {
+  return _gsiInit ??= () async {
+    final String id = AppConfig.googleClientId;
+    await GoogleSignIn.instance.initialize(
+      clientId: kIsWeb && id.isNotEmpty ? id : null,
+      serverClientId: !kIsWeb && id.isNotEmpty ? id : null,
+    );
+  }();
+}
+
 /// "Sign in with Google" entry point.
 ///
 /// On **web**, Google Identity Services hands back an ID token only through its
-/// own rendered button, so we show that (`googleRenderButton`). On other
-/// platforms we show a normal button that triggers `signIn()`. Either way, when
-/// an account arrives we pull its ID token and hand it to the backend.
+/// own rendered button (`googleRenderButton`); on other platforms a normal
+/// button triggers `authenticate()`. Either way the ID token arrives via the
+/// `authenticationEvents` stream and is handed to the backend. We never call
+/// `attemptLightweightAuthentication()`, so there is no silent auto-login: the
+/// user always picks an account, and sign-in works again after logout.
 class GoogleSignInButton extends ConsumerStatefulWidget {
   const GoogleSignInButton({super.key});
 
@@ -24,29 +41,27 @@ class GoogleSignInButton extends ConsumerStatefulWidget {
 }
 
 class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
-  late final GoogleSignIn _gsi;
-  StreamSubscription<GoogleSignInAccount?>? _sub;
+  StreamSubscription<GoogleSignInAuthenticationEvent>? _sub;
 
   @override
   void initState() {
     super.initState();
-    // The same web client ID is used on every platform, but in different roles:
-    // on web it configures GIS directly (`clientId`); on mobile the native
-    // OAuth client is matched by package name + SHA-1, and we pass the web ID as
-    // `serverClientId` so the returned ID token's audience is one the backend
-    // accepts. Passing `clientId` on Android instead leaves `idToken` null.
-    final String webClientId = AppConfig.googleClientId;
-    _gsi = GoogleSignIn(
-      clientId: kIsWeb && webClientId.isNotEmpty ? webClientId : null,
-      serverClientId: !kIsWeb && webClientId.isNotEmpty ? webClientId : null,
-      scopes: const ['email', 'profile', 'openid'],
+    unawaited(_start());
+  }
+
+  Future<void> _start() async {
+    try {
+      await _ensureGsiInitialized();
+    } catch (_) {
+      return; // Google not configured / unavailable — button is inert.
+    }
+    if (!mounted) {
+      return;
+    }
+    _sub = GoogleSignIn.instance.authenticationEvents.listen(
+      _onEvent,
+      onError: (_) {}, // a cancelled/failed attempt is not fatal
     );
-    _sub = _gsi.onCurrentUserChanged.listen(_onAccount);
-    // NOTE: do not call signInSilently() on web. It auto-restores the previously
-    // used account (signing in without showing the account chooser on first
-    // visit) and, after logout, replays a stale cached ID token that the backend
-    // rejects (401). The GIS rendered button below works without it: a click
-    // opens the account chooser and returns a fresh token via onCurrentUserChanged.
   }
 
   @override
@@ -55,35 +70,17 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
     super.dispose();
   }
 
-  Future<void> _onAccount(GoogleSignInAccount? account) async {
-    if (account == null) {
+  Future<void> _onEvent(GoogleSignInAuthenticationEvent event) async {
+    if (event is! GoogleSignInAuthenticationEventSignIn) {
       return;
     }
-    try {
-      final GoogleSignInAuthentication auth = await account.authentication;
-      final String? idToken = auth.idToken;
-      if (idToken == null || idToken.isEmpty) {
-        // No usable token — clear the picked account so a retry can re-prompt.
-        await _gsi.signOut();
-        return;
-      }
-      await ref.read(authControllerProvider.notifier).signInWithGoogle(idToken);
-      if (!mounted) {
-        return; // Success: the router has navigated away and disposed us.
-      }
-      // signInWithGoogle swallows failures into the auth state (AsyncValue.guard).
-      // If the exchange failed (e.g. the server was unreachable), Google still
-      // holds the chosen account, so tapping the button again would reuse it
-      // *without* re-firing onCurrentUserChanged — leaving the user stuck. Clear
-      // it so the next tap re-opens the account picker. (The login screen already
-      // surfaces the error via a snackbar.)
-      if (ref.read(authControllerProvider).hasError) {
-        await _gsi.signOut();
-      }
-    } catch (_) {
-      // Fetching the Google token itself failed — reset so a retry works.
-      await _gsi.signOut();
+    final String? idToken = event.user.authentication.idToken;
+    if (idToken == null || idToken.isEmpty) {
+      return;
     }
+    await ref.read(authControllerProvider.notifier).signInWithGoogle(idToken);
+    // signInWithGoogle swallows failures into the auth state; the login screen
+    // surfaces the error via a snackbar and the next button tap re-prompts.
   }
 
   @override
@@ -96,9 +93,6 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
       // lay the real GIS button on top, transparent, to capture the tap.
       return Stack(
         children: [
-          // Visual layer — matches the FilledButton/OutlinedButton geometry
-          // (52 high, 14 radius) from the theme. Ignores pointers so taps fall
-          // through to the GIS button above it.
           IgnorePointer(
             child: OutlinedButton.icon(
               onPressed: () {},
@@ -106,8 +100,6 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
               label: Text(t.continueWithGoogle),
             ),
           ),
-          // Click layer — the real GIS button, stretched to fill and made
-          // invisible (a hair above 0 so the DOM element stays clickable).
           Positioned.fill(
             child: Opacity(
               opacity: 0.01,
@@ -127,7 +119,14 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
       );
     }
     return OutlinedButton.icon(
-      onPressed: () => _gsi.signIn(),
+      onPressed: () async {
+        try {
+          await _ensureGsiInitialized();
+          await GoogleSignIn.instance.authenticate();
+        } catch (_) {
+          // User cancelled the picker or Google is unavailable — ignore.
+        }
+      },
       icon: const _GoogleG(),
       label: Text(t.continueWithGoogle),
     );

@@ -20,7 +20,15 @@ typedef TxnFilter = ({
 const TxnFilter emptyTxnFilter =
     (type: null, categoryRid: null, walletRid: null, from: null, to: null);
 
-final txnFilterProvider = StateProvider<TxnFilter>((ref) => emptyTxnFilter);
+final txnFilterProvider =
+    NotifierProvider<TxnFilterNotifier, TxnFilter>(TxnFilterNotifier.new);
+
+class TxnFilterNotifier extends Notifier<TxnFilter> {
+  @override
+  TxnFilter build() => emptyTxnFilter;
+
+  void set(TxnFilter filter) => state = filter;
+}
 
 /// The recent transaction list. Mutations invalidate the wallets list, the
 /// dashboard summary and the statistics so derived balances stay consistent.

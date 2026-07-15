@@ -23,7 +23,7 @@ class ScopeToggle extends ConsumerWidget {
   ) async {
     if (next == WalletScope.family) {
       final bool hasFamily =
-          ref.read(authControllerProvider).valueOrNull?.hasFamily ?? false;
+          ref.read(authControllerProvider).value?.hasFamily ?? false;
       if (!hasFamily) {
         final bool created = await showCreateFamilyDialog(context, ref);
         if (!created) {
@@ -31,7 +31,7 @@ class ScopeToggle extends ConsumerWidget {
         }
       }
     }
-    ref.read(walletScopeProvider.notifier).state = next;
+    ref.read(walletScopeProvider.notifier).set(next);
   }
 
   @override

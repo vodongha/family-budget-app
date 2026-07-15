@@ -31,7 +31,7 @@ class SettingsScreen extends ConsumerWidget {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final String displayCurrency = ref.watch(displayCurrencyControllerProvider);
     final bool hasPassword =
-        ref.watch(authControllerProvider).valueOrNull?.hasPassword ?? true;
+        ref.watch(authControllerProvider).value?.hasPassword ?? true;
 
     return Scaffold(
       appBar: AppBar(title: Text(t.settings)),

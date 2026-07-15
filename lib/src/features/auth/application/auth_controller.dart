@@ -37,6 +37,7 @@ class AuthController extends AsyncNotifier<AuthUser?> {
   Future<void> login(String email, String password) async {
     // Keep the previous value so the router can tell "logging in" (value
     // present, loading) apart from "bootstrapping" (no value yet → splash).
+    // ignore: invalid_use_of_internal_member
     state = const AsyncValue<AuthUser?>.loading().copyWithPrevious(state);
     state = await AsyncValue.guard(() async {
       await _repo.login(email, password);
@@ -50,6 +51,7 @@ class AuthController extends AsyncNotifier<AuthUser?> {
     required String displayName,
     String? phone,
   }) async {
+    // ignore: invalid_use_of_internal_member
     state = const AsyncValue<AuthUser?>.loading().copyWithPrevious(state);
     state = await AsyncValue.guard(() async {
       await _repo.register(
@@ -66,6 +68,7 @@ class AuthController extends AsyncNotifier<AuthUser?> {
   /// with the new family scope. Throws [ApiException] on failure (e.g. 409 if a
   /// family already exists) — the caller shows it.
   Future<void> createFamily(String name) async {
+    // ignore: invalid_use_of_internal_member
     state = const AsyncValue<AuthUser?>.loading().copyWithPrevious(state);
     state = await AsyncValue.guard(() async {
       await _repo.createFamily(name);
@@ -75,6 +78,7 @@ class AuthController extends AsyncNotifier<AuthUser?> {
 
   /// Sign in with a Google ID token: exchange it for our JWT and load the user.
   Future<void> signInWithGoogle(String idToken) async {
+    // ignore: invalid_use_of_internal_member
     state = const AsyncValue<AuthUser?>.loading().copyWithPrevious(state);
     state = await AsyncValue.guard(() async {
       await _repo.googleLogin(idToken);
@@ -144,5 +148,5 @@ final authControllerProvider =
 
 /// Convenience: are we signed in right now? (false while loading/errored.)
 final isSignedInProvider = Provider<bool>((ref) {
-  return ref.watch(authControllerProvider).valueOrNull != null;
+  return ref.watch(authControllerProvider).value != null;
 });

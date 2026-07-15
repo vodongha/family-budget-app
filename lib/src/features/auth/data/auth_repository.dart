@@ -180,7 +180,7 @@ class AuthRepository {
   Future<void> logout() async {
     await _storage.clear();
     try {
-      await GoogleSignIn().signOut();
+      await GoogleSignIn.instance.signOut();
     } catch (_) {
       // Not signed in with Google, or the plugin is unavailable — ignore.
     }

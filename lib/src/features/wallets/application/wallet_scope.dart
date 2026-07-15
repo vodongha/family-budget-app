@@ -14,6 +14,12 @@ enum WalletScope {
 /// The currently selected scope. Defaults to the **personal** view — a new
 /// account has no family yet, and personal works without one; switching to the
 /// family tab prompts to create a family if there isn't one.
-final walletScopeProvider = StateProvider<WalletScope>(
-  (ref) => WalletScope.personal,
-);
+final walletScopeProvider =
+    NotifierProvider<WalletScopeNotifier, WalletScope>(WalletScopeNotifier.new);
+
+class WalletScopeNotifier extends Notifier<WalletScope> {
+  @override
+  WalletScope build() => WalletScope.personal;
+
+  void set(WalletScope scope) => state = scope;
+}
