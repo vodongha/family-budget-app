@@ -35,13 +35,13 @@ void _openFilteredTransactions(
   TransactionType? type,
   String? walletRid,
 }) {
-  ref.read(txnFilterProvider.notifier).state = (
+  ref.read(txnFilterProvider.notifier).set((
     type: type,
     categoryRid: null,
     walletRid: walletRid,
     from: null,
     to: null,
-  );
+  ));
   context.push('/transactions');
 }
 
@@ -54,7 +54,7 @@ class DashboardScreen extends ConsumerWidget {
     final AsyncValue<DashboardSummary> summary =
         ref.watch(dashboardControllerProvider);
     final String name =
-        ref.watch(authControllerProvider).valueOrNull?.displayName ?? '';
+        ref.watch(authControllerProvider).value?.displayName ?? '';
 
     return Scaffold(
       appBar: AppBar(
@@ -329,14 +329,14 @@ class _HubCell extends ConsumerWidget {
       onTap: () async {
         if (item.familyOnly) {
           final bool hasFamily =
-              ref.read(authControllerProvider).valueOrNull?.hasFamily ?? false;
+              ref.read(authControllerProvider).value?.hasFamily ?? false;
           if (!hasFamily) {
             await showCreateFamilyDialog(context, ref);
             return;
           }
         }
         if (item.clearFilter) {
-          ref.read(txnFilterProvider.notifier).state = emptyTxnFilter;
+          ref.read(txnFilterProvider.notifier).set(emptyTxnFilter);
         }
         if (context.mounted) {
           context.push(item.route);
@@ -581,7 +581,7 @@ class _HeroRateBadgeState extends ConsumerState<_HeroRateBadge> {
     final AppLocalizations t = AppLocalizations.of(context);
     final Color fg = cs.onPrimary;
     final DateTime? updated =
-        ref.watch(ratesInfoProvider).valueOrNull?.updatedAt;
+        ref.watch(ratesInfoProvider).value?.updatedAt;
     return Row(
       // Fill the space the parent Expanded gives us and hug the right edge, so
       // the timestamp sits next to the refresh button regardless of width.
@@ -640,7 +640,7 @@ class _WalletTile extends ConsumerWidget {
     final AppLocalizations t = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
     final bool isOwner =
-        ref.watch(authControllerProvider).valueOrNull?.isOwner ?? false;
+        ref.watch(authControllerProvider).value?.isOwner ?? false;
     // A personal wallet is private to its owner (who is the only one seeing it),
     // so they may edit/delete it; a shared family wallet by the family owner or
     // the member who created it.

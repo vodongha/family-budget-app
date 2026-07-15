@@ -80,7 +80,7 @@ class BudgetsScreen extends ConsumerWidget {
   Future<void> _addBudget(
       BuildContext context, WidgetRef ref, AppLocalizations t) async {
     final messenger = ScaffoldMessenger.of(context);
-    final budgeted = (ref.read(budgetsControllerProvider).valueOrNull ?? [])
+    final budgeted = (ref.read(budgetsControllerProvider).value ?? [])
         .map((b) => b.category.rid)
         .toSet();
     // Categories load asynchronously â€” wait for them so we don't mistake a

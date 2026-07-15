@@ -58,7 +58,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations t = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
-    final AuthUser? user = ref.watch(authControllerProvider).valueOrNull;
+    final AuthUser? user = ref.watch(authControllerProvider).value;
 
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));

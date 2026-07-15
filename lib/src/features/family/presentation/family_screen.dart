@@ -20,7 +20,7 @@ class FamilyScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations t = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
-    final AuthUser? user = ref.watch(authControllerProvider).valueOrNull;
+    final AuthUser? user = ref.watch(authControllerProvider).value;
 
     if (user == null || !user.hasFamily) {
       return Scaffold(
@@ -182,7 +182,7 @@ class FamilyScreen extends ConsumerWidget {
     final router = GoRouter.of(context);
     try {
       await ref.read(authControllerProvider.notifier).leaveFamily();
-      ref.read(walletScopeProvider.notifier).state = WalletScope.personal;
+      ref.read(walletScopeProvider.notifier).set(WalletScope.personal);
       router.go('/');
     } catch (e) {
       if (context.mounted) {
@@ -206,7 +206,7 @@ class FamilyScreen extends ConsumerWidget {
     final router = GoRouter.of(context);
     try {
       await ref.read(authControllerProvider.notifier).deleteFamily();
-      ref.read(walletScopeProvider.notifier).state = WalletScope.personal;
+      ref.read(walletScopeProvider.notifier).set(WalletScope.personal);
       router.go('/');
     } catch (e) {
       if (context.mounted) {

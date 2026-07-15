@@ -58,7 +58,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return at == '/splash' ? null : '/splash';
       }
 
-      final AuthUser? user = auth.valueOrNull;
+      final AuthUser? user = auth.value;
       final bool signedIn = user != null;
       // The invite landing page is public (the invitee registers there).
       final bool onInvite = at.startsWith('/invite');

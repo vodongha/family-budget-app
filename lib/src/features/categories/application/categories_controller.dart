@@ -58,6 +58,6 @@ final categoriesControllerProvider =
 /// Categories filtered to one kind (`expense`/`income`) for the picker.
 final categoriesByKindProvider =
     Provider.family<List<Category>, String>((ref, kind) {
-  final cats = ref.watch(categoriesControllerProvider).valueOrNull ?? [];
+  final cats = ref.watch(categoriesControllerProvider).value ?? [];
   return cats.where((c) => c.kind == kind && !c.isArchived).toList();
 });

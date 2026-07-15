@@ -88,7 +88,7 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
       } else {
         // No family â†’ only a personal wallet is possible.
         final bool hasFamily =
-            ref.read(authControllerProvider).valueOrNull?.hasFamily ?? false;
+            ref.read(authControllerProvider).value?.hasFamily ?? false;
         final bool personal = _personal || !hasFamily;
         await notifier.create(
           name,
@@ -117,7 +117,7 @@ class _WalletEditSheetState extends ConsumerState<_WalletEditSheet> {
     final ColorScheme cs = Theme.of(context).colorScheme;
     // Without a family there's no "shared" option â€” only personal wallets.
     final bool hasFamily =
-        ref.watch(authControllerProvider).valueOrNull?.hasFamily ?? false;
+        ref.watch(authControllerProvider).value?.hasFamily ?? false;
     final bool showVisibility = !_isEdit && hasFamily;
     // Scrollable so the Save button is always reachable even when the sheet is
     // taller than the viewport (e.g. a short window on web). Width-capped and

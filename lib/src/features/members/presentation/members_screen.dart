@@ -22,7 +22,7 @@ class MembersScreen extends ConsumerWidget {
     final AppLocalizations t = AppLocalizations.of(context);
     final members = ref.watch(membersControllerProvider);
     final bool amOwner =
-        ref.watch(authControllerProvider).valueOrNull?.isOwner ?? false;
+        ref.watch(authControllerProvider).value?.isOwner ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -154,7 +154,7 @@ class MembersScreen extends ConsumerWidget {
     }
     try {
       await ref.read(authControllerProvider.notifier).leaveFamily();
-      ref.read(walletScopeProvider.notifier).state = WalletScope.personal;
+      ref.read(walletScopeProvider.notifier).set(WalletScope.personal);
       router.go('/');
     } catch (e) {
       if (context.mounted) {

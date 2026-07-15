@@ -1,7 +1,7 @@
 name: family_budget_app
 description: Family Budget — multi-member household expense tracker (Flutter client for the family-budget FastAPI backend).
 publish_to: "none"
-version: 1.0.0+20
+version: 1.0.0+21
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -14,35 +14,35 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   # State management — mirrors the backend's service layer on the client.
-  flutter_riverpod: ^2.6.1
+  flutter_riverpod: ^3.3.2
   # HTTP — talks to the FastAPI backend; one configured Dio with an auth interceptor.
-  dio: ^5.7.0
+  dio: ^5.10.0
   # Declarative routing with an auth-aware redirect guard.
-  go_router: ^14.6.2
+  go_router: ^17.3.0
   # JWT is stored encrypted at rest (Keychain / Keystore), never in plain prefs.
-  flutter_secure_storage: ^9.2.2
+  flutter_secure_storage: ^10.3.1
   # Money + date formatting. Amounts are integer đồng — formatted, never parsed as float.
   intl: any
   # Persists the chosen language (and other simple prefs).
-  shared_preferences: ^2.3.3
+  shared_preferences: ^2.5.5
   # Sign in with Google (web uses Google Identity Services).
-  google_sign_in: ^6.2.1
+  google_sign_in: ^7.2.0
   # Web-only: renderButton() for the GIS button (imported directly on web).
   google_sign_in_web: any
   # App version (shown in Settings / About).
-  package_info_plus: ^8.1.1
+  package_info_plus: ^10.2.0
   # Opening the publisher website.
-  url_launcher: ^6.3.1
+  url_launcher: ^6.3.2
   # In-app WebView for the privacy policy (Android/iOS); web uses an iframe.
-  webview_flutter: ^4.10.0
+  webview_flutter: ^4.14.1
   # Google Play In-App Updates (Play Core) — prompts to update when a newer
   # build is live on Play. Android + Play installs only; a no-op elsewhere.
-  in_app_update: ^4.2.3
+  in_app_update: ^5.0.0
   # DOM interop for the web iframe fallback (HTMLIFrameElement).
-  web: ^1.1.0
+  web: ^1.1.1
   # Charts on the statistics screen.
-  fl_chart: ^0.69.2
-  phone_form_field: ^10.0.17
+  fl_chart: ^1.2.0
+  phone_form_field: ^10.0.18
   table_calendar: ^3.2.0
 
 dev_dependencies:
@@ -51,7 +51,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   # Generates the Android launcher icons from assets/icon/. Run with:
   #   dart run flutter_launcher_icons
-  flutter_launcher_icons: ^0.14.1
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
